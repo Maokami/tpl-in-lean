@@ -36,6 +36,9 @@ jobs:
       - name: Answers 검증
         run: lake exe grade --answers
 
+      - name: 린터
+        run: lake lint
+
       - name: ANCHOR · 태그 정합성
         run: ./scripts/check-anchors.sh
 

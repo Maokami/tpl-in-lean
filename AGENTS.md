@@ -359,17 +359,21 @@ theorem substitution_assert … := by
 작업을 "끝났다"고 말하기 전에 **전부** 통과해야 한다.
 
 ```bash
-lake build --wfail --iofail   # CI 엄격도. Answers 경고 0, 에러 0
-lake test                     # #guard 단위 테스트
-lake lint                     # 환경 린터
-lake exe lint-style           # 텍스트 스타일 린터
-lake exe mk_all --check       # 루트 모듈이 모든 파일을 import하는지
-lake exe grade --answers      # Answers sorry-free · 불법 공리 없음
-lake exe grade --chapter N    # 손댄 장의 Exercises 상태 확인
-./scripts/check-anchors.sh    # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치
+lake build --wfail --iofail ReynoldsTests   # 엄격 모드 — Answers + 테스트, 경고 0
+lake build                                  # 전체 (Exercises 의 sorry 경고 허용)
+lake test                                   # #guard 단위 테스트
+lake lint                                   # 환경 린터 (docBlame 등)
+lake exe grade --answers                    # Answers sorry-free · 불법 공리 없음
+lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확인
+./scripts/check-anchors.sh                  # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치
 ```
 
-새 파일을 추가했으면 `lake exe mk_all`로 루트 모듈을 갱신한다 (CSlib와 동일한 규칙).
+> **엄격 모드에 왜 `ReynoldsTests` 를 넣나**: `Exercises` 트리는 **의도적으로** `sorry` 를
+> 갖고 있어서 `--wfail` 을 전체에 걸면 항상 실패한다. `ReynoldsTests` 는 `Answers` 만
+> import 하므로, 이 타겟을 엄격 빌드하면 **Answers 전체 + 테스트**가 경고 0 인지 검사된다.
+
+새 파일을 추가하면 루트 모듈 `Reynolds.lean` 에 `public import` 를 한 줄 더한다.
+`emit_exercise_registry` 호출은 **반드시 파일 맨 아래**여야 한다.
 
 문서를 건드렸으면 추가로:
 ```bash
