@@ -7,6 +7,7 @@ module
 
 public import Reynolds.Exercises.Ch01.Syntax
 public import Reynolds.Exercises.Ch01.Semantics
+public import Reynolds.Exercises.Ch01.Validity
 public import Reynolds.Exercises.Ch01.FreeVars
 public import Reynolds.Exercises.Ch01.Background
 public import Reynolds.Exercises.Ch01.Depth.Algebra
@@ -18,6 +19,7 @@ public import Reynolds.Exercises.Ch01.Depth.Algebra
 1. `Background.lean` — **먼저 읽어라.** 책이 가정하고 넘어가는 것 (메타/객체 구분)
 2. `Syntax.lean` — §1.1 추상 구문
 3. `Semantics.lean` — §1.2 표시적 의미론
-4. `FreeVars.lean` — §1.4 자유 변수와 일치 정리
-5. `Depth/Algebra.lean` — 심화 A (선택). 의미론이 왜 유일한가
+4. `Validity.lean` — §1.3 타당성과 추론, 건전성
+5. `FreeVars.lean` — §1.4 자유 변수와 일치 정리
+6. `Depth/Algebra.lean` — 심화 A (선택). 의미론이 왜 유일한가
 -/
