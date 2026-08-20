@@ -12,11 +12,11 @@ public import Cslib.Foundations.Syntax.HasAlphaEquiv
 /-!
 # CSlib 재수출 층 (churn 방어벽)
 
-CSlib에서 **우리가 실제로 쓰는 것만** 골라 이 파일 하나로 모은다.
+CSlib 에서 실제로 쓰는 것만 골라 이 파일 하나로 모은다.
 
-CSlib는 아직 젊은 라이브러리이고 `ORGANISATION.md`가 스스로
+CSlib 는 아직 젊은 라이브러리이고 `ORGANISATION.md` 가 스스로
 *"still under active discussion and is subject to change"* 라고 밝힌다.
-이름이나 경로가 바뀌면 저장소 전체를 고치는 대신 **이 파일만** 고치면 된다.
+이름이나 경로가 바뀌면 저장소 전체가 아니라 이 파일만 고치면 된다.
 
 ## 여기서 끌어오는 것
 
