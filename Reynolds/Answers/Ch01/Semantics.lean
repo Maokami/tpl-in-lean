@@ -36,7 +36,6 @@ open Reynolds
 
 universe u
 
--- ANCHOR: denote
 /--
 연산자 기호가 실제로 무슨 함수인가.
 
@@ -48,6 +47,7 @@ In particular, division by zero must produce some integer result."* 라고 못�
 Lean의 `Int` 나눗셈은 `x / 0 = 0`, `x % 0 = x` 다. 우리는 이 규약을 쓴다.
 §2.7에서 "어떤 규약을 쓰든 성립하는 등식들"을 증명하며 이 선택이 정말 무관함을 확인한다.
 -/
+-- ANCHOR: denote
 def IntOp.denote : IntOp → Int → Int → Int
   | .add, a, b => a + b
   | .sub, a, b => a - b

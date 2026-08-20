@@ -846,18 +846,65 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 5. **애트리뷰트 3중 제약** — `initialize` 모듈 분리 · `public initialize` · `public meta import`.
    → §5.2.1에 정리.
 
-### 10.3 아직 미검증 (스캐폴딩 시 확인)
+### 10.3 M0 스캐폴딩에서 추가로 검증한 것
 
-1. **`linter.missingDocs`** — Lake `leanOptions`에서 켰을 때 Mathlib/CSlib import 경유로 오탐이 나는지.
-2. **Verso `verso.exampleProject ".."`** — 상위 디렉터리(=루트 패키지)를 가리키는 것이
-   템플릿의 형제 디렉터리 방식과 동일하게 동작하는지. 안 되면 코드 패키지를
-   `code/` 하위로 내려 형제 배치로 바꾼다.
-3. **모듈 시스템 + SubVerso ANCHOR** — 모듈 파일에서도 앵커 추출이 정상 동작하는지.
-4. **`Part.fix` vs 자체 `lfp`** — 2장을 자체 구축으로 갈 때 Mathlib의 Pi 순서 인스턴스와
-   우리 평평한 순서 인스턴스가 충돌하지 않는지 (`State V = V → Int`에 이미
-   Pi 순서 인스턴스가 있다 → 타입 동의어로 감싸야 한다).
-5. **`lake exe mk_all` / `lint-style` / `shake`** — 이들은 Mathlib이 제공하는 실행 파일이다.
-   우리 패키지에서 그대로 부를 수 있는지, 아니면 CSlib처럼 스크립트를 복제해야 하는지.
+| 항목 | 결과 |
+|---|---|
+| `lake lint` (`lintDriver = "batteries/runLinter"`) | ✅ 동작. `docBlame` 이 자동 생성 선언의 docstring 누락까지 잡는다 |
+| **Verso `verso.exampleProject ".."`** — 루트를 상위로 가리키기 | ✅ 동작. 형제 디렉터리로 옮길 필요 없다 |
+| **모듈 시스템 파일에서 SubVerso ANCHOR 추출** | ✅ 동작 |
+| SubVerso 리비전 일치 (루트 `verso-v4.33.0` ↔ manual 전이 의존) | ✅ 둘 다 `3a75ede0…` |
+| **문서-코드 동기화 강제** | ✅ 앵커 블록이 소스와 다르면 **문서 빌드가 실패**하고, 올바른 내용을 오류 메시지로 알려 준다 |
+| `lake exe grade` 전 모드 (`--chapter` / `--answers` / `--json`) | ✅ |
+| CI 게이트 구성 | ✅ (§10.4) |
+
+### 10.4 M0 에서 드러난 함정 (전부 실측)
+
+1. **★ 런타임 실행 파일은 `meta` 선언을 참조할 수 없다.**
+   ```
+   error: Invalid definition `collect`, may not access declaration `exerciseExt` marked as `meta`
+   ```
+   그런데 애트리뷰트(환경 확장)는 컴파일 시점에 동작해야 하므로 **반드시 `meta`** 여야 한다.
+   → **해법**: `emit_exercise_registry` 커맨드가 컴파일 시점에 애트리뷰트를 읽어
+   평범한 `def` 로 굳힌다. `Grade` 는 그 `def` 를 읽는다.
+   이름은 `Name` 이 아니라 `String` 으로 담는다(인용이 안전하다). 읽는 쪽에서 `String.toName`.
+
+2. **`meta` 코드는 `meta` 인스턴스만 본다.**
+   `deriving Inhabited` 로 만든 인스턴스는 `meta` 문맥에서 안 보인다 →
+   `meta instance : Inhabited ExerciseInfo := …` 를 따로 준다.
+
+3. **`--wfail` 을 전체에 걸면 안 된다.** `Exercises` 는 의도적으로 `sorry` 를 갖는다.
+   → 엄격 게이트는 **`lake build --wfail --iofail ReynoldsTests`**.
+   `ReynoldsTests` 가 `Answers` 만 import 하므로 이 한 줄로 Answers 전체 + 테스트가 검사된다.
+
+4. **`#guard` 는 컴파일 시점에 계산한다** → 테스트 모듈에 `public meta import` 가 필요하다.
+   그리고 Mathlib 의 `hashCommand` 린터가 `#`-커맨드를 막으므로 테스트 lib 에서만 끈다.
+
+5. **Verso 마크업은 `*굵게*`, `_강조_`** 다. `**굵게**` 는 오류다.
+
+6. **`{docstring Foo}` 는 매뉴얼 패키지 환경의 상수만 가리킨다.**
+   우리 라이브러리는 별도 패키지라 import 되지 않으므로 쓸 수 없다 → `anchor` 로만 인용한다.
+
+7. **한국어 절 제목은 URL 슬러그가 `____________` 로 뭉개진다.** (기능에는 영향 없음)
+   절마다 `%%% tag := "why-lean" %%%` 를 달아 두면 `find/?tag=…` 로 안정적인 상호 참조가 된다.
+   슬러그 자체는 화장품이므로 감수한다.
+
+8. **`Lean.addDocString` 은 `Syntax` 를 받는다.** 문자열로 붙이려면 `addDocStringCore`.
+
+9. **`/-- … -/` docstring 은 선언에만 붙는다.** `#eval`·`#guard`·커스텀 커맨드 앞에서는
+   파서 오류가 난다. `--` 를 쓴다. (M0 동안 세 번 밟았다.)
+
+10. **한글은 Lean 식별자로 쓸 수 없다.** `section 추상구문조건` → 파서 오류.
+    이름은 ASCII, 설명은 한국어.
+
+### 10.5 아직 미검증
+
+1. **`Part.fix` vs 자체 `lfp`** — 2장을 자체 구축으로 갈 때 Mathlib 의 Pi 순서 인스턴스와
+   우리 평평한 순서 인스턴스가 충돌하지 않는지 (`State V = V → Int` 에 이미
+   Pi 순서 인스턴스가 있다 → 타입 동의어로 감싸야 한다). **M2 에서 확인.**
+2. **`lake exe mk_all` / `lint-style` / `shake`** — Mathlib 이 제공하는 실행 파일을
+   우리 패키지에서 그대로 부를 수 있는지. 현재는 루트 모듈을 손으로 관리한다.
+3. **Codex GitHub 리뷰** — 저장소를 GitHub 에 올린 뒤 플랜에서 실제로 붙는지.
 
 ---
 

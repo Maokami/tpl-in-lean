@@ -48,8 +48,8 @@ namespace Reynolds.Answers.Ch01
 
 universe u
 
--- ANCHOR: IntOp
 /-- 이항 정수 연산자. Reynolds §1.1의 `+  -  ×  ÷  rem`. -/
+-- ANCHOR: IntOp
 inductive IntOp where
   /-- 덧셈 `+`. -/
   | add
@@ -64,13 +64,13 @@ inductive IntOp where
   deriving DecidableEq, Repr
 -- ANCHOR_END: IntOp
 
--- ANCHOR: IntExp
 /--
 정수 식(integer expression). Reynolds §1.1의 ⟨intexp⟩.
 
 변수 타입 `V`는 고정하지 않는다 — Reynolds가 ⟨var⟩를 "표현이 지정되지 않은
 가산 무한 집합"으로 두는 것과 같은 이유다. 자세한 논의는 `Reynolds.Prelude`.
 -/
+-- ANCHOR: IntExp
 inductive IntExp (V : Type u) where
   /-- 정수 상수. Reynolds의 `c₀, c₁, c₂, …`. -/
   | num : Int → IntExp V

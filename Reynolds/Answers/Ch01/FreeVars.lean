@@ -40,13 +40,13 @@ universe u
 
 variable {V : Type u} [DecidableEq V]
 
--- ANCHOR: fv
 /--
 `FV_intexp(e)` — 정수 식에 자유롭게 나타나는 변수. Reynolds §1.4.
 
 정수 식에는 결합자(binder)가 없으므로 "자유"라는 말이 아직 의미를 갖지 않는다.
 §1.4의 `Assert`에서 `∀v. p`가 들어오면서 비로소 자유/속박 구분이 생긴다.
 -/
+-- ANCHOR: fv
 def IntExp.fv : IntExp V → Finset V
   | .num _       => ∅
   | .var v       => {v}
@@ -54,7 +54,6 @@ def IntExp.fv : IntExp V → Finset V
   | .bin _ e₀ e₁ => e₀.fv ∪ e₁.fv
 -- ANCHOR_END: fv
 
--- ANCHOR: coincidence
 /--
 **명제 1.1 (일치 정리, coincidence theorem)** — 정수 식 판.
 
@@ -68,6 +67,7 @@ def IntExp.fv : IntExp V → Finset V
 `Assert`의 양화사 케이스에서는 귀납 가설을 **원래 상태가 아니라 갱신된 상태**
 `σ[v := n]`, `σ'[v := n]` 에 적용해야 한다. 그때 이 일반화가 없으면 증명이 막힌다.
 -/
+-- ANCHOR: coincidence
 @[exercise "Prop 1.1a" 2]
 theorem coincidence_intExp :
     ∀ (e : IntExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' := by
