@@ -16,29 +16,29 @@ Reynolds §1.3 (pp. 12–15) 에 대응한다.
 ## 이 파일에서 다루는 것
 - 타당(valid) · 충족 불가능(unsatisfiable) · 강함/약함 · 동치
 - 추론 규칙과 형식 증명
-- **건전성(soundness)** — 증명된 것은 타당하다
-- ★ 추론(inference)과 함의(⇒)를 헷갈리면 안 되는 이유
+- 건전성(soundness) — 증명된 것은 타당하다
+- 추론과 함의를 구분해야 하는 이유
 
-## 핵심 아이디어
+## 배경
 
-단언 하나만으로는 참·거짓이 없다. **상태가 있어야** 정해진다 (`Background.lean` §4).
-그래서 "참이다"에 단계가 생긴다:
+단언 하나만으로는 진리값이 없고 상태가 있어야 정해진다(`Background.lean` §4).
+그래서 "참이다" 가 세 갈래로 나뉜다.
 
 * `σ` 에서 참 — `⟦p⟧ₐ σ`
-* **타당(valid)** — 모든 `σ` 에서 참
-* **충족 불가능** — 어떤 `σ` 에서도 거짓
+* 타당(valid) — 모든 `σ` 에서 참
+* 충족 불가능(unsatisfiable) — 어떤 `σ` 에서도 거짓
 
-**증명의 각 단계는 타당해야 한다.** `x > 0` 은 증명 단계가 될 수 없다 —
-`x ↦ 0` 인 상태에서 거짓이기 때문이다. Reynolds 가 직접 경고하는 대목이고,
-이 파일의 마지막 두 정리가 그것을 형식적으로 못박는다.
+증명의 각 단계는 이 중 타당이어야 한다. `x > 0` 은 `x ↦ 0` 인 상태에서 거짓이므로
+증명 단계가 될 수 없다. §4 의 두 정리가 이 구분을 형식으로 옮긴 것이다.
 
 ## 읽는 순서
 `Semantics.lean` → 이 파일 → `Substitution.lean`
 
 ## 책과의 차이
-Reynolds 는 완전한 추론 체계를 주지 않는다 (*"consult any elementary text on logic"*).
-그의 목적은 개념의 예시다. 우리도 §1.3 에 나오는 규칙들만으로 **작은 체계**를 만들고
-건전성을 증명한다. 완전성(completeness)은 다루지 않는다 — 그가 다루지 않기 때문이다.
+Reynolds 는 완전한 추론 체계를 주지 않고 논리학 교과서를 보라고 한다
+(*"consult any elementary text on logic"*). 개념을 보이는 것이 목적이기 때문이다.
+여기서도 §1.3 에 나오는 규칙만으로 작은 체계를 만들고 건전성까지만 증명한다.
+완전성(completeness)은 범위 밖이다.
 -/
 
 @[expose] public section
@@ -62,11 +62,12 @@ def Unsat (p : Assert V) : Prop := ∀ σ : State V, ¬ ⟦p⟧ₐ σ
 /--
 `p` 가 `q` 보다 **강하다(stronger)**. `q` 는 `p` 보다 **약하다(weaker)**.
 
-Reynolds 가 곧바로 경고하듯 이 용어는 영어 어감과 잘 맞지 않는다:
-*"'stronger' and 'weaker' are dual preorders, which does not quite jibe with normal
-English usage. For example, any assertion is both stronger and weaker than itself."*
+Reynolds 가 곧바로 붙이는 단서가 있다.
 
-즉 **전순서(preorder)** 이지 순서(order)가 아니다 — 반대칭성이 없다.
+> *"'stronger' and 'weaker' are dual preorders, which does not quite jibe with normal
+> English usage. For example, any assertion is both stronger and weaker than itself."*
+
+전순서(preorder)라서 반대칭성이 없다. 어떤 단언이든 자기 자신보다 강하면서 동시에 약하다.
 -/
 def Stronger (p q : Assert V) : Prop := ∀ σ : State V, ⟦p⟧ₐ σ → ⟦q⟧ₐ σ
 
@@ -105,18 +106,18 @@ Reynolds §1.3 은 **추론 규칙(inference rule)** 을 이렇게 정의한다:
 전제(premiss) 0개 이상과 결론(conclusion) 하나. 가로선으로 구분한다.
 전제가 없으면 **공리꼴(axiom schema)**, 메타변수도 없으면 그냥 **공리(axiom)**.
 
-Lean 에서는 이것이 `inductive` 다. **각 생성자가 규칙 하나**이고,
-화살표의 왼쪽이 전제, 오른쪽이 결론이다 — Reynolds 의 가로선과 정확히 대응한다.
+Lean 에서는 `inductive` 가 그 역할을 한다. 생성자 하나가 규칙 하나이고,
+화살표 왼쪽이 전제, 오른쪽이 결론이다. Reynolds 의 가로선과 자리가 같다.
 
-그리고 `Proof p` 의 값 하나가 곧 **증명 나무(proof tree)** 다.
-Reynolds 가 *"proof trees are more perspicuous than sequences"* 라고 말하는 그 나무를
-Lean 에서는 실제로 만들고 뜯어볼 수 있다. -/
+`Proof p` 의 값 하나가 증명 나무(proof tree)에 해당한다.
+Reynolds 는 *"proof trees are more perspicuous than sequences"* 라고 하면서도
+조판 문제로 나무 대신 열(sequence)을 쓴다고 적는데, Lean 에서는 나무 쪽이 기본이다. -/
 
 /--
 술어 논리의 작은 추론 체계. Reynolds §1.3 이 예시로 드는 규칙들이다.
 
-**완전하지 않다.** 그럴 의도도 없다 — Reynolds 본인이 완전한 체계는
-논리학 교과서를 보라고 한다. 목적은 "추론 규칙"과 "건전성"이 무엇인지 보이는 것이다.
+완전한 체계가 아니고 그럴 의도도 없다. 추론 규칙과 건전성이 무엇인지 보이는 데 필요한
+최소한만 담았다.
 -/
 inductive Proof : Assert V → Prop where
   /-- 공리꼴: `e = e`. -/
@@ -128,35 +129,32 @@ inductive Proof : Assert V → Prop where
   /-- 두 전제 규칙 — 연언 도입. -/
   | andIntro {p q : Assert V} : Proof p → Proof q → Proof (.bin .and p q)
   /--
-  ★ **보편 일반화(∀-도입).**
+  보편 일반화(∀-도입).
 
-  전제가 **타당**해야 결론이 타당하다는 점이 핵심이다. 아래 §3 에서 이 규칙과
-  함의 `p ⇒ ∀v. p` 를 나란히 놓고 왜 다른지 본다.
+  전제가 타당할 때만 결론이 타당해진다. §4 에서 이 규칙과 함의 `p ⇒ ∀v. p` 를
+  나란히 놓고 비교한다.
   -/
   | genAll (v : V) {p : Assert V} : Proof p → Proof (.quant .all v p)
 
-/-! ## 3. ★ 건전성 (soundness) -/
+/-! ## 3. 건전성 -/
 
 /--
-**건전성(soundness)** — 증명된 것은 타당하다.
+건전성(soundness). 증명된 것은 타당하다.
 
-Reynolds §1.3:
 > *"the whole point of the concept of proof is its connection with semantics:
-> If there is a proof of an assertion p, then p should be valid."*
+> If there is a proof of an assertion p, then p should be valid."* (§1.3)
 
-증명은 `Proof` 에 대한 귀납법이다. **각 케이스가 "이 규칙이 건전하다"에 해당한다** —
-즉 규칙 하나하나를 따로 검사하면 체계 전체의 건전성이 나온다.
-이것이 형식 체계를 이런 식으로 짜는 이유다.
+`Proof` 에 대한 귀납법으로 증명한다. 케이스 하나가 규칙 하나의 건전성에 대응하므로,
+규칙을 따로따로 검사하면 체계 전체가 따라온다.
 -/
 @[exercise "§1.3 건전성" 2]
 theorem Proof.sound {p : Assert V} : Proof p → Valid p := by
-  -- 힌트: `Proof` 에 대한 귀납법. 각 케이스가 "이 규칙이 건전하다" 하나에 해당한다.
-  -- `genAll` 케이스가 §4 의 논점과 직결된다 — 전제가 **타당**하다는 것이 무엇을 주는지 보라.
+  -- 힌트: `Proof` 에 대한 귀납법. 케이스 하나가 규칙 하나의 건전성에 대응한다.
   sorry
 
-/-! ## 4. ★ 추론과 함의는 다르다
+/-! ## 4. 추론과 함의
 
-Reynolds 가 §1.3 에서 한 페이지를 들여 경고하는 논점이다. 두 정리를 나란히 놓는다.
+Reynolds 가 §1.3 에서 한 페이지를 들여 다루는 대목이다. 두 정리를 나란히 둔다.
 
 ```
         p                                    ─────────────
@@ -164,30 +162,28 @@ Reynolds 가 §1.3 에서 한 페이지를 들여 경고하는 논점이다. 두
       ∀v. p
 ```
 
-**가로선(추론)과 화살표(함의)는 다른 것이다.**
-가로선은 "타당한 것으로부터 타당한 것을 얻는다"이고,
-화살표는 "**한 상태 안에서** 앞이 참이면 뒤도 참"이다. -/
+가로선은 타당한 것에서 타당한 것을 얻는다는 뜻이고,
+화살표는 한 상태 안에서 앞이 참이면 뒤도 참이라는 뜻이다. 범위가 다르다. -/
 
-/-- **건전한 규칙**: `p` 가 **타당하면** `∀v. p` 도 타당하다. -/
+/-- 규칙 쪽. `p` 가 타당하면 `∀v. p` 도 타당하다. -/
 @[exercise "§1.3 gen-sound" 1]
 theorem valid_forall_of_valid (v : V) {p : Assert V} (h : Valid p) :
     Valid (.quant .all v p) := by
   sorry
 
 /--
-**타당하지 않은 함의**: `x > 0 ⇒ ∀x. x > 0`.
+함의 쪽. `x > 0 ⇒ ∀x. x > 0` 은 타당하지 않다.
 
-Reynolds 의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서
-왼쪽 `x > 0` 은 참인데 오른쪽 `∀x. x > 0` 은 (`x ↦ 0` 을 넣으면) 거짓이다.
+Reynolds 의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서 왼쪽은 참이고,
+오른쪽은 `x` 에 0 을 넣으면 거짓이다.
 
-**같은 재료로 만든 규칙은 건전하고 함의는 타당하지 않다.** 이 대비가 §1.3 의 요점이다.
+같은 재료로 만든 규칙(위)과 함의(여기)의 판정이 갈린다.
 -/
 @[exercise "§1.3 gen-not-imp" 2]
 theorem not_valid_imp_forall :
     ¬ Valid (.bin .imp (.cmp .gt (.var "x") (.num 0))
                        (.quant .all "x" (.cmp .gt (.var "x") (.num 0))) : Assert String) := by
-  -- 힌트: 반례를 잡아야 한다. `x ↦ 3` 인 상태에서 왼쪽은 참이고,
-  -- 오른쪽은 `n = 0` 을 넣으면 거짓이다.
+  -- 힌트: 반례를 잡는다. `x ↦ 3` 인 상태에서 왼쪽은 참이고, 오른쪽은 0 을 넣으면 거짓이다.
   sorry
 
 /-! ## 5. 이 책이 다루지 않는 것
@@ -197,15 +193,13 @@ Reynolds 는 §1.3 을 이렇게 닫는다.
 **논리적 타당성(logical validity)** — 표현식 연산의 의미까지 임의로 바꿔도 성립하는 것.
 **완전성(completeness)** — 건전성의 역. 타당한 것은 모두 증명된다.
 
-우리처럼 타당성을 "정수에 대한 고정된 해석"으로 정의하면
-**어떤 유한한 추론 규칙 집합도 완전하지 않다** — 괴델의 불완전성 정리다.
-논리적 타당성으로 정의하면 완전한 유한 체계가 존재한다 (괴델의 완전성 정리).
+여기서처럼 타당성을 정수에 대한 고정된 해석으로 정의하면 어떤 유한한 규칙 집합도
+완전하지 않다(괴델의 불완전성 정리). 논리적 타당성으로 정의하면 완전한 유한 체계가 있다
+(괴델의 완전성 정리).
 
-그런데 Reynolds가 지적하듯, 프로그램 검증에서는 논리적 완전성이 별 쓸모가 없다.
-우리는 `+` 가 정말 덧셈인 해석에만 관심이 있기 때문이다.
-(예외는 §3.8 에서 다룬다.)
+Reynolds 는 프로그램 검증에서 논리적 완전성이 별 쓸모가 없다고 덧붙인다.
+`+` 가 정말 덧셈인 해석에만 관심이 있기 때문이다. 예외는 §3.8 에서 다룬다.
 
-**이 주제는 코드로 만들지 않는다.** Reynolds 본인이 다루지 않고, 다루려면
-증명론 전체가 따라와야 한다. Verso 문서에 산문으로만 남긴다. -/
+이 주제는 코드로 옮기지 않는다. 증명론 전체가 따라와야 하고 Reynolds 도 다루지 않는다. -/
 
 end Reynolds.Exercises.Ch01
