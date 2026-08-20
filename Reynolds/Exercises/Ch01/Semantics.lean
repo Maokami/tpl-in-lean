@@ -81,4 +81,52 @@ scoped notation:max "⟦" e "⟧ₑ" => IntExp.eval e
 /-- 계산해 볼 수 있다는 것이 이 프로젝트의 핵심이다. `x + 1` 을 모든 변수가 41인 상태에서. -/
 example : ⟦IntExp.bin .add (.var "x") (.num 1)⟧ₑ (State.const 41) = 42 := by decide
 
+/-! ## 단언의 의미 -/
+
+/-- 비교 기호의 뜻. -/
+def Cmp.denote : Cmp → Int → Int → Prop
+  | .eq, a, b => a = b
+  | .ne, a, b => a ≠ b
+  | .lt, a, b => a < b
+  | .le, a, b => a ≤ b
+  | .gt, a, b => a > b
+  | .ge, a, b => a ≥ b
+
+/-- 논리 기호의 뜻. -/
+def LogOp.denote : LogOp → Prop → Prop → Prop
+  | .and, a, b => a ∧ b
+  | .or,  a, b => a ∨ b
+  | .imp, a, b => a → b
+  | .iff, a, b => a ↔ b
+
+/--
+`⟦p⟧ₐ σ` — 단언의 뜻. Reynolds §1.2 의 `⟦-⟧assert`.
+
+**책과의 차이 — 왜 `Bool` 이 아니라 `Prop` 인가**
+
+Reynolds 는 `⟦-⟧assert ∈ ⟨assert⟩ → Σ → 𝔹` 라고 쓴다. 우리는 `Prop` 을 쓴다.
+
+이유는 양화사다. `⟦∀v. p⟧ σ = ∀ n : ℤ, ⟦p⟧ σ[v := n]` 인데 ℤ 는 무한하므로
+이 값은 **계산할 수 없다.** `Bool` 로 두면 정의 자체가 안 된다.
+
+이 경계는 우연이 아니다. Reynolds 는 §2.1 에서 명령형 언어의 ⟨boolexp⟩ 를 만들 때
+*"the same as assertions except for the omission of quantifiers
+(for the obvious reason that they are noncomputable)"* 라고 쓴다.
+즉 **`Prop` / `Bool` 의 차이가 곧 ⟨assert⟩ / ⟨boolexp⟩ 의 차이다.**
+
+2장에서 `BoolExp.eval : BoolExp V → State V → Bool` 을 만들고 실제로 `#eval` 로 돌린다.
+양화사 없는 조각에서 두 의미가 일치한다는 것도 그때 증명한다.
+-/
+def Assert.eval {V : Type u} [DecidableEq V] : Assert V → State V → Prop
+  | .tru,            _ => True
+  | .fls,            _ => False
+  | .cmp c e₀ e₁,    σ => c.denote (e₀.eval σ) (e₁.eval σ)
+  | .not p,          σ => ¬ p.eval σ
+  | .bin op p q,     σ => op.denote (p.eval σ) (q.eval σ)
+  | .quant .all v p, σ => ∀ n : Int, p.eval (σ[v := n])
+  | .quant .ex  v p, σ => ∃ n : Int, p.eval (σ[v := n])
+
+/-- Reynolds 의 `⟦p⟧assert` 를 흉내낸 표기. 아래 첨자 규약은 `⟦e⟧ₑ` 와 같다. -/
+scoped notation:max "⟦" p "⟧ₐ" => Assert.eval p
+
 end Reynolds.Exercises.Ch01

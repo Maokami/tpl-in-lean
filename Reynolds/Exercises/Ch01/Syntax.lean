@@ -104,4 +104,70 @@ example : True := trivial
 
 end AbstractSyntaxConditions
 
+/-! ## 단언 (assertions)
+
+Reynolds §1.1 의 ⟨assert⟩ — 논리학자가 "정형식(well-formed formula)"이라 부르는 것.
+-/
+
+/-- 비교 연산자. Reynolds §1.1 의 `=  ≠  <  ≤  >  ≥`. -/
+inductive Cmp where
+  /-- 같음 `=`. -/
+  | eq
+  /-- 다름 `≠`. -/
+  | ne
+  /-- 작음 `<`. -/
+  | lt
+  /-- 작거나 같음 `≤`. -/
+  | le
+  /-- 큼 `>`. -/
+  | gt
+  /-- 크거나 같음 `≥`. -/
+  | ge
+  deriving DecidableEq, Repr
+
+/-- 이항 논리 연산자. Reynolds §1.1 의 `∧  ∨  ⇒  ⇔`. -/
+inductive LogOp where
+  /-- 그리고 `∧`. -/
+  | and
+  /-- 또는 `∨`. -/
+  | or
+  /-- 함의 `⇒`. -/
+  | imp
+  /-- 동치 `⇔`. -/
+  | iff
+  deriving DecidableEq, Repr
+
+/-- 양화사. Reynolds §1.1 의 `∀  ∃`. -/
+inductive Quant where
+  /-- 전칭 `∀v. p`. -/
+  | all
+  /-- 존재 `∃v. p`. -/
+  | ex
+  deriving DecidableEq, Repr
+
+/--
+단언(assertion). Reynolds §1.1 의 ⟨assert⟩.
+
+`Assert` 는 `IntExp` 를 참조하지만 그 역은 없다. 그래서 상호 귀납(mutual induction)이
+아니라 **별도 `inductive` 두 개**다. Reynolds 의 문법도 정확히 그렇게 되어 있다 —
+⟨assert⟩ 의 생성 규칙에 ⟨intexp⟩ 가 나오지만 반대는 없다.
+
+`quant q v p` 에서 **`v` 는 결합 발생(binding occurrence)** 이고 그 유효 범위(scope)는 `p` 다.
+1장에서 결합이 등장하는 유일한 자리이며, §1.4 전체가 이것 하나를 다룬다.
+-/
+inductive Assert (V : Type u) where
+  /-- 참 `true`. -/
+  | tru
+  /-- 거짓 `false`. -/
+  | fls
+  /-- 정수 비교 `e₀ ∼ e₁`. -/
+  | cmp : Cmp → IntExp V → IntExp V → Assert V
+  /-- 부정 `¬p`. -/
+  | not : Assert V → Assert V
+  /-- 이항 논리 연산 `p₀ ∘ p₁`. -/
+  | bin : LogOp → Assert V → Assert V → Assert V
+  /-- 양화 `∀v. p` / `∃v. p`. **결합 구성자**. -/
+  | quant : Quant → V → Assert V → Assert V
+  deriving DecidableEq, Repr
+
 end Reynolds.Exercises.Ch01

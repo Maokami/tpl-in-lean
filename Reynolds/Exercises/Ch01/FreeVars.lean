@@ -69,8 +69,59 @@ def IntExp.fv : IntExp V → Finset V
 theorem coincidence_intExp :
     ∀ (e : IntExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' := by
   -- 힌트: `intro e` 다음 `induction e with` 로 케이스를 나눈다.
-  -- `bin` 케이스에서 `Finset` 의 합집합 소속을 어떻게 쪼갤지 생각해 볼 것.
+  -- `bin` 케이스에서 `Finset` 합집합 소속을 어떻게 쪼갤지 생각해 볼 것.
   sorry
 
+/-! ## 단언의 자유 변수 — 여기서 결합이 등장한다 -/
+
+/--
+`FV_assert(p)` — 단언에 자유롭게 나타나는 변수. Reynolds §1.4.
+
+**양화사 절이 전부다**: `FV(∀v. p) = FV(p) \ {v}`.
+`v` 의 결합 발생(binding occurrence)이 `p` 안의 모든 `v` 를 잡아먹는다.
+나머지 절은 전부 부분구의 합집합일 뿐이다.
+
+같은 변수가 한 구 안에서 자유롭게도, 속박되어도 나타날 수 있다는 점에 주의할 것.
+Reynolds 의 예: `∀x.(x ≠ y ∨ ∀y.(x = y ∨ ∀x. x + y ≠ x))` 에서 `y` 가 그렇다.
+-/
+def Assert.fv : Assert V → Finset V
+  | .tru | .fls  => ∅
+  | .cmp _ e₀ e₁ => e₀.fv ∪ e₁.fv
+  | .not p       => p.fv
+  | .bin _ p q   => p.fv ∪ q.fv
+  | .quant _ v p => p.fv.erase v
+
+/--
+**명제 1.1 (일치 정리)** — 단언 판.
+
+정수 식 판(`coincidence_intExp`)과 진술은 같지만 **증명의 난이도가 다르다.**
+양화사 케이스가 새롭고, Reynolds 가 그 요령을 명시적으로 짚는다:
+
+> *"In applying the induction hypothesis, which holds for arbitrary states σ and σ',
+> we take σ and σ' to be **different** states from the σ and σ' for which we are
+> trying to prove the conclusion."*
+
+구체적으로 `∀v. p` 를 다룰 때 귀납 가설을 `σ`, `σ'` 가 아니라
+**`σ[v := n]`, `σ'[v := n]`** 에 적용한다. `FV(∀v.p) = FV(p) \ {v}` 이므로
+`v` 에서만 다르던 두 상태를 `v` 에 같은 값으로 덮으면 `FV(p)` 전체에서 일치하게 된다.
+
+Lean 에서 이 말은 **귀납 가설이 `∀ σ σ'` 로 일반화되어 있어야 한다**는 뜻이다.
+`σ σ'` 를 `theorem` 의 인자로 빼 두면 귀납 가설이 그 특정 상태에만 적용되어 증명이 막힌다.
+그래서 진술을 `∀ (p) (σ σ')` 꼴로 썼다. **1장에서 가장 중요한 교훈이다.**
+
+**결론이 `=` 가 아니라 `↔` 인 이유**: `Assert.eval` 이 `Prop` 을 돌려주므로,
+`propext` 없이 자연스러운 것은 명제 동치다.
+-/
+@[exercise "Prop 1.1b" 3]
+theorem coincidence_assert :
+    ∀ (p : Assert V) (σ σ' : State V), (∀ w ∈ p.fv, σ w = σ' w) → (⟦p⟧ₐ σ ↔ ⟦p⟧ₐ σ') := by
+  -- 힌트 1: 진술이 `∀ (p) (σ σ')` 꼴인 것이 핵심이다. `σ σ'` 를 인자로 빼면
+  --         귀납 가설이 그 특정 상태에만 적용되어 양화사 케이스에서 막힌다.
+  -- 힌트 2: `quant` 케이스에서는 귀납 가설을 `σ[v := n]`, `σ'[v := n]` 에 적용한다.
+  --         `FV(∀v.p) = FV(p).erase v` 이므로 `v` 를 같은 값으로 덮으면
+  --         `FV(p)` 전체에서 두 상태가 일치하게 된다.
+  -- 힌트 3: `State.subst_self` / `State.subst_of_ne` 가 `simp` 로 자동 적용된다.
+  --         마무리는 `forall_congr'` 와 `exists_congr`.
+  sorry
 
 end Reynolds.Exercises.Ch01
