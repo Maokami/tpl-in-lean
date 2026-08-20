@@ -2,6 +2,7 @@ name = "tpl-in-lean"
 version = "0.1.0"
 defaultTargets = ["Reynolds"]
 testDriver = "ReynoldsTests"
+lintDriver = "batteries/runLinter"   # CSlib 와 동일
 
 [leanOptions]
 autoImplicit = false

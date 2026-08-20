@@ -124,6 +124,11 @@ elab "emit_exercise_registry" declId:ident : command => do
     `(term| ($(Lean.quote id), $(Lean.quote st), $(Lean.quote nm)))
   Lean.Elab.Command.elabCommand <| ←
     `(command| def $declId : Array (String × Nat × String) := #[$entries,*])
+  -- 생성된 선언에도 docstring 을 붙인다. `lake lint` 의 `docBlame` 이 이걸 요구한다.
+  let full := (← Lean.Elab.Command.liftCoreM Lean.getCurrNamespace) ++ declId.getId
+  Lean.Elab.Command.liftCoreM <| Lean.addDocStringCore full
+    "`@[exercise]` 가 붙은 모든 선언의 목록: `(책의 번호, 별점, 선언 이름)`. \
+     `emit_exercise_registry` 가 컴파일 시점에 자동 생성한다. `lake exe grade` 가 읽는다."
 
 end Reynolds
 
