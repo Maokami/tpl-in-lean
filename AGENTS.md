@@ -37,8 +37,13 @@ Lean 4로 따라 읽는 **스터디용 실습 저장소**다.
    한 연습이 다른 연습의 결과를 필요로 하면, 그 결과를 `ChNN/Given.lean`에 완성본으로 주거나
    진술의 가설로 넣어라. (이유: Lean은 다른 모듈의 증명 항을 볼 수 없어서 "본인 sorry"와
    "선행 미완성"을 구분할 수 없다. `DESIGN.md` §5.2)
-10. **모든 `.lean` 파일은 모듈 시스템을 쓴다.** `module`로 시작한다.
-    **혼용은 불가능하다** — 모듈 파일은 비-모듈 파일을 import할 수 없다.
+10. **코드 패키지의 모든 `.lean` 파일은 모듈 시스템을 쓴다.** `module`로 시작한다.
+    대상은 `Reynolds/**`, `ReynoldsTests/**`, `Grade.lean`, `Reynolds.lean`, `ReynoldsTests.lean`.
+    **혼용은 불가능하다** — 모듈 파일은 비-모듈 파일을 import할 수 없어서 루트 모듈에서 터진다.
+
+    **예외: `manual/` 패키지.** 별도 Lake 패키지이고 Verso 관례를 따른다
+    (Verso 템플릿의 문서 파일에는 `module` 이 없다). 모듈 시스템을 강제한 이유는
+    Mathlib·CSlib 와의 상호운용인데 `manual/` 은 그 둘에 의존하지 않는다.
 
 ---
 
@@ -305,13 +310,20 @@ Reynolds/Exercises/ChNN/<주제>.lean   # 같은 이름, 같은 선언, 연습 �
 ### 4.3 `@[exercise]` 태그
 
 ```lean
-@[exercise "Prop 1.3" (stars := 3) (ref := "§1.4 치환 정리")]
+@[exercise "Prop 1.3" 3]
 theorem substitution_assert … := by
   sorry
 ```
 
-- `stars`: 1 = 정의를 따라 쓰면 됨 / 2 = 구조적 귀납법 + 약간의 궁리 / 3 = 결합 케이스가 까다롭거나 일반화가 필요
-- **Answers와 Exercises의 태그 집합이 정확히 같아야 한다.** CI가 검사한다.
+문법은 `@[exercise "<id>" <stars>?]` 다. 별점을 생략하면 1이다.
+
+- `id` — 책의 문제/명제 번호. `"Prop 1.1a"`, `"Ex 2.5"`, `"§1.3 gen-sound"`
+- `stars` — 1 = 정의를 따라 쓰면 됨 / 2 = 구조적 귀납법 + 약간의 궁리 /
+  3 = 결합 케이스가 까다롭거나 진술의 일반화가 필요
+- **책의 절 참조는 애트리뷰트가 아니라 docstring에 쓴다.** 애트리뷰트에 `ref` 필드를 두지
+  않은 이유다 — 같은 정보를 두 곳에 두면 반드시 어긋난다.
+- **Answers와 Exercises의 태그 집합이 정확히 같아야 하고, 한 트리 안에서 id가 중복되면
+  안 된다.** `scripts/check-anchors.sh` 가 검사한다.
 
 ---
 

@@ -48,7 +48,6 @@ namespace Reynolds.Exercises.Ch01
 
 universe u
 
--- ANCHOR: IntOp
 /-- 이항 정수 연산자. Reynolds §1.1의 `+  -  ×  ÷  rem`. -/
 inductive IntOp where
   /-- 덧셈 `+`. -/
@@ -62,9 +61,7 @@ inductive IntOp where
   /-- 나머지 `rem`. -/
   | rem
   deriving DecidableEq, Repr
--- ANCHOR_END: IntOp
 
--- ANCHOR: IntExp
 /--
 정수 식(integer expression). Reynolds §1.1의 ⟨intexp⟩.
 
@@ -82,7 +79,6 @@ inductive IntExp (V : Type u) where
   /-- 이항 연산 `e₀ op e₁`. -/
   | bin : IntOp → IntExp V → IntExp V → IntExp V
   deriving DecidableEq, Repr
--- ANCHOR_END: IntExp
 
 /-! ## Reynolds의 추상 구문 조건은 Lean에서 공짜다
 
@@ -95,7 +91,6 @@ section AbstractSyntaxConditions
 
 variable {V : Type u} (n : Int) (v : V)
 
--- ANCHOR: freeConditions
 /-- **조건 1** — 생성자는 단사다. Reynolds가 요구하는 것을 `injection`이 바로 준다. -/
 example : Function.Injective (IntExp.var (V := V)) := fun _ _ h => by injection h
 
@@ -106,7 +101,6 @@ example : IntExp.num (V := V) n ≠ IntExp.var v := by nofun
     이것이 구조적 귀납법(structural induction)이 정당한 이유이고,
     `IntExp.rec`가 바로 그 원리를 담은 재귀자다. -/
 example : True := trivial
--- ANCHOR_END: freeConditions
 
 end AbstractSyntaxConditions
 

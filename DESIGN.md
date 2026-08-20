@@ -320,7 +320,7 @@ tpl-in-lean/
 │   ├── Compat.lean               # CSlib API 재수출 층 (churn 방어벽)
 │   ├── Prelude.lean              # State, σ[v ↦ n], 공통 표기, 스타일 옵션
 │   ├── Meta/
-│   │   ├── Exercise.lean         # @[exercise "1.4a" (stars := 2)] 애트리뷰트
+│   │   ├── Exercise.lean         # @[exercise "1.4a" 2] 애트리뷰트 + 레지스트리 생성
 │   │   └── Report.lean           # 채점 리포트 자료구조·포매팅
 │   │
 │   ├── Answers/                  # ★ 진리의 원천. sorry 금지. Verso가 참조.
@@ -360,7 +360,7 @@ tpl-in-lean/
 ├── ReynoldsTests/
 │   ├── Ch01.lean                 # #guard / #guard_msgs 골든 테스트
 │   ├── Ch02.lean
-│   └── AnswersAreComplete.lean   # Answers에 sorry 없음을 CI에서 강제
+│   └── Ch02.lean
 ├── Grade.lean                    # lake exe grade 진입점
 │
 └── manual/                       # ★ 별도 Lake 패키지 (Verso)
@@ -386,14 +386,16 @@ tpl-in-lean/
 | B. 단일 소스 + 생성 스크립트 (Mathematics in Lean 방식) | 중복 없음, 항상 동기화 | 빌드 단계 추가, 마커 문법 학습 필요, 생성물 커밋 여부 논쟁 | △ |
 | C. **2트리 (fpinscala 방식)** | 단순, 익숙, Verso 참조 대상 명확, 정답 비교 쉬움 | 파일 중복 | **✓ 채택** |
 
-C의 중복 비용은 CI가 흡수한다: `ReynoldsTests/AnswersAreComplete.lean`이 Answers의 sorry-free를 강제하고, `scripts/check-anchors.sh`가 두 트리의 `@[exercise]` 태그 집합이 일치하는지 검사한다.
+C의 중복 비용은 CI가 흡수한다: `lake exe grade --answers` 가 Answers의 sorry-free를 강제하고,
+`scripts/check-anchors.sh` 가 ANCHOR 짝·Answers 전용 여부·두 트리의 `@[exercise]` 태그 일치·id 중복을 검사한다.
 
 **의존 방향 규칙**
 - `Answers/ChNN` → `Answers/Ch(NN-1)` (정상적인 누적)
 - `Exercises/ChNN` → **`Answers/Ch(NN-1)`** ← 중요
   - 즉 **각 장은 독립적으로 풀 수 있다.** 1장을 건너뛰고 2장을 풀어도 된다.
   - 이전 장의 `sorry`가 다음 장으로 전파되어 채점을 오염시키는 문제를 원천 차단한다.
-- 장 **내부**에서는 `Exercises/ChNN/A` → `Exercises/ChNN/B` 의존이 생긴다. 이건 채점기의 ⚠️(선행 미완성) 판정으로 처리한다.
+- 장 **내부**에서도 연습끼리 의존하지 않게 만든다 — **연습 독립성 원칙**(§5.2).
+  Lean 이 다른 모듈의 증명 항을 볼 수 없어 "본인 sorry"와 "선행 미완성"을 구분할 수 없기 때문이다.
 
 ---
 
@@ -575,14 +577,15 @@ structure ExerciseInfo where
   /-- 책의 번호 또는 명제 번호. 예: `"1.4"`, `"Prop 2.6"` -/
   id : String
   /-- 난이도. 1~3. -/
-  stars : Nat := 1
-  /-- 책의 참조 위치. 예: `"§1.4, Proposition 1.3"` -/
-  ref : String := ""
+  stars : Nat
 ```
+
+**`ref`(책의 절 참조) 필드는 두지 않는다.** 같은 정보를 애트리뷰트와 docstring 두 곳에
+두면 반드시 어긋난다. 절 참조는 docstring 한 곳에만 쓴다.
 
 사용:
 ```lean
-@[exercise "Prop 1.1" (stars := 2) (ref := "§1.4, 일치 정리")]
+@[exercise "Prop 1.1" 2]
 theorem coincidence_intExp {e : IntExp V} {σ σ' : State V}
     (h : ∀ w ∈ e.fv, σ w = σ' w) : e.eval σ = e.eval σ' := by
   sorry

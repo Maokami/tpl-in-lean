@@ -36,7 +36,6 @@ open Reynolds
 
 universe u
 
--- ANCHOR: denote
 /--
 연산자 기호가 실제로 무슨 함수인가.
 
@@ -67,7 +66,6 @@ def IntExp.eval {V : Type u} : IntExp V → State V → Int
   | .var v,        σ => σ v
   | .neg e,        σ => -(e.eval σ)
   | .bin op e₀ e₁, σ => op.denote (e₀.eval σ) (e₁.eval σ)
--- ANCHOR_END: denote
 
 /--
 Reynolds 의 `⟦e⟧intexp` 를 흉내낸 표기. `open Reynolds.Exercises.Ch01` 안에서만 보인다.
@@ -80,9 +78,7 @@ Reynolds 의 `⟦e⟧intexp` 를 흉내낸 표기. `open Reynolds.Exercises.Ch01
 -/
 scoped notation:max "⟦" e "⟧ₑ" => IntExp.eval e
 
--- ANCHOR: evalExample
 /-- 계산해 볼 수 있다는 것이 이 프로젝트의 핵심이다. `x + 1` 을 모든 변수가 41인 상태에서. -/
 example : ⟦IntExp.bin .add (.var "x") (.num 1)⟧ₑ (State.const 41) = 42 := by decide
--- ANCHOR_END: evalExample
 
 end Reynolds.Exercises.Ch01
