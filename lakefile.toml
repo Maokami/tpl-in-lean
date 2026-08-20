@@ -1,0 +1,43 @@
+name = "tpl-in-lean"
+version = "0.1.0"
+defaultTargets = ["Reynolds"]
+testDriver = "ReynoldsTests"
+
+[leanOptions]
+autoImplicit = false
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+weak.linter.flexible = true
+
+# CSlib v4.33.0 은 Lean v4.33.0 + Mathlib v4.33.0 위에서 돈다.
+# mathlib 은 cslib 을 통해 전이적으로도 들어오지만, 버전을 눈에 보이게 하려고 명시한다.
+# 두 require 의 rev 가 같으므로 Lake 가 충돌 없이 해결한다.
+[[require]]
+name = "cslib"
+git = "https://github.com/leanprover/cslib"
+rev = "v4.33.0"
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+rev = "v4.33.0"
+
+# Verso 매뉴얼(manual/)이 이 패키지의 코드를 ANCHOR 로 인용하기 위해 필요하다.
+# 반드시 manual/ 의 Verso 버전과 같은 태그여야 한다.
+[[require]]
+name = "subverso"
+git = "https://github.com/leanprover/subverso"
+rev = "verso-v4.33.0"
+
+[[lean_lib]]
+name = "Reynolds"
+
+[[lean_lib]]
+name = "ReynoldsTests"
+# 테스트 라이브러리는 `#guard` 를 쓰는 곳이다. Mathlib 은 라이브러리 코드에서
+# `#`-커맨드를 금지하지만, 테스트에서는 바로 그게 목적이다.
+leanOptions = { weak.linter.hashCommand = false, weak.linter.style.header = false }
+
+[[lean_exe]]
+name = "grade"
+root = "Grade"

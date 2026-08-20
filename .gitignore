@@ -1,0 +1,9 @@
+/.lake/
+/manual/.lake/
+/manual/_out/
+*.olean
+*.ilean
+*.trace
+.DS_Store
+/.omc/
+/manual/lake-manifest.json.bak
