@@ -371,7 +371,7 @@ theorem substitution_assert … := by
 작업을 "끝났다"고 말하기 전에 **전부** 통과해야 한다.
 
 ```bash
-lake build --wfail --iofail ReynoldsTests   # 엄격 모드 — Answers + 테스트, 경고 0
+lake build --wfail ReynoldsTests            # 엄격 모드 — Answers + 테스트, 경고 0
 lake build                                  # 전체 (Exercises 의 sorry 경고 허용)
 lake test                                   # #guard 단위 테스트
 lake lint                                   # 환경 린터 (docBlame 등)
@@ -383,6 +383,10 @@ lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확
 > **엄격 모드에 왜 `ReynoldsTests` 를 넣나**: `Exercises` 트리는 **의도적으로** `sorry` 를
 > 갖고 있어서 `--wfail` 을 전체에 걸면 항상 실패한다. `ReynoldsTests` 는 `Answers` 만
 > import 하므로, 이 타겟을 엄격 빌드하면 **Answers 전체 + 테스트**가 경고 0 인지 검사된다.
+>
+> **`--iofail` 은 쓰지 않는다.** 그 플래그는 빌드 중 **모든 IO 출력**을 실패로 본다.
+> 그런데 교육용 파일(`Background.lean` 등)은 `#eval` 로 값을 보여 주는 것이 목적이다.
+> 둘은 근본적으로 충돌한다. 잡고 싶은 것(경고·`sorry`·deprecation)은 `--wfail` 이 다 잡는다.
 
 새 파일을 추가하면 루트 모듈 `Reynolds.lean` 에 `public import` 를 한 줄 더한다.
 `emit_exercise_registry` 호출은 **반드시 파일 맨 아래**여야 한다.
@@ -547,7 +551,7 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 ### 12.1 리뷰 순서
 
 ```
-lake build --wfail --iofail && lake test && lake exe grade --answers   ① 기계 검증
+lake build --wfail ReynoldsTests && lake test && lake exe grade --answers   ① 기계 검증
         ↓  (통과해야 다음으로)
 codex review --base main                                              ② 로컬 1차 (푸시 전)
         ↓

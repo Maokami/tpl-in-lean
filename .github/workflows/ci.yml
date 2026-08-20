@@ -23,7 +23,7 @@ jobs:
       #    Exercises 는 의도적으로 `sorry` 를 갖고 있으므로 여기 포함되지 않는다
       #    (`ReynoldsTests` 가 Answers 만 import 한다).
       - name: 엄격 빌드 (Answers + 테스트)
-        run: lake build --wfail --iofail ReynoldsTests
+        run: lake build --wfail ReynoldsTests
 
       # 2) 전체 빌드. Exercises 의 `sorry` 경고는 허용하되 **에러는 불가**.
       - name: 전체 빌드
