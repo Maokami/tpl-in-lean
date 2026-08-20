@@ -64,6 +64,31 @@ universe u
 -/
 abbrev State (V : Type u) := V → Int
 
+/-!
+## 상태 갱신을 다루는 다리 보조정리
+
+CSlib 의 `σ[v := n]` 은 `HasSubstitution.subst` 의 표기이고, 그 인스턴스가
+`Function.update` 다. 그런데 타입클래스 프로젝션이라 증명에서 바로 풀리지 않는다.
+그래서 **필요한 사실 둘만** 꺼내 `simp` 보조정리로 둔다.
+§1.4 의 일치 정리·치환 정리에서 계속 쓰인다.
+-/
+
+section StateUpdate
+variable {V : Type u} [DecidableEq V] (σ : State V) (v w : V) (n : Int)
+
+/-- `σ[v := n]` 은 `Function.update σ v n` 이다. Reynolds 의 `[σ | v: n]`. -/
+theorem State.subst_def : σ[v := n] = Function.update σ v n := rfl
+
+/-- 덮어쓴 자리의 값. -/
+@[simp] theorem State.subst_self : σ[v := n] v = n := by
+  simp [State.subst_def]
+
+/-- 덮어쓰지 않은 자리의 값. -/
+@[simp] theorem State.subst_of_ne (h : w ≠ v) : σ[v := n] w = σ w := by
+  simp [State.subst_def, h]
+
+end StateUpdate
+
 /--
 모든 변수를 `n` 으로 보내는 상수 상태. 예제와 `#eval` 에서 쓴다.
 
