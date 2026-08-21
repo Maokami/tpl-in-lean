@@ -91,9 +91,14 @@ Mathlib 이 주는 `Infinite String` 경유 인스턴스는 계산 불가능해�
 돌려 볼 수가 없다. 그래서 계산되는 인스턴스를 직접 만든다.
 -/
 
-/-- `ℕ ↪ String`. `n` 을 `'x'` 를 `n` 번 반복한 문자열로 보낸다. -/
+/--
+`ℕ ↪ String`. `n` 을 `'x'` 를 `n+1` 번 반복한 문자열로 보낸다: `x`, `xx`, `xxx`, ….
+
+`n` 번이 아니라 `n+1` 번인 이유는 `n = 0` 일 때 빈 문자열이 나오지 않게 하려는 것이다.
+빈 문자열도 `String` 이긴 하지만 새 결합 변수 이름으로 나오면 예제가 읽히지 않는다.
+-/
 def natToString : ℕ ↪ String where
-  toFun n := String.ofList (List.replicate n 'x')
+  toFun n := String.ofList ('x' :: List.replicate n 'x')
   inj' a b h := by
     have hl := String.ofList_injective h
     simpa using congrArg List.length hl
