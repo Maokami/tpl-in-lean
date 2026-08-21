@@ -103,6 +103,9 @@ example : True := trivial
 
 end AbstractSyntaxConditions
 
+/-! Reynolds 는 이 조건들이 "다중 정렬 초기 대수" 를 이룬다고 각주에 적는다.
+그 말이 무엇이고 왜 `eval` 과 `fv` 가 같은 구성인지는 `Depth/Algebra.lean` 에 있다. (선택) -/
+
 /-! ## 단언 (assertions)
 
 Reynolds §1.1 의 ⟨assert⟩ — 논리학자가 "정형식(well-formed formula)"이라 부르는 것.

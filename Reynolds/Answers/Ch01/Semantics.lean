@@ -62,8 +62,10 @@ def IntOp.denote : IntOp → Int → Int → Int
 `⟦e⟧ σ` — 정수 식의 뜻. Reynolds §1.2의 `⟦-⟧intexp ∈ ⟨intexp⟩ → Σ → ℤ`.
 
 각 절이 Reynolds의 의미 방정식 (1.3)~(1.6) 하나씩에 대응한다.
-전함수(total function)라는 점에 주목할 것 — 술어 논리에는 비종료가 없다.
-2장에서 `while`이 들어오는 순간 이 사정이 완전히 달라진다.
+전함수(total function)다. 술어 논리에는 비종료가 없기 때문이고,
+2장에서 `while` 이 들어오면 이 사정이 달라진다.
+
+이 방정식들이 함수를 유일하게 정한다는 사실의 증명은 `Depth/Algebra.lean` §7 에 있다. (선택)
 -/
 def IntExp.eval {V : Type u} : IntExp V → State V → Int
   | .num n,        _ => n

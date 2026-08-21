@@ -9,9 +9,11 @@ public import Reynolds.Answers.Ch01.Syntax
 public import Reynolds.Answers.Ch01.Semantics
 public import Reynolds.Answers.Ch01.Validity
 public import Reynolds.Answers.Ch01.FreeVars
+public import Reynolds.Answers.Ch01.Substitution
 public import Reynolds.Answers.Ch01.Background
 public import Reynolds.Answers.Ch01.Depth.Algebra
 public import Reynolds.Answers.Ch01.Depth.SignatureFunctor
+public import Reynolds.Answers.Ch01.Depth.TermMonad
 
 /-!
 # 1장 «술어 논리» — 완성본 (Answers)
@@ -22,6 +24,8 @@ public import Reynolds.Answers.Ch01.Depth.SignatureFunctor
 3. `Semantics.lean` — §1.2 표시적 의미론
 4. `Validity.lean` — §1.3 타당성과 추론, 건전성
 5. `FreeVars.lean` — §1.4 자유 변수와 일치 정리
-6. `Depth/Algebra.lean` — 심화 A (선택). 대수와 초기성
-7. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
+6. `Substitution.lean` — §1.4 치환, 명제 1.2~1.5
+7. `Depth/Algebra.lean` — 심화 A (선택). 대수와 초기성
+8. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
+9. `Depth/TermMonad.lean` — 심화 A (선택). 치환은 bind 다
 -/
