@@ -71,13 +71,16 @@ jobs:
         working-directory: manual
         run: lake exe build-manual
 
-      # main 에 올라간 것만 배포한다. PR 에서는 빌드가 되는지만 본다.
+      # 산출물은 PR 에서도 만든다. 경로가 틀렸거나 저장소의 Pages 설정이 어긋났으면
+      # main 에 머지된 뒤가 아니라 여기서 빨간불이 떠야 한다. 막는 것은 실제 배포뿐이고,
+      # 그건 아래 `deploy` 잡이 맡는다.
+      #
+      # `path` 는 워크스페이스 루트 기준이다. 위의 `working-directory: manual` 은
+      # `run` 스텝에만 걸리고 액션 입력에는 영향을 주지 않는다.
       - name: Pages 설정
-        if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
 
       - name: 문서 산출물 업로드
-        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
           path: manual/_out/html-multi
