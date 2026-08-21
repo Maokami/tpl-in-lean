@@ -564,6 +564,9 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 | `The environment does not contain \`Finset.biUnion\`` | import 경로 오해 | `Mathlib.Data.Finset.Union` (`Lattice.Fold`가 아니다) |
 | `unexpected token '#eval'; expected …` | `/-- … -/` 를 `#eval`/`#check` 앞에 붙임 | 명령 앞에는 `--` 주석 |
 | 정리의 `value?` 가 `none` | 정리 증명 항은 **다른 모듈에서 안 보인다** | 증명 항을 들여다보는 설계를 하지 마라 (§1-9) |
+| `failed to compile definition … depends on 'Int.instConditionallyCompleteLinearOrder'` | Mathlib 과 CSlib 을 함께 열면 `Preorder ℤ` 가 계산 불가능한 경로로 잡힌다. `Finset.Icc` 를 쓰는 정의가 통째로 계산 불가능해진다 | 파일 안에서 `attribute [-instance] Int.instConditionallyCompleteLinearOrder`. 순서 자체는 같으므로 보조정리는 그대로 쓰인다 |
+| 매크로가 뱉은 이름이 엉뚱한 이름공간으로 붙음 | Lean 매크로는 hygienic 이라 이름을 **정의 자리**에서 해석한다 | `Lean.mkIdent` 로 만들면 **쓰는 자리**에서 해석된다 (`Notation.lean`) |
+| `environment already contains 'Lean.Parser.Category.…'` | `declare_syntax_cat` 은 전역이라 두 트리에 복제할 수 없다 | 생성기의 `SHARED` 에 넣어 Answers 쪽을 공유한다 |
 
 ---
 

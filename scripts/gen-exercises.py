@@ -307,6 +307,84 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 연습 1.5 · 1.6 합 식
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem coincidence_sExp",
+        "-- ANCHOR_END: coincidenceSExp",
+        """theorem coincidence_sExp :
+    ∀ (e : SExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₛ σ = ⟦e⟧ₛ σ' := by
+  -- 먼저 볼 것: `FreeVars.lean` 의 `coincidence_intExp`. 앞 네 케이스는 글자까지 같다.
+  -- 힌트 1: `sum` 케이스에서 `e₀`, `e₁` 은 `σ`, `σ'` 에서 그대로 잰다.
+  --         자유 변수가 통째로 `FV(Σ…)` 안에 있으므로 가설을 바로 쓴다.
+  -- 힌트 2: 본체는 `Finset.sum_congr rfl` 로 항마다 나눈 뒤 `ih₂` 를 쓴다.
+  -- 힌트 3: `w = v` 인지로 나눈다. 같으면 `State.subst_self`, 다르면 `State.subst_of_ne`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem sum_empty",
+        "/--\n**한 항 규칙.**",
+        """theorem sum_empty (h : ⟦e₁⟧ₛ σ < ⟦e₀⟧ₛ σ) :
+    ⟦SExp.sum v e₀ e₁ e₂⟧ₛ σ = 0 := by
+  -- 힌트: `Finset.Icc_eq_empty` 가 `¬ a ≤ b → Finset.Icc a b = ∅` 다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem sum_single",
+        "/--\n**분리 규칙.**",
+        """theorem sum_single (h : ⟦e₀⟧ₛ σ = ⟦e₁⟧ₛ σ) :
+    ⟦SExp.sum v e₀ e₁ e₂⟧ₛ σ = ⟦e₂⟧ₛ (σ[v := ⟦e₀⟧ₛ σ]) := by
+  -- 힌트: `h` 로 위끝을 아래끝으로 바꾸면 `Finset.Icc_self` 가 붙는다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem sum_split",
+        "/--\n**선형성.**",
+        """theorem sum_split (h : ⟦e₀⟧ₛ σ ≤ ⟦e₁⟧ₛ σ + 1) :
+    ⟦SExp.sum v e₀ (.bin .add e₁ (.num 1)) e₂⟧ₛ σ
+      = ⟦SExp.sum v e₀ e₁ e₂⟧ₛ σ + ⟦e₂⟧ₛ (σ[v := ⟦e₁⟧ₛ σ + 1]) := by
+  -- 힌트 1: `Finset.Icc a (b+1) = insert (b+1) (Finset.Icc a b)` 을 먼저 `have` 로 세운다.
+  --         `ext k` 뒤 `Finset.mem_Icc`, `Finset.mem_insert` 로 풀면 `omega` 가 닫는다.
+  -- 힌트 2: 그다음은 `Finset.sum_insert`. 그 가설도 `omega` 로 닫힌다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem sum_add",
+        "-- ANCHOR_END: sumRules",
+        """theorem sum_add (e e' : SExp V) :
+    ⟦SExp.sum v e₀ e₁ (.bin .add e e')⟧ₛ σ
+      = ⟦SExp.sum v e₀ e₁ e⟧ₛ σ + ⟦SExp.sum v e₀ e₁ e'⟧ₛ σ := by
+  -- 힌트: 정의를 편 뒤 `Finset.sum_add_distrib` 하나면 된다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex/Summation.lean",
+        "theorem isum_renaming_fails",
+        "/-! ## 어려움 2",
+        """theorem isum_renaming_fails :
+    ∃ σ : State String,
+      ⟦(ISExp.isum "i" (.num 1) : ISExp String)⟧ᵢ σ
+        ≠ ⟦(ISExp.isum "j" (.num 1) : ISExp String)⟧ᵢ σ := by
+  -- 힌트: `σ i = 1`, `σ j = 0` 인 상태를 `refine ⟨fun w => …, ?_⟩` 로 제시한다.
+  --       그다음은 `simp [ISExp.eval]` 이 계산해 준다.
+  sorry
+
+""",
+    ),
 ]
 
 
