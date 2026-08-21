@@ -402,14 +402,20 @@ theorem substitution_assert … := by
 작업을 "끝났다"고 말하기 전에 **전부** 통과해야 한다.
 
 ```bash
+python3 scripts/gen-exercises.py            # Answers → Exercises 재생성 (손으로 고치지 마라)
 lake build --wfail ReynoldsTests            # 엄격 모드 — Answers + 테스트, 경고 0
 lake build                                  # 전체 (Exercises 의 sorry 경고 허용)
 lake test                                   # #guard 단위 테스트
 lake lint                                   # 환경 린터 (docBlame 등)
 lake exe grade --answers                    # Answers sorry-free · 불법 공리 없음
 lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확인
+python3 scripts/gen-exercises.py --check    # 두 트리가 어긋나지 않는지
 ./scripts/check-anchors.sh                  # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치
 ```
+
+> **`Reynolds/Exercises/**` 를 직접 고치지 마라.** `scripts/gen-exercises.py` 가 Answers 에서
+> 생성한다. 연습을 추가하거나 힌트를 바꾸려면 그 스크립트의 `BLANKS` 표를 고친다.
+> 어떤 정리를 비울지 고르는 규칙(반사슬 조건)도 그 파일 docstring 에 적혀 있다.
 
 > **엄격 모드에 왜 `ReynoldsTests` 를 넣나**: `Exercises` 트리는 **의도적으로** `sorry` 를
 > 갖고 있어서 `--wfail` 을 전체에 걸면 항상 실패한다. `ReynoldsTests` 는 `Answers` 만

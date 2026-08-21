@@ -44,6 +44,9 @@ jobs:
       - name: 린터
         run: lake lint
 
+      - name: Exercises 가 Answers 와 맞는지
+        run: python3 scripts/gen-exercises.py --check
+
       - name: ANCHOR · 태그 정합성
         run: ./scripts/check-anchors.sh
 
