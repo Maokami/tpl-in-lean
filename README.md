@@ -125,6 +125,15 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 
 심화 트랙이 무엇이고 왜 그 자리에 있는지는 [`docs/depth-track.md`](./docs/depth-track.md).
 
+### 2장 단순 명령형 언어 (The Simple Imperative Language)
+
+| 절 | 파일 | PR | 태그 |
+|---|---|---|---|
+| §2.1 추상 구문 | [`Syntax.lean`](./Reynolds/Answers/Ch02/Syntax.lean) | [#4](../../pull/4) | [`ch02-s01`](../../tree/ch02-s01) |
+| §2.1 구체 구문 · 명령 DSL | [`Notation.lean`](./Reynolds/Answers/Ch02/Notation.lean) | [#4](../../pull/4) | 〃 |
+
+2장은 절 단위로 PR 을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
+
 > 링크는 저장소가 조직으로 이전되어도 안 깨지도록 **상대 경로**로 쓴다:
 > `[#12](../../pull/12)`, `[ch01-s04](../../tree/ch01-s04)`
 
