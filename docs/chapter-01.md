@@ -429,6 +429,8 @@ theorem not_valid_imp_forall :
 > Reynolds가 언급하는 논리적 타당성(logical validity)·완전성(completeness)·괴델
 > 불완전성 정리는 **Verso 문서에만** 산문으로 쓴다. Lean 코드로 만들지 않는다.
 > (Reynolds 본인이 "이 책에서는 거의 다루지 않는다"고 한다.)
+>
+> → `manual/Manual/Ch01.lean` 의 "곁가지 — 완전성과 괴델" 절에 있다.
 
 ---
 
@@ -639,6 +641,9 @@ Reynolds가 §1.4 끝에서 언급하는 **고차 추상 구문(higher-order abs
 **de Bruijn 색인 / locally nameless** 접근을 CSlib의
 `Cslib/Languages/LambdaCalculus/LocallyNameless/*` 로 가리킨다.
 코드로 만들지는 않는다 (1장의 목표를 벗어난다).
+
+→ `manual/Manual/Ch01.lean` 의 "곁가지 — 이름을 어떻게 다룰 것인가" 절에 있다.
+§11.7 동적 결합 예고는 "곁가지 — 이름 바꾸기가 깨지는 언어" 절에 있다.
 
 > CSlib를 의존성으로 두었으므로 이 대조가 **링크가 아니라 실제 코드**다.
 > `.lake/packages/cslib/Cslib/Languages/LambdaCalculus/LocallyNameless/Untyped/Basic.lean`을

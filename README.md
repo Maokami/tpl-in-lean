@@ -50,6 +50,24 @@ VS Code + [Lean 4 확장](https://marketplace.visualstudio.com/items?itemName=le
 
 ## 실습하는 법
 
+### 0. 먼저 읽을 것 — 건너뛰면 뒤에서 막힌다
+
+`sorry` 를 찾기 전에 두 가지를 알아 두어야 한다.
+
+**`Ch01/Background.lean` 은 필독이다.** 연습이 하나도 없는 파일이라 그냥 지나치기 쉬운데,
+책이 가정하고 넘어가는 메타 수준과 객체 수준의 구분을 여기서 다룬다. 그 구분이 흐린 채로
+§1.2 의 의미 방정식을 보면 객체 언어의 `∀` 와 Lean 의 `∀` 가 섞인다.
+
+**연습은 `Ex.lean` 에만 있지 않다.** 책의 명제 1.1 ~ 1.5 증명이 본문 파일 안에 연습으로
+들어 있다 — `FreeVars.lean` 의 일치 정리, `Substitution.lean` 의 치환 정리,
+`Validity.lean` 의 건전성이 그렇다. 그리고 `Ex.lean` 의 책 연습문제가 그것들을 **쓴다**.
+파일 이름만 보고 `Ex.lean` 부터 열면 재료가 없는 상태로 문제를 마주하게 된다.
+
+그래서 아래 목차 표의 **행 순서가 곧 푸는 순서**다. 각 파일 docstring 첫머리의
+"읽는 순서" 도 같은 것을 가리킨다.
+
+### 그다음
+
 1. `Reynolds/Exercises/ChNN/` 에서 `sorry` 를 찾는다
 2. 지운다. 에디터에서 목표를 보며 채운다
 3. 확인한다
@@ -97,6 +115,11 @@ cd manual && lake exe build-manual
 python3 ../scripts/serve.py 8000 -d _out/html-multi
 ```
 > Verso HTML은 파일로 직접 열면 코드 호버가 깨진다. 반드시 서버로 띄운다.
+
+Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바뀌면 문서 빌드가 깨진다.
+1장 장(章)에는 코드로 옮기지 않기로 한 개념적 논의도 산문으로 들어 있다 —
+완전성과 괴델, 이름을 다루는 세 가지 방식(de Bruijn · locally nameless), 동적 결합이
+이름 바꾸기를 깨뜨리는 이야기.
 
 ---
 
