@@ -437,6 +437,53 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 정의를 왜 이렇게 써야 하나
+    (
+        "Ch01/Design.lean",
+        "theorem fvBad_breaks_coincidence",
+        "/-! ## 2. 양화사에서 상태를 갱신하지 않으면",
+        """theorem fvBad_breaks_coincidence :
+    ∃ (p : Assert String) (σ σ' : State String),
+      (∀ w ∈ p.fvBad, σ w = σ' w) ∧ ¬ (⟦p⟧ₐ σ ↔ ⟦p⟧ₐ σ') := by
+  -- 증명보다 반례를 떠올리는 것이 이 연습이다.
+  -- 힌트 1: `fvBad` 가 빠뜨리는 자리는 이항 논리 연산의 **오른쪽**이다.
+  --         그 자리에만 변수를 두면 `fvBad` 가 빈 집합이 되어 전제가 공짜로 성립한다.
+  -- 힌트 2: 두 상태는 `State.const` 로 만들면 된다.
+  -- 힌트 3: 마무리는 `simp [Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, State.const]`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Design.lean",
+        "theorem evalBad_breaks_coincidence",
+        "/-! ## 3. 치환에서 결합 변수를 그대로 두면",
+        """theorem evalBad_breaks_coincidence :
+    ∃ (p : Assert String) (σ σ' : State String),
+      (∀ w ∈ p.fv, σ w = σ' w) ∧ ¬ (p.evalBad σ ↔ p.evalBad σ') := by
+  -- 힌트 1: 이번에는 `fv` 가 옳으므로, 자유 변수가 **없는** 구를 잡아야 전제가 공짜다.
+  -- 힌트 2: 그런데도 뜻이 상태에 달려야 한다. 묶인 변수를 본문에서 쓰면 된다.
+  -- 힌트 3: `∀x. x = 0` 을 두 상태에서 재 보라.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Design.lean",
+        "theorem substNaive_breaks_substitution",
+        "/-! ## 4. 왜 동시 치환인가",
+        """theorem substNaive_breaks_substitution :
+    ∃ (p : Assert String) (δ : Subst String) (σ σ' : State String),
+      (∀ w ∈ p.fv, σ w = ⟦δ w⟧ₑ σ') ∧ ¬ (⟦p.substNaive δ⟧ₐ σ' ↔ ⟦p⟧ₐ σ) := by
+  -- 먼저 볼 것: 바로 위의 `#guard` 두 줄. 반례가 거기 이미 나와 있다.
+  -- 힌트 1: 들어오는 식의 자유 변수가 결합 변수와 **같은 이름**이어야 포획이 일어난다.
+  -- 힌트 2: 두 상태를 모두 `State.const 0` 으로 두면 전제가 `0 = 0` 이 된다.
+  -- 힌트 3: 양변을 따로 `have` 로 세우고 마지막에 `hiff.mpr` 로 모순을 끌어내라.
+  --         왼쪽은 `rintro ⟨n, hn⟩` 으로 열고, 오른쪽은 `refine ⟨1, ?_⟩` 로 증인을 준다.
+  sorry
+
+""",
+    ),
 ]
 
 
