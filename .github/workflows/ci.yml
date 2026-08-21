@@ -50,7 +50,22 @@ jobs:
       - name: ANCHOR · 태그 정합성
         run: ./scripts/check-anchors.sh
 
-      # 4) 진행 상황을 Actions 요약 화면에 표로 렌더한다. 이것이 채점 대시보드다.
+      # 4) Verso 문서. 코드를 `anchor` 로 **그대로 인용**하므로, 코드가 바뀌면 여기서 깨진다.
+      #    그게 목적이다 — 설명과 코드가 어긋나면 빌드가 실패해야 한다.
+      #
+      #    Verso 는 Mathlib 같은 캐시가 없어서 빌드 산출물을 직접 캐시한다.
+      #    키는 툴체인과 의존성 리비전이라, 그 둘이 안 바뀌면 재사용된다.
+      - name: Verso 빌드 캐시
+        uses: actions/cache@v4
+        with:
+          path: manual/.lake
+          key: verso-${{ runner.os }}-${{ hashFiles('lean-toolchain', 'manual/lake-manifest.json') }}
+
+      - name: 문서 빌드
+        working-directory: manual
+        run: lake exe build-manual
+
+      # 5) 진행 상황을 Actions 요약 화면에 표로 렌더한다. 이것이 채점 대시보드다.
       - name: 진행 상황 요약
         if: always()
         run: |
