@@ -15,12 +15,14 @@ set_option verso.exampleModule "Reynolds.Answers.Ch01.Syntax"
 #doc (Manual) "들어가며" =>
 %%%
 tag := "intro"
+number := false
 %%%
 
 
 # 왜 Lean 인가
 %%%
 tag := "why-lean"
+number := false
 %%%
 
 
@@ -52,6 +54,7 @@ inductive IntExp (V : Type u) where
 # 저장소 구조
 %%%
 tag := "layout"
+number := false
 %%%
 
 
@@ -79,6 +82,7 @@ tag := "layout"
 # 실습하는 법
 %%%
 tag := "how-to-practice"
+number := false
 %%%
 
 
