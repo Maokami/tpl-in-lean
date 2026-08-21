@@ -7,3 +7,6 @@
 .DS_Store
 /.omc/
 /manual/lake-manifest.json.bak
+
+# Claude Code 작업용 worktree (로컬 전용)
+.claude/worktrees/

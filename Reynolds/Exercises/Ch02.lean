@@ -7,6 +7,7 @@ module
 
 public import Reynolds.Exercises.Ch02.Syntax
 public import Reynolds.Answers.Ch02.Notation
+public import Reynolds.Exercises.Ch02.Semantics
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -19,6 +20,7 @@ public import Reynolds.Answers.Ch02.Notation
 ## 읽는 순서
 1. `Syntax.lean` — §2.1 추상 구문 (`BoolExp`, `Comm`)
 2. `Notation.lean` — §2.1 구체 구문. 명령 DSL
+3. `Semantics.lean` — §2.2 표시적 의미론. `while` 이 왜 벽인가
 
 전체 설계는 [`docs/chapter-02.md`](../../docs/chapter-02.md).
 -/
