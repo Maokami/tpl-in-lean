@@ -67,8 +67,9 @@ variable {V : Type u} [DecidableEq V]
 치환 사상(substitution map). Reynolds 의 `Θ = ⟨var⟩ → ⟨intexp⟩`.
 
 변수 하나가 아니라 **모든 변수를 한꺼번에** 옮기는 함수다.
-Reynolds 가 동시 치환을 기본으로 두는 이유는 이 파일 §3 의 양화사 절 때문이다.
-한 변수씩 정의하면 결합 변수를 새 이름으로 바꾸는 단계에서 정의가 서지 않는다.
+Reynolds가 동시 치환을 기본으로 둔 덕분에 이 파일 §3의 이름 있는 포획 회피 정의를
+평범한 구조적 재귀로 적을 수 있다. 한 변수 치환도 별도의 종료 증명을 주거나 다른 변수
+표현을 택하면 정의할 수 있지만, 같은 직접 재귀식으로는 처리되지 않는다.
 -/
 abbrev Subst (V : Type u) := V → IntExp V
 
@@ -134,12 +135,13 @@ theorem newBinder_notMem_fv [HasFresh V] {p : Assert V} {v w : V} {δ : Subst V}
 (∀v. p) /ₛ δ = ∀ vnew. (p /ₛ δ[v := var vnew])
 ```
 
-`v` 를 새 이름 `vnew` 로 바꾸고, 치환 사상 쪽에서도 `v` 를 `var vnew` 로 보내도록 고친다.
-`vnew` 는 `newBinder` 가 골라 주므로 `δ w` 의 자유 변수와 겹치지 않는다.
+`v`를 새 이름 `vnew`로 바꾸고, 치환 사상 쪽에서도 `v`를 `var vnew`로 보내도록 고친다.
+`vnew`는 `newBinder`가 골라 주므로, 실제로 본문에 자유롭게 나타나 치환되는
+`w ∈ p.fv.erase v`에 대해 `δ w`의 자유 변수와 겹치지 않는다.
 
 **정지성**: 재귀 호출이 `p` 라는 진부분항에 대해 일어나므로 구조적 재귀다.
-"먼저 이름을 바꾸고 다시 치환한다" 는 식으로 정의하면 여기서 정지성 증명이 필요해진다.
-Reynolds 의 정의를 그대로 따르면 그 문제가 없다.
+"먼저 이름을 바꾸고 다시 치환한다"는 이름 있는 단일 치환의 직접 정의에는 별도의 정지성
+증명이 필요하다. Reynolds의 동시 치환 정의는 그 추가 증명 없이 구조적 재귀로 받아들여진다.
 -/
 def Assert.subst [HasFresh V] : Assert V → Subst V → Assert V
   | .tru,          _ => .tru

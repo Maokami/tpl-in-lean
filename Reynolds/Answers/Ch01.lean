@@ -37,5 +37,5 @@ public import Reynolds.Answers.Ch01.Depth.TermMonad
 11. `Design.lean` — 정의를 왜 이렇게 써야 하나. 틀린 정의가 무엇을 깨뜨리는지
 12. `Depth/Algebra.lean` — 심화 A (선택). 대수와 초기성
 13. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
-14. `Depth/TermMonad.lean` — 심화 A (선택). 치환은 bind 다
+14. `Depth/TermMonad.lean` — 심화 A (선택). 치환과 bind
 -/

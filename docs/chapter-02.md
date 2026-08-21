@@ -61,9 +61,9 @@ Reynolds는 그 최소한만 §2.3–2.4에서 직접 만든다.
 > *"boolean expressions are the same as assertions except for the omission of quantifiers
 > (for the obvious reason that they are noncomputable)"*
 
-이 한 문장이 `Assert.eval : … → Prop` 과 `BoolExp.eval : … → Bool` 의 차이를 설명한다.
-1장에서 `Prop`을 써야 했던 바로 그 이유가 여기서는 사라지므로 `Bool`로 갈 수 있고,
-그래서 **`#eval`로 실제로 돌릴 수 있다.**
+정수 산술과 양화를 포함한 단언 언어 전체에는 실행 가능한 공통 판정기가 없다. 양화사를
+뺀 불 식은 구문을 따라 계산할 수 있으므로 `Bool` 평가기를 줄 수 있고, **`#eval`로 실제로
+돌릴 수 있다.**
 -/
 inductive BoolExp (V : Type u) where
   | tru | fls
@@ -114,7 +114,7 @@ DSL은 1장의 것을 확장한다:
 def BoolExp.eval : BoolExp V → State V → Bool
 
 /-- 양화사 없는 조각에서 1장의 `Assert.eval`과 일치한다. -/
-@[exercise "§2.2 boolexp-assert" (stars := 2)]
+@[exercise "§2.2 boolexp-assert" 2]
 theorem boolExp_eval_iff (b : BoolExp V) (σ : State V) :
     b.toAssert.eval σ ↔ b.eval σ = true
 ```
@@ -147,11 +147,11 @@ abbrev SigmaBot (V : Type u) := Option (State V)
 ### 의미 방정식
 
 ```lean
-⟦v := e⟧ σ            = some (σ[v ↦ ⟦e⟧ σ])
+⟦v := e⟧ σ            = some (σ[v := ⟦e⟧ σ])
 ⟦skip⟧ σ              = some σ
 ⟦c₀ ; c₁⟧ σ           = (⟦c₀⟧ σ) >>= ⟦c₁⟧
 ⟦if b then c₀ else c₁⟧ σ = if ⟦b⟧ σ then ⟦c₀⟧ σ else ⟦c₁⟧ σ
-⟦newvar v := e in c⟧ σ = (⟦c⟧ σ[v ↦ ⟦e⟧ σ]).map (fun σ' => σ'[v ↦ σ v])
+⟦newvar v := e in c⟧ σ = (⟦c⟧ σ[v := ⟦e⟧ σ]).map (fun σ' => σ'[v := σ v])
 ⟦while b do c⟧        = ???        ← 여기서 막힌다
 ```
 
@@ -215,24 +215,27 @@ structure Chain (α : Type u) [Preorder α] where
   seq : ℕ → α
   mono : Monotone seq
 
-/-- 사슬이 **흥미롭다(interesting)** — 자기 극한을 포함하지 않는다, 즉 서로 다른 원소가 무한히 많다. -/
-def Chain.Interesting [Preorder α] (c : Chain α) : Prop := ¬ ∃ n, IsLUB (Set.range c.seq) (c.seq n)
-
-/-- **예비도메인(predomain)** — 모든 사슬이 극한을 갖는 부분 순서 집합.
-    (Gunter·Winskel은 이걸 "complete partial order"라 부르고, Tennent는 "domain"이라 부른다.
-     Reynolds가 §2.3에서 용어 혼란을 직접 경고한다.) -/
-class Predomain (α : Type u) extends PartialOrder α where
+/-- **프리도메인(predomain)** — 모든 사슬이 극한을 갖는 부분 순서 집합. -/
+class Predomain (α : Type u) [PartialOrder α] where
   lub : Chain α → α
-  isLUB : ∀ c, IsLUB (Set.range c.seq) (lub c)
+  lub_isLUB (c : Chain α) : IsLUB (Set.range c.seq) (lub c)
 
-/-- **도메인(domain)** — 최소원 ⊥ 를 가진 예비도메인. -/
-class Domain (α : Type u) extends Predomain α, OrderBot α
+/-- **도메인(domain)** — 최소원 ⊥ 를 가진 프리도메인. -/
+@[nolint unusedArguments]
+abbrev Domain (α : Type u) [PartialOrder α] [OrderBot α] := Predomain α
+
+/-- `c.lub`로 쓸 수 있게 한다. -/
+def Chain.lub [PartialOrder α] [Predomain α] (c : Chain α) : α := Predomain.lub c
 
 /-- **연속(continuous)** — 사슬의 극한을 보존한다. -/
-def Continuous [Predomain α] [Predomain β] (f : α → β) : Prop :=
-  ∀ c : Chain α, IsLUB (f '' Set.range c.seq) (f (Predomain.lub c))
+def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β) : Prop :=
+  ∀ c : Chain α, IsLUB (f '' Set.range c.seq) (f c.lub)
 -- ANCHOR_END: domain
 ```
+
+`Predomain`과 `Domain`이 순서 클래스를 `extends`하지 않는 것은 Mathlib이 이미 주는 순서와
+별도 상속 경로가 생기는 것을 피하기 위해서다. 연속성의 공역에는 `PartialOrder`만 요구한다.
+상의 최소 상계가 `f c.lub`라는 진술 자체로 극한 보존을 표현할 수 있기 때문이다.
 
 ### 만들 도메인들 (Reynolds가 드는 예를 전부)
 
@@ -254,26 +257,26 @@ def Continuous [Predomain α] [Predomain β] (f : α → β) : Prop :=
 /-- **명제 2.1** — 단조 함수가 연속일 필요충분조건은
     흥미로운 사슬에 대해 `f(⨆ xᵢ) ⊑ ⨆ f xᵢ` 가 성립하는 것이다.
     (반대 방향은 단조성에서 공짜. 흥미롭지 않은 사슬에서는 자명.) -/
-@[exercise "Prop 2.1" (stars := 2)]
+@[exercise "Prop 2.1" 2]
 theorem continuous_iff_le …
 
 /-- **연속하지 않은 단조 함수의 반례** — Reynolds §2.3.
     `ℕ⊤ → {⊥', ⊤'}`, `f x = if x = ∞ then ⊤' else ⊥'`.
     `⨆{0,1,2,…} = ∞` 이고 `f ∞ = ⊤'` 이지만 `⨆{f 0, f 1, …} = ⊥'`. -/
-@[exercise "§2.3 반례" (stars := 2)]
+@[exercise "§2.3 반례" 2]
 theorem exists_monotone_not_continuous …
 
-/-- **명제 2.2** — 연속 함수 공간 `P → P'` 는 점별 순서로 예비도메인이고,
+/-- **명제 2.2** — 연속 함수 공간 `P → P'` 는 점별 순서로 프리도메인이고,
     `P'`가 도메인이면 도메인이다. 사슬의 극한은 점별 극한이다. -/
-@[exercise "Prop 2.2" (stars := 3)]
+@[exercise "Prop 2.2" 3]
 
 /-- **명제 2.3 (a)~(e)** — 상수·항등 함수는 연속, 합성은 연속성을 보존한다. -/
-@[exercise "Prop 2.3" (stars := 2)]
+@[exercise "Prop 2.3" 2]
 
 /-- **명제 2.4 (a)~(e)** — 리프팅 `f⊥`, 원천 리프팅 `f⊥⊥`, 주입 `ι` 의 성질.
     (a)(b)는 "유일한 순 확장(strict extension)"이라는 주장이다.
     Lean에서 `f⊥ = Option.map f`, `g⊥⊥ = Option.elim ⊥ g` 임을 확인한다. -/
-@[exercise "Prop 2.4" (stars := 2)]
+@[exercise "Prop 2.4" 2]
 ```
 
 **`Σ → Σ⊥` 의 순서를 직관으로 설명하는 docstring** (Reynolds가 §2.3 끝에서 하는 말):
@@ -296,12 +299,12 @@ def approx [Domain D] (f : D → D) : ℕ → D
 
 /-- **1단계** — `⊥ ⊑ f⊥ ⊑ f²⊥ ⊑ ⋯` 는 사슬이다.
     `⊥ ⊑ f⊥` 는 자명하고, 나머지는 `f`의 단조성과 `n`에 대한 귀납법. -/
-@[exercise "Prop 2.5-1" (stars := 1)]
+@[exercise "Prop 2.5-1" 1]
 theorem approx_mono [Domain D] {f : D → D} (hf : Continuous f) : Monotone (approx f)
 
 /-- **2단계** — `x = ⨆ₙ fⁿ⊥` 는 `f`의 고정점이다.
     `f`의 연속성으로 `f(⨆ fⁿ⊥) = ⨆ fⁿ⁺¹⊥` 이고, 사슬 앞에 ⊥를 붙여도 상한이 안 변한다. -/
-@[exercise "Prop 2.5-2" (stars := 2)]
+@[exercise "Prop 2.5-2" 2]
 theorem lfp_isFixed …
 
 /-- **3단계** — `x`는 **최소** 고정점이다.
@@ -310,7 +313,7 @@ theorem lfp_isFixed …
     Reynolds의 주석: 사실 `f y ⊑ y` 만으로 충분하다. 즉 `x`는
     **최소 전(pre)고정점**이기도 하다. 이 강한 형태를 증명해 둔다 —
     §2.5·§2.8의 증명에서 쓰인다. -/
-@[exercise "Prop 2.5-3" (stars := 2)]
+@[exercise "Prop 2.5-3" 2]
 theorem lfp_le_of_le …
 
 /-- **명제 2.5 (최소 고정점 정리)** — 위 셋을 합친 것. -/
@@ -322,7 +325,7 @@ noncomputable def Y [Domain D] (f : D →𝒸 D) : D := …
 
 /-- `Y_D` 자체가 연속이다. Reynolds: *"It can also be shown that Y_D itself is a
     continuous function."* — 책은 증명하지 않는다. 우리는 한다. -/
-@[exercise "§2.4 Y-연속" (stars := 3)]
+@[exercise "§2.4 Y-연속" 3]
 theorem Y_continuous …
 -- ANCHOR_END: lfp
 ```
@@ -378,7 +381,7 @@ noncomputable def Comm.eval : Comm V → State V → SigmaBot V
 
 /-- Reynolds 연습문제 2.4 — `F`가 연속임을 증명하라. **의미 정의가 성립하려면 필수**이므로
     Answers에서는 제공하고, Exercises에서 다시 풀게 한다. -/
-@[exercise "Ex 2.4" (stars := 3)]
+@[exercise "Ex 2.4" 3]
 theorem whileF_continuous …
 ```
 
@@ -415,7 +418,7 @@ theorem Comm.run_mono : Monotone (fun n => c.run n)
 이 정리가 이 장의 **가장 중요한 다리**다. 왼쪽은 증명용, 오른쪽은 실행용이고,
 둘이 같다는 것을 커널이 보증한다. 증명은 `while` 케이스에서 Scott 귀납법을 쓴다.
 -/
-@[exercise "§2.4 적합성" (stars := 3)]
+@[exercise "§2.4 적합성" 3]
 theorem Comm.eval_eq_run : c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ'
 ```
 
@@ -425,26 +428,26 @@ theorem Comm.eval_eq_run : c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ'
 /--
 Reynolds §2.4의 비자명한 예:
 
-    Fⁿ⊥ σ = if 0 ≤ σx ≤ n then σ[x ↦ 0][y ↦ σy + σx×(σx-1)÷2] else ⊥
+    Fⁿ⊥ σ = if 0 ≤ σx ≤ n then σ[x := 0][y := σy + σx×(σx-1)÷2] else ⊥
 
 `n`에 대한 귀납법. 책의 계산을 그대로 옮기면 되고, 산술은 `omega`가 처리한다.
 그 다음 극한을 취해 `⟦while x ≠ 0 do (x := x-1; y := y+x)⟧` 를 닫힌 꼴로 얻는다.
 -/
-@[exercise "§2.4 예제" (stars := 3)]
+@[exercise "§2.4 예제" 3]
 theorem approx_example …
 ```
 
-### 추상 구문 = 최소 고정점 (1장과의 연결)
+### 추상 구문의 최소 고정점 구성과 초기 대수
 
-§2.4 끝에서 Reynolds는 §1.1의 추상 문법 정의가 `𝒫(P)ⁿ` 에서의 최소 고정점임을 보인다.
-Lean에서는 `inductive`가 정확히 그것이다. `MathlibBridge.lean` 또는 Verso 문서에
-**심화 노트**로 쓴다:
+§2.4 끝에서 Reynolds는 §1.1의 추상 문법 반송자를 `𝒫(P)ⁿ`에서 최소 고정점으로 구성한다.
+Lean의 `inductive`는 같은 구문을 초기 대수로 준다. `MathlibBridge.lean` 또는 Verso 문서에서
+둘의 연결과 차이를 **심화 노트**로 설명한다:
 
 > Reynolds의 `sᵢ⁽ʲ⁺¹⁾ = fᵢ(s⁽ʲ⁾)`, `sᵢ = ⋃ⱼ sᵢ⁽ʲ⁾` 는
 > 생성자가 유한 인자를 가지므로 `f`가 유한 생성(finitely generated) → 연속 → 최소 고정점 존재.
-> Lean의 `inductive`가 이 구성을 커널 수준에서 수행한다. 범주론적으로는
-> 다항 함자(polynomial functor)의 시작 대수이며, 이것이 1장 `Initiality.lean`의 시작성과
-> **같은 사실의 두 얼굴**이다.
+> 다항 시그니처의 초기 대수는 초기 사슬의 여극한으로 구성할 수 있고, Lambek 보조정리는
+> 그 구조 사상이 동형임을 말한다. 이는 구문 반송자의 최소 고정점 구성과 연결되지만,
+> 명령 의미의 함수 도메인에서 `Y`가 고르는 최소 고정점과 같은 대상은 아니다.
 
 ---
 
@@ -491,7 +494,7 @@ def Comm.fa [DecidableEq V] : Comm V → Finset V
 **`while` 케이스**: Scott 귀납법을 쓴다. `AgreeOn`이 허용 가능(admissible)함을
 먼저 보여야 한다 (평평한 도메인이라 사슬이 결국 상수가 되므로 어렵지 않다).
 -/
-@[exercise "Prop 2.6" (stars := 3)]
+@[exercise "Prop 2.6" 3]
 theorem coincidence_comm …
 ```
 
@@ -558,10 +561,10 @@ Reynolds가 §2.5 끝에서 하는 방법론적 언급이 중요하다:
 Lean에서 증명하다 보면 이걸 몸으로 겪게 된다. **일반화가 왜 필요한지 배우는
 최고의 예제**다. Answers에 "약한 진술로 시도했을 때 어디서 막히는지"를 주석으로 남길 것.
 -/
-@[exercise "Prop 2.7" (stars := 3)]
+@[exercise "Prop 2.7" 3]
 
 /-- **명제 2.8 (명령에 대한 이름 바꾸기 정리)** — 별칭이 있어도 α-변환은 뜻을 보존한다. -/
-@[exercise "Prop 2.8" (stars := 2)]
+@[exercise "Prop 2.8" 2]
 ```
 
 ---
@@ -615,26 +618,25 @@ theorem forV3_iterates_exactly (h : v ∉ c.fa) …
 
 대부분 산문이지만, **한 가지는 반드시 형식화한다.**
 
-Reynolds의 논점: 오류를 검사하지 않기로 했다면 연산이 **하드웨어가 실제로 계산하는 함수**여야
-하고, 그것이 **함수이기만 하면** 다음 등식들이 규약과 무관하게 성립한다.
+Reynolds의 논점은 오류를 검사하지 않기로 한 연산도 입력마다 결과 하나를 주는 전함수여야
+한다는 것이다. 0으로 나눈 구체적인 결과를 사용하지 않는 등식만 그 선택과 무관하다.
 
 ```lean
 -- ANCHOR: arithParam
 /--
-산술 연산을 **매개변수화**한 축소판 의미론.
+0으로 나눌 때의 결과를 **매개변수화**한 축소판 의미론.
 
 Reynolds §2.7:
 > *"The only restriction is that these operations must actually be functional.
 > For example, x ÷ 0 must be some integer function of x."*
 
-`Arith` 구조를 인자로 받는 `eval`을 만들면, 아래 등식들을
-**어떤 `Arith` 인스턴스에 대해서도** 증명할 수 있다. 이것이 Reynolds의 주장을
-형식적으로 확인하는 방법이다.
+0인 제수에서 `div`와 `rem`이 돌려줄 값만 인자로 받는 `eval`을 만든다. 그러면 아래 등식들이
+그 선택을 실제로 관찰하는지 구분할 수 있다.
 -/
-structure Arith where
-  add sub mul div rem : Int → Int → Int
+structure ZeroDivision where
+  divZero remZero : Int → Int
 
-variable (A : Arith)
+variable (A : ZeroDivision)
 
 theorem arith_indep_1 : ⟦⟪ (x + y) × 0 ⟫⟧A σ = 0
 theorem arith_indep_2 : ⟦⟪ x ÷ 0 = x ÷ 0 ⟫⟧A σ = true
@@ -679,7 +681,7 @@ def FullyAbstract (den : Comm V → α) : Prop := …
 -- ANCHOR_END: fullAbstraction
 
 /-- **§2.8의 정리** — 우리 표시적 의미는 완전 추상이다. -/
-@[exercise "§2.8 완전추상" (stars := 3)]
+@[exercise "§2.8 완전추상" 3]
 theorem eval_fullyAbstract : FullyAbstract (Comm.eval (V := V))
 
 /--
@@ -695,7 +697,7 @@ Reynolds의 증명이 아름답다. `⟦c⟧σ ≠ ⟦c'⟧σ` 인 σ가 있다�
 
 **§2.5의 명제 2.6이 여기서 쓰인다.** 장 전체가 이 정리로 수렴하는 구조다.
 -/
-@[exercise "§2.8 닫힌관찰" (stars := 3)]
+@[exercise "§2.8 닫힌관찰" 3]
 theorem eval_fullyAbstract_closed …
 ```
 

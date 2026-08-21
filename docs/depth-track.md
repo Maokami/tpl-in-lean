@@ -15,7 +15,7 @@ Reynolds는 세 곳에서 **직접 손가락으로 가리킨다.**
 |---|---|---|
 | §1.1 | *"the reader who is familiar with universal algebra will recognize that these conditions insure that abstract phrases form a many-sorted **initial algebra** whose operators are the constructors"* | 초기 대수 의미론 |
 | §1.4 Prop 1.2(b) | *"the constructor `c_var` … **acts as an identity substitution**"* | 모나드 우단위 법칙 |
-| §2.4 끝 | *"such a definition gives a family of carriers that is the **least solution** of the equations"* (추상 문법 = `𝒫(P)ⁿ`의 최소 고정점) | 초기 대수 = 최소 고정점 |
+| §2.4 끝 | *"such a definition gives a family of carriers that is the **least solution** of the equations"* (추상 문법 = `𝒫(P)ⁿ`의 최소 고정점) | 구문 반송자의 최소 고정점 구성과 초기 대수의 연결 |
 
 그리고 §1.4에서 `FV`를 정의한 뒤 이렇게 쓴다:
 
@@ -42,8 +42,8 @@ Reynolds는 세 곳에서 **직접 손가락으로 가리킨다.**
 | 심화 | 집세 |
 |---|---|
 | 대수와 초기성 | Reynolds의 *"define the functions uniquely"* 주장을 **증명**한다 |
-| 항 모나드 | Prop 1.2(b) + 연습 1.7이 **모나드 법칙 그 자체**임을 보인다 |
-| 시그니처 함자 | 1장 구문과 2장 최소 고정점이 **같은 구성**임을 보인다 |
+| 항 모나드 | Prop 1.2(b) + 연습 1.7이 모나드 법칙과 같은 모양임을 보인다 |
+| 시그니처 함자 | 구문의 초기 대수, Lambek 동형, 최소 고정점 구성을 구분하고 연결한다 |
 | 리프팅 모나드 | 명제 2.4 (a)~(e) 전부 + `;`의 결합성이 **공짜로** 따라온다 |
 | CPO 범주 | 명제 2.2·2.3이 "이 범주에 곱과 지수가 있다"의 사례임을 보인다 |
 
@@ -54,7 +54,7 @@ Reynolds는 세 곳에서 **직접 손가락으로 가리킨다.**
 
 ```
 ❌ "Σ-대수란 반송자와 연산의 족이며 …"
-✅ "eval, fv, toInfix 를 나란히 놓아 보자. 셋 다 생성자마다 규칙 하나,
+✅ "eval, fv, toPrefix 를 나란히 놓아 보자. 셋 다 생성자마다 규칙 하나,
     재귀는 부분구에만. …이 모양에 이름이 있다."
 ```
 
@@ -86,7 +86,7 @@ Reynolds/Answers/Ch01/Depth/
 Reynolds/Answers/Ch02/Depth/
 ├── LiftingMonad.lean       # A — (-)⊥ = Option 모나드, 명제 2.4, ; 의 결합성
 ├── CpoCategory.lean        # B — ωCPO 의 곱·지수, 명제 2.2·2.3
-└── FixpointAlgebraically.lean # B — 최소 고정점 = 초기 대수의 사슬 구성
+└── FixpointAlgebraically.lean # B — 구문의 초기 사슬과 도메인 최소 고정점 비교
 ```
 
 `Depth/` 하위에 두는 이유: 본문 파일 목록이 책의 절과 1:1로 깨끗하게 유지된다.
@@ -127,7 +127,7 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 
 **흐름**
 
-1. **관찰.** `IntExp.eval`, `IntExp.fv`, `IntExp.toInfix` 를 나란히 놓는다.
+1. **관찰.** `IntExp.eval`, `IntExp.fv`, `IntExp.toPrefix` 를 나란히 놓는다.
    생성자마다 절 하나, 재귀는 부분구에만. **셋 다 같은 모양이다.**
 
 2. **이름 붙이기.** 그 "모양"을 데이터로 만든다.
@@ -200,12 +200,12 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 |---|---|---|
 | 심화 A1.1 | `fold` 를 정의하고 `IsHom A (A.fold)` 를 증명하라 | ★ |
 | 심화 A1.2 | 초기성의 **유일성** 부분을 증명하라 | ★★ |
-| 심화 A1.3 | `toInfix` 를 대수로 만들고 fold 임을 보여라 | ★★ |
+| 심화 A1.3 | `toPrefix` 를 대수로 만들고 fold 임을 보여라 | ★★ |
 | 심화 A1.4 | `eval_unique` 를 초기성만 써서 증명하라 (귀납법을 다시 쓰지 말 것) | ★★★ |
 
 ---
 
-### 4.2 `Depth/TermMonad.lean` (A) — 치환은 bind다
+### 4.2 `Depth/TermMonad.lean` (A) — 치환과 bind
 
 **이 파일이 심화 트랙 전체의 하이라이트다.**
 
@@ -214,9 +214,10 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 > *"Note that part (b) of this proposition asserts that the constructor `c_var`, which injects
 > variables into the corresponding integer expressions, **acts as an identity substitution**."*
 
-그는 **모나드 단위 법칙을 발견하고 이름을 붙이지 않았다.**
+고정된 변수 타입에서 이 진술은 모나드의 우단위 법칙과 같은 모양이다.
 
-**대응표** — 이것 하나가 파일의 뼈대다.
+**대응표** — 다형적 치환 `IntExp V → (V → IntExp W) → IntExp W`까지 일반화하면
+`V ↦ IntExp V`가 모나드를 이룬다. 현재 파일은 `V = W`인 경우의 법칙을 증명한다.
 
 | Reynolds | 모나드 |
 |---|---|
@@ -225,7 +226,11 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 | **Prop 1.2(b)** `p / c_var = p` | **우단위** `m >>= pure = m` |
 | `(c_var v) / δ = δ v` (정의로 성립) | **좌단위** `pure v >>= f = f v` |
 | **연습 1.7(a)** `δ''w = (δw)/δ'` ⟹ `p/δ''` 는 `(p/δ)/δ'` 의 이름 바꾸기 | **결합법칙** `(m >>= f) >>= g = m >>= (f >=> g)` |
-| Prop 1.3 (치환 정리) | `eval` 이 항 모나드 위의 **가군(module)** |
+| Prop 1.3 (치환 정리) | 단언의 치환과 평가 뒤 상태 재색인이 호환됨 |
+
+가군(module) 비유를 쓰려면 작용의 주체를 구분해야 한다. 작용을 받는 것은 `Assert` 구문이고,
+`eval`은 그 치환 작용을 상태 재색인으로 보내는 호환 사상으로 읽는다. 현재 파일은 이 호환성을
+명제 1.3으로 증명할 뿐, 가군 구조 자체를 Lean 클래스로 만들지는 않는다.
 
 **★ 여기서 진짜 깊은 것이 나온다 — 연습 1.7은 "같다"가 아니라 "이름 바꾸기다"**
 
@@ -234,25 +239,23 @@ Reynolds의 진술을 다시 보라: *"`p/δ''` **is a renaming of** `(p/δ)/δ'
 - `IntExp` 에는 결합자가 없다 → 모나드 법칙이 **그대로(on the nose)** 성립한다.
 - `Assert` 에는 `∀v` 가 있다 → 포획 회피를 위해 새 이름을 뽑으므로 **α-동치까지만** 성립한다.
 
-즉 **결합자가 있는 구문은 항 위에서 모나드가 아니고, α-동치로 나눈 몫(quotient) 위에서
-비로소 모나드가 된다.** 이것이
+현재의 이름 있는 표현에서는 결합 변수 이름의 차이 때문에 보통 등식으로 모나드 법칙을
+말하기 어렵다. α-동치로 나눈 몫, de Bruijn 색인, locally nameless, 준층 위 구문처럼
+이름 차이를 표현에서 처리하는 방법이 여기서 필요해진다.
 
-- 왜 de Bruijn 색인이 존재하는가
-- 왜 locally nameless 가 존재하는가 (CSlib `Languages/LambdaCalculus/LocallyNameless/*`)
-- 왜 Reynolds가 §1.4 끝에서 **고차 추상 구문(higher-order abstract syntax)** 을 언급하는가
-
-이 셋을 한꺼번에 설명한다. **1장에서 얻을 수 있는 가장 값진 통찰이다.**
+Reynolds가 §1.4 끝에서 **고차 추상 구문(higher-order abstract syntax)**을 언급하는 것도
+결합 변수의 이름을 추상 구문의 본질로 보지 않는 이 문제와 이어진다.
 
 **구성**
-1. `IntExp` 의 모나드 구조 — `pure := .var`, `bind := subst`. 세 법칙 증명 (그대로 성립).
-2. `Monad (IntExp)` 인스턴스? — **하지 않는다.** `IntExp V` 는 `V` 에 대해 모나드지만
-   universe/`Type u → Type u` 모양을 맞추느라 코드가 지저분해진다. 법칙을 **명시적 정리**로
-   쓰는 편이 읽힌다. (하려면 ★★★ 연습으로.)
-3. `Assert` 의 치환은 **가군 작용(module action)** — `Assert V → Subst V → Assert V`.
-   법칙이 `=α` 까지만 성립함을 **반례와 함께** 보인다.
+1. 고정된 `V`에서 `pure := .var`, `bind := subst` 역할을 하는 치환 법칙 세 개를 증명한다.
+2. `Monad IntExp` 인스턴스는 만들지 않는다. 실제 인스턴스에는 변수 타입을 바꾸는 다형적
+   `bind`와 universe 정리가 필요하다. 현재 학습 목표에는 명시적 정리가 더 읽기 쉽다.
+3. `Assert V → Subst V → Assert V`는 현재의 이름 있는 표현에서는 **가군 작용의 후보**다.
+   법칙이 등호가 아니라 `=α`까지만 성립함을 반례와 함께 보인다.
 4. CSlib `HasAlphaEquiv` 로 `=α` 를 정의하고, 몫에서 법칙이 그대로 성립함을 ★★★ 연습으로.
 5. 참고문헌: Fiore–Plotkin–Turi, *Abstract Syntax with Variable Binding* (LICS 1999) —
-   결합자가 있는 초기 대수는 집합이 아니라 **준층(presheaf)** 에서 산다.
+   원시 이름 구문은 `Type` 위 초기 대수로 둘 수 있다. 문맥 확장, α-동치, 포획 회피
+   치환까지 구조에 담을 때는 **준층(presheaf)**이 표준적인 방법 중 하나다.
 
 **연습**
 | id | 내용 | ★ |
@@ -284,12 +287,14 @@ theorem IntExp.lambek : Function.Bijective (IntExp.roll (V := V))
 -- 또는 `IntExp V ≃ Sig V (IntExp V)`
 ```
 
-**이것이 2장으로 가는 다리다.** Lambek은 "초기 대수는 `F` 의 고정점"이라고 말한다.
-Reynolds가 §2.4 끝에서 추상 문법을 `𝒫(P)ⁿ` 의 **최소 고정점**이라 부르는 것과 같은 사실이다.
+**이것이 2장으로 가는 다리다.** Lambek 보조정리는 초기 대수의 구조 사상이 동형임을 말한다.
+Reynolds가 §2.4 끝에서 주는 `𝒫(P)ⁿ` 위 최소 고정점 구성은 같은 구문 반송자를 만드는 다른
+설명이다. 명령 의미의 함수 도메인에서 `Y`가 고르는 최소 고정점과는 구분해야 한다.
 
 **CSlib 자유 모나드와의 동형.**
 CSlib `Cslib/Foundations/Data/PFunctor/Free.lean` 의 `PFunctor.FreeM P α` 는
-"다항 함자 `P` 위의 자유 모나드"다. 우리 `IntExp V` 가 정확히 그것이다:
+"다항 함자 `P` 위의 자유 모나드"다. 적절한 다항 시그니처를 고르면 `IntExp V`와의 동형을
+기대할 수 있고, 실제 동형을 세우는 일은 연습으로 남긴다:
 
 ```lean
 /-- 우리 시그니처를 다항 함자로. -/
@@ -300,14 +305,16 @@ def sigP : PFunctor := ⟨Op, arity⟩   -- Op = num n | neg | bin op,  arity = 
 def IntExp.equivFreeM : IntExp V ≃ sigP.FreeM V
 ```
 
-동형을 세우면 CSlib의 `LawfulMonad` 인스턴스와 **`Interprets.iff`(자유 모나드의 보편 성질)**
-를 그대로 물려받는다. CSlib 문서가 그 정리를 이렇게 부른다:
+CSlib의 `Interprets.iff`는 효과 handler를 확장하는 모나드 interpreter의 유일성을 말한다.
+`Depth/Algebra.lean`의 초기성은 고정된 `V`에서 임의의 `IntExpAlg V`로 가는 대수 준동형의
+유일성을 말하므로, 그대로 같은 정리는 아니다. CSlib 문서는 전자의 보편 성질을 이렇게 부른다:
 
 > *"The universal property of the free monad. That is, `liftM handler` is the **unique**
 > interpreter that extends the effect handler."*
 
-**즉 `Depth/Algebra.lean` 에서 손으로 증명한 초기성을, CSlib는 이미 갖고 있다.**
-직접 증명해 보고 → 라이브러리 것과 맞춰 보는 순서가 학습에 가장 좋다.
+둘을 연결하려면 모든 변수 타입에 자연적인 동형을 세우고, 그 동형이 `pure`, `bind`, 생성자를
+보존함을 증명해야 한다. 고정된 `V` 하나의 타입 동형만으로 `LawfulMonad` 구조를 옮길 수는 없다.
+아래 연습은 타입 동형에서 시작해 이 호환성 증명으로 나아가는 순서다.
 
 **연습**
 | id | 내용 | ★ |
@@ -421,7 +428,8 @@ def curry   : (X × Y →𝒄 Z) ≃ (X →𝒄 (Y →𝒄 Z))
 
 **왜 CCC가 중요한가 (산문).**
 데카르트 닫힌 범주(cartesian closed category)는 **단순 타입 λ-계산법의 모델**이다
-(Lambek–Scott). 즉 §2.3에서 Reynolds가 "연속 함수 공간도 예비도메인이다"를 증명하는 것은,
+(Lambek–Scott). 즉 §2.3에서 Reynolds가 "연속 함수 공간도 프리도메인(predomain)이다"를
+증명하는 것은,
 **10장 λ-계산법과 15장 타입 체계의 의미론을 미리 준비하는 것**이다.
 그는 그렇게 말하지 않지만 사실이 그렇다.
 
@@ -439,18 +447,19 @@ def curry   : (X × Y →𝒄 Z) ≃ (X →𝒄 (Y →𝒄 Z))
 
 ---
 
-### 5.3 `Depth/FixpointAlgebraically.lean` (B) — 1장과 2장은 같은 이야기다
+### 5.3 `Depth/FixpointAlgebraically.lean` (B) — 세 고정점 구성을 비교한다
 
-**이것이 심화 트랙의 종착점이다.**
+여기서는 구문의 초기 대수, Reynolds의 구문 반송자 최소 고정점 구성, 명령 의미의 최소
+고정점을 한 표에 놓되 같은 대상으로 합치지 않는다.
 
-| | 1장 | 2장 |
-|---|---|---|
-| 무대 | 집합의 범주 | 도메인 `D` |
-| 구성 | 초기 `F`-대수 | 최소 고정점 `⨆ₙ Fⁿ⊥` |
-| 사슬 | `0 → F0 → F²0 → ⋯` | `⊥ ⊑ F⊥ ⊑ F²⊥ ⊑ ⋯` |
-| 극한 | 여극한(colimit) | 최소 상계(join) |
-| "진짜 고정점" | **Lambek**: 구조 사상이 동형 | `f x = x` |
-| Lean | `inductive` | `lfp` (직접 만든다) |
+| | 구문의 초기 대수 | 구문 반송자의 최소 고정점 | 명령 의미의 최소 고정점 |
+|---|---|---|---|
+| 대상 | `IntExp V`와 생성자 | 구를 모은 부분집합들의 튜플 | `State → State⊥` 같은 의미 함수 |
+| 무대 | 집합과 함수 | 멱집합 격자와 포함 관계 | 도메인과 근사 순서 |
+| 방정식 | `X ≃ F X` | `S = Φ S` | `g = Ψ g` |
+| 선택 원리 | 초기성이라는 보편 성질 | 생성자로 닫힌 최소 반송자 | 연속 자기함수의 최소 고정점 |
+| 구성 | 초기 사슬의 여극한 | `∅, Φ∅, Φ²∅, …`의 합집합 | `⊥, Ψ⊥, Ψ²⊥, …`의 최소 상계 |
+| Lean | `inductive`, Lambek 동형 | 아직 형식화하지 않음 | `lfp`를 직접 정의 |
 
 **Reynolds가 직접 잇는다** (§2.4 끝):
 
@@ -459,17 +468,19 @@ def curry   : (X × Y →𝒄 Z) ≃ (X →𝒄 (Y →𝒄 Z))
 > stems from the fact that each `fᵢ` is **finitely generated** …, which in turn stems from the fact
 > that **the constructors of the abstract syntax have a finite number of arguments**."*
 
-**연속성이 "생성자가 유한 개의 인자를 갖는다"에서 온다.** 이것이 다항 함자(polynomial functor)가
-ω-여연속인 이유이고, `inductive` 가 존재하는 이유다.
+생성자가 유한 개의 인자를 갖는다는 조건은 Reynolds의 반송자 생성 함수가 필요한 사슬의
+합을 보존하게 한다. 범주론에서는 이 연결을 finitary polynomial functor의 초기 사슬로
+설명할 수 있다. Lean의 `inductive`는 커널이 별도로 제공하는 기능이다.
 
 **Lean 코드로 확인할 것**: 아주 작은 문법(예: `S ::= ε | a S`)을 두 가지로 만든다.
 ① `inductive` ② `𝒫(String)` 위의 최소 고정점 `⨆ₙ Fⁿ ∅`.
 **둘이 같은 집합임을 증명한다.** 구체적이고, 놀랍고, 두 장을 한 문장으로 잇는다.
 
-**5장 예고 (산문).** 재귀적 영역 방정식 `D ≅ [D → D]` (§5.5)는 같은 아이디어의 다음 단계다.
-그런데 `X ↦ [X → X]` 는 **공변이 아니다** — 초기 대수로 안 된다.
+**5장 예고 (산문).** 재귀적 영역 방정식 `D ≅ [D → D]` (§5.5)도 재귀적 대상을 구성한다.
+다만 `X ↦ [X → X]` 는 **공변이 아니다** — 초기 대수로 다룰 수 없다.
 Scott의 해법은 사영 쌍(embedding–projection pair)의 사슬을 따라 **쌍극한(bilimit)** 을 취하는 것.
-1장 초기 대수 → 2장 최소 고정점 → 5장 쌍극한, 세 단계가 하나의 이야기다.
+1장 초기 대수, 2장 최소 고정점, 5장 쌍극한은 모두 재귀적 대상을 구성하지만 사용하는
+범주와 보편 성질은 서로 다르다.
 
 **연습**
 | id | 내용 | ★ |
@@ -491,7 +502,7 @@ Scott의 해법은 사영 쌍(embedding–projection pair)의 사슬을 따라 *
 | `Ch01/Substitution.lean` Prop 1.2(b) 근처 | `> Reynolds는 `c_var` 가 "항등 치환으로 작동한다"고 쓴다.`<br>`> 이것이 모나드 단위 법칙이다: `Depth/TermMonad.lean`.` |
 | `Ch02/Semantics.lean` `;` 의미 방정식 | `> `f⊥⊥` 는 `Option` 모나드의 bind 다. `;` 의 결합성이 공짜로 나온다: `Depth/LiftingMonad.lean`.` |
 | `Ch02/Domain.lean` 명제 2.2 | `> 이것은 ωCPO 범주의 **지수 대상**이다. 그래서 λ-계산법의 모델이 된다: `Depth/CpoCategory.lean`.` |
-| `Ch02/Fixpoint.lean` 끝 | `> 1장의 `inductive` 와 이 최소 고정점은 같은 구성이다: `Depth/FixpointAlgebraically.lean`.` |
+| `Ch02/Fixpoint.lean` 끝 | `> 1장의 구문 구성과 이 최소 고정점의 공통점과 차이는 `Depth/FixpointAlgebraically.lean`에서 비교한다.` |
 
 ---
 
@@ -512,7 +523,7 @@ manual/Manual/
 
 | 줄기 | 1장 | 2장 | 이후 |
 |---|---|---|---|
-| **초기 대수** | 추상 구문 | 최소 고정점 | 5장 재귀 영역 방정식 |
+| **재귀적 구성** | 초기 대수로 보는 추상 구문 | 도메인의 최소 고정점 | 5장 재귀 영역 방정식 |
 | **모나드** | 치환 | 리프팅·순차 합성 | 5장 연속체, 7장 멱영역, 13장 상태 |
 | **결합(binding)** | 양화사 | `newvar` | 10장 λ, **11.7장 동적 결합의 실패** |
 | **관찰과 추상성** | (없음) | 완전 추상성 | 8장 병행성이 깨는 것, 13장 별칭 |

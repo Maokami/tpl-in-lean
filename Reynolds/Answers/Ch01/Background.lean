@@ -70,7 +70,11 @@ Reynolds 가 다루는 것은 **정수 위의** 술어 논리다. 변수는 정�
 | 항(term) | 정수 식(integer expression) | `IntExp` |
 | 정형식(well-formed formula) | 단언(assertion) | `Assert` |
 | 배정(assignment) | 상태(state) | `State` |
-| 모델(model) | 의미 함수 | `Assert.eval` |
+| 구조(structure) | 정수 영역과 연산·관계 기호의 해석 | `Int`, `IntOp.denote`, `Cmp.denote` |
+| 만족(satisfaction) | 상태에서 단언이 참임 | `Assert.eval p σ` |
+
+구조가 주어진 문장이나 이론을 만족할 때 그 구조를 모델(model)이라고 부른다. 이 저장소는
+정수 구조를 처음부터 고정하므로, 코드에서는 별도의 `Model` 타입을 만들지 않는다.
 
 ## 2. 메타언어와 객체언어
 
@@ -114,12 +118,13 @@ def xPos : Assert String := .cmp .gt x (.num 0)
 /--
 `⟦-⟧ₐ` 가 두 세계를 잇는 다리다: 객체언어의 값 + 상태 → 메타언어의 명제.
 
-**증명이 `decide` 가 아니라 `simp` 인 것에 주목하라.** `⟦p⟧ₐ σ` 는 `Prop` 이고
-`Prop` 은 일반적으로 결정 가능하지 않다 (양화사가 있으면 ℤ 전체를 훑어야 한다).
-`Decidable` 인스턴스가 없으니 `decide` 가 실패한다.
+`Prop`이라고 해서 무조건 `decide`를 못 쓰는 것은 아니다. 이 파일 아래쪽의 `3 > 0`처럼
+구체적인 명제에는 결정 절차가 있기도 한다. 여기서는 의미 정의를 풀어 주는 `simp`를 쓴다.
+중요한 차이는 태틱 이름이 아니다. 정수 양화를 포함한 **모든** 단언에 공통으로 쓸 수 있는
+판정 프로그램은 만들 수 없다는 점이다.
 
-반면 정수 식은 `⟦e⟧ₑ σ : Int` 라서 계산된다 — `#eval` 도 `decide` 도 된다.
-**쓸 수 있는 태틱이 다르다는 것 자체가 `Prop` / 계산 가능성의 경계다.**
+정수 식은 사정이 다르다. 평가는 실제 `Int`를 돌려주므로, 상태까지 계산 가능한 값으로
+주어지면 `#eval`로 실행할 수 있다.
 -/
 example : ⟦xPos⟧ₐ σ₀ := by
   simp [xPos, Assert.eval, Cmp.denote, IntExp.eval, x, σ₀]
@@ -158,7 +163,7 @@ example : (3 : Int) > 0 := by decide
 
 /-! ## 4. 상태와 만족
 
-`x > 0` 에는 진리값이 없다. `x` 가 무엇인지 모르기 때문이다.
+열린 단언 `x > 0`은 정수 구조를 고정해도 상태를 주기 전에는 참·거짓이 정해지지 않는다.
 
 `⟦-⟧ₐ` 의 타입이 `Assert V → State V → Prop` 인 것이 그래서다.
 단언만으로는 부족하고 상태가 하나 더 필요하다.

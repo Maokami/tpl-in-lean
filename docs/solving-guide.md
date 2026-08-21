@@ -125,7 +125,7 @@ simp [Assert.fv, IntExp.fv]
 | 메시지 | 뜻 | 조치 |
 |---|---|---|
 | `Invalid \`meta\` definition …; consider adding \`public meta import X\`` | `#guard`/`#eval` 은 컴파일 시점에 계산한다 | 시키는 대로 `public meta import` 를 추가 |
-| `failed to synthesize Decidable (⟦p⟧ₐ σ)` | 단언의 뜻은 `Prop` 이라 결정 가능하지 않다 | `decide` 대신 `simp` 를 쓴다 |
+| `failed to synthesize Decidable (⟦p⟧ₐ σ)` | 이 명제에 쓸 결정 절차를 Lean이 찾지 못했다 | 정의를 풀어 증명하려면 `simp`를 쓰고, 계산하려면 해당 명제의 `Decidable` 인스턴스가 있는지 확인한다 |
 | `simp made no progress` | 펼칠 정의가 목록에 없다 | 목표에 남은 이름을 `simp [...]` 에 넣는다 |
 | `motive is not type correct` | 의존 타입이 얽힌 `rw` | `simp only [...]` 나 `subst` 를 쓴다 |
 | `declaration uses 'sorry'` | 아직 안 채웠다 | 경고이지 오류가 아니다. 연습 중에는 정상 |

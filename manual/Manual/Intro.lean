@@ -37,7 +37,7 @@ Reynolds 의 책은 세 가지를 계속 반복한다: *구문을 정의하고*,
 
 ```anchor IntExp
 inductive IntExp (V : Type u) where
-  /-- 정수 상수. Reynolds의 `c₀, c₁, c₂, …`. -/
+  /-- 정수 상수. Reynolds의 `c₀, c₁, c₂, …`를 음의 정수까지 일반화했다. -/
   | num : Int → IntExp V
   /-- 변수. Reynolds의 `c_var` — 변수를 정수 식으로 넣어 주는 생성자다.
       §1.4 명제 1.2(b)에서 이것이 "항등 치환"으로 작동한다는 사실이 쓰인다. -/

@@ -44,11 +44,10 @@ universe u
 > *"expressions always terminate without an error stop. In particular, division by zero
 > must produce some integer result."*
 
-오류를 검사하지 않기로 한 언어에서는 그 연산이 하드웨어가 실제로 계산하는 함수면 되고,
-수학적으로 맞는지는 묻지 않는다. 함수이기만 하면 된다는 것이 요구 조건 전부다.
-
-Lean 의 `Int` 나눗셈은 `x / 0 = 0`, `x % 0 = x` 다. 이 규약을 그대로 쓴다.
-§2.7 에서 어떤 규약을 쓰든 성립하는 등식들을 증명하며 이 선택의 무관함을 확인한다.
+Reynolds가 요구하는 것은 0으로 나누는 경우에도 어떤 정수를 돌려주는 전함수라는 점까지다.
+이 형식화는 그 미지정 값을 Lean `Int`의 규약인 `x / 0 = 0`, `x % 0 = x`로 정했다.
+따라서 0인 제수의 구체적인 결과에 의존하는 명제는 이 선택에 의존하고, 그 경우를 쓰지 않는
+명제만 이 선택과 무관하다. 이는 하드웨어 동작에 대한 주장이 아니다.
 -/
 -- ANCHOR: denote
 def IntOp.denote : IntOp → Int → Int → Int
@@ -112,8 +111,10 @@ def LogOp.denote : LogOp → Prop → Prop → Prop
 
 **책과의 차이**: Reynolds 는 `⟦-⟧assert ∈ ⟨assert⟩ → Σ → 𝔹` 라고 쓰지만 여기서는 `Prop` 이다.
 
-양화사 때문이다. `⟦∀v. p⟧ σ = ∀ n : ℤ, ⟦p⟧ σ[v := n]` 인데 ℤ 가 무한하므로 계산할 수 없고,
-`Bool` 로는 정의가 서지 않는다.
+양화사 때문이다. 계산 가능한 `Bool` 평가기를 만들려면 모든 단언의 참·거짓을 판정하는
+절차가 필요하다.
+`⟦∀v. p⟧ σ = ∀ n : ℤ, ⟦p⟧ σ[v := n]` 같은 정수 양화가 있는 이 언어에는 그런 절차가
+일반적으로 없다. `Prop`은 결정 절차 없이도 명제를 표현할 수 있다.
 
 Reynolds 도 §2.1 에서 명령형 언어의 ⟨boolexp⟩ 를 만들 때 같은 이유를 든다.
 *"the same as assertions except for the omission of quantifiers

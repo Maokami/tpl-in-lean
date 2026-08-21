@@ -131,13 +131,13 @@ syntax:50 reyE " ≥ " reyE : reyA
 /-- 부정. -/
 syntax:40 "¬" reyA:40 : reyA
 /-- 연언. -/
-syntax:35 reyA:36 " ∧ " reyA:35 : reyA
+syntax:35 reyA:35 " ∧ " reyA:36 : reyA
 /-- 선언. -/
-syntax:30 reyA:31 " ∨ " reyA:30 : reyA
+syntax:30 reyA:30 " ∨ " reyA:31 : reyA
 /-- 함의. -/
-syntax:25 reyA:26 " ⇒ " reyA:25 : reyA
+syntax:25 reyA:25 " ⇒ " reyA:26 : reyA
 /-- 동치. -/
-syntax:20 reyA:21 " ⇔ " reyA:20 : reyA
+syntax:20 reyA:20 " ⇔ " reyA:21 : reyA
 /-- 전칭 양화. 본문은 둘러싼 구의 끝까지 뻗는다. -/
 syntax:10 "∀" ident ", " reyA:10 : reyA
 /-- 존재 양화. -/

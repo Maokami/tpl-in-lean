@@ -14,9 +14,8 @@ Reynolds가 프로그래밍 언어 책을 **논리학**으로 시작하는 이�
 즉 1장은 **추상 구문 · 표시적 의미론 · 추론 규칙 · 결합** 네 개념의 예행연습이다.
 이 넷은 책 전체를 관통한다.
 
-Lean으로 옮길 때 이 장이 특히 좋은 이유가 하나 더 있다:
-**Reynolds가 §1.1에서 손으로 부과하는 "추상 구문 조건"이 Lean의 `inductive`가 공짜로 주는 것과 정확히 같다.**
-이걸 보여주는 것이 이 장의 하이라이트다.
+Reynolds가 §1.1에서 추상 구문에 부과하는 조건은 Lean의 `inductive`가 제공하는
+생성자 단사성, 생성자 치역의 서로소성, 구조적 재귀에 각각 대응한다.
 
 ---
 
@@ -27,8 +26,8 @@ Lean으로 옮길 때 이 장이 특히 좋은 이유가 하나 더 있다:
 | `Prelude.lean` | — | `Var` 요구조건(CSlib `HasFresh`), `State`, CSlib `σ[v := n]` |
 | `Ch01/Syntax.lean` | §1.1 | `IntExp`, `Assert`, 추상 구문 조건이 왜 공짜인가 |
 | `Ch01/Notation.lean` | §1.1 | 구체 구문 → 추상 구문 (Lean 매크로 DSL) |
-| `Ch01/Realizations.lean` | §1.1 | 같은 추상 구문의 여러 실현(문자열 중위/전위, 트리) |
-| `Ch01/Initiality.lean` | §1.1 각주 | 시작 대수(initial algebra) — 선택 심화 |
+| `Ch01/Realizations.lean` | §1.1, 연습 1.3 | 괄호 없는 접두 표기와 구문 트리의 일대일 대응 |
+| `Ch01/Depth/Algebra.lean` | §1.1 각주 | 초기 대수(initial algebra) — 선택 심화 |
 | `Ch01/Semantics.lean` | §1.2 | `IntExp.eval`, `Assert.eval` |
 | `Ch01/Validity.lean` | §1.3 | 타당성, 강함/약함, 추론 규칙, 건전성 |
 | `Ch01/FreeVars.lean` | §1.4 | `FV`, 명제 1.1 일치 정리 |
@@ -46,7 +45,9 @@ Reynolds 원문:
 > In the above case, ⟨var⟩ is a predefined nonterminal denoting a countably infinite
 > set of variables (with unspecified representations)."*
 
-이것이 **정확히 CSlib의 `HasFresh`** 다. 그대로 쓴다.
+Reynolds의 가산 무한 조건에서 이 형식화에 필요한 부분은, 유한한 금지 집합 밖에서 언제나
+새 변수를 고를 수 있다는 성질이다. CSlib의 `HasFresh`가 바로 그 성질을 제공한다.
+`HasFresh` 자체가 가산성을 뜻하지는 않는다.
 
 ```lean
 -- Cslib/Foundations/Data/HasFresh.lean (CSlib 원문)
@@ -77,9 +78,6 @@ CSlib가 이 추상화를 이미 갖고 있다는 사실 자체가, 이것이 �
 인스턴스는 `String`과 `ℕ`에 준다. 예제는 `String`, 증명 실험은 `ℕ`이 편하다.
 (CSlib는 `HasFresh.ofNatEmbed`로 `ℕ ↪ α` 로부터 인스턴스를 만드는 길을 준다.)
 
-> **★ 연습 1.-1** — `Cslib.HasFresh`를 **보지 말고** 직접 정의하고 `ℕ`·`String` 인스턴스를
-> 만들어 보라. 그 다음 CSlib 것과 비교하라. (★, `Exercises/Ch01/Prelude.lean`)
-
 `State`:
 ```lean
 /-- 상태(state). Reynolds의 Σ = ⟨var⟩ → ℤ. §1.2에서 "논리학자가 assignment라 부르는 것". -/
@@ -95,8 +93,7 @@ instance [DecidableEq α] : HasSubstitution (α → β) α β where
 ```
 → `σ["x" := 3]` 이 곧 Reynolds의 `[σ | x: 3]` 이다. **프로브에서 동작 확인 완료.**
 
-> **★ 교육 포인트 (놓치지 말 것)**: CSlib가 `Function.update`를 **치환(substitution)**
-> 타입클래스의 인스턴스로 등록해 두었다는 사실이 중요하다.
+CSlib는 `Function.update`를 **치환(substitution)** 타입클래스의 인스턴스로 등록한다.
 > Reynolds는 §1.2에서 상태 갱신 `[σ | v: n]`을, §1.4에서 치환 `p / v → e`를 따로 도입하는데,
 > **둘은 같은 모양**이다. 상태는 `⟨var⟩ → ℤ`이고 치환 사상은 `⟨var⟩ → ⟨intexp⟩`이며,
 > 둘 다 "한 변수에서만 바꾸기"를 한다. 이 대응을 여기서 짚어두면
@@ -165,7 +162,7 @@ inductive Assert (V : Type u) where
   deriving DecidableEq, Repr
 ```
 
-### ★ 이 장의 하이라이트: 추상 구문 조건은 공짜다
+### 추상 구문 조건과 `inductive`
 
 Reynolds가 §1.1에서 부과하는 세 조건과 Lean의 대응:
 
@@ -174,7 +171,7 @@ Reynolds가 §1.1에서 부과하는 세 조건과 Lean의 대응:
 | 각 생성자는 **단사(injective)** | `IntExp.bin.injEq`, `injection` 태틱 |
 | 같은 반송자(carrier)로 가는 두 생성자의 **치역이 서로소** | `IntExp.noConfusion`, `simp`/`nofun` |
 | 모든 원소가 **유한 번의 생성자 적용**으로 만들어짐 | 재귀자 `IntExp.rec` = 구조적 귀납법 |
-| (각주) 이들이 **다중 정렬 시작 대수(initial algebra)**를 이룬다 | `IntExp.rec`의 유일성 |
+| (각주) 이들이 **다중 정렬 초기 대수(many-sorted initial algebra)**를 이룬다 | `IntExp.rec`의 유일성 |
 
 이걸 코드로 직접 보여준다:
 
@@ -199,8 +196,9 @@ end 추상구문조건
 
 > **스터디 토론거리**: Reynolds는 §2.4 끝에서 "추상 문법의 정의는 사실
 > `𝒫(P)ⁿ`에서의 최소 고정점(least fixed point)"이라고 말한다.
-> Lean의 `inductive`가 정확히 다항 함자(polynomial functor)의 최소 고정점이다.
-> 2장의 `Ch02/Fixpoint.lean`에서 이 연결을 다시 짚는다.
+> Lean의 `inductive`는 구문을 초기 대수로 준다. 다항 시그니처에서는 초기 사슬을 통한
+> 최소 고정점 구성과 연결되지만, 이것은 명령 의미의 함수 도메인에서 고르는 최소 고정점과
+> 같은 대상이 아니다. `Depth/SignatureFunctor.lean`에서 이 구분을 짚는다.
 
 ### 구체 구문 — Lean 매크로 DSL
 
@@ -230,26 +228,31 @@ syntax "⟪" reyExp "⟫" : term
 ```
 모두 좌결합. 양화사 본문은 "첫 정지 기호(stopping symbol) 또는 둘러싼 구의 끝까지".
 
-> **왜 이걸 만드는가**: DSL이 없으면 예제가
-> `IntExp.bin .add (.var "x") (IntExp.bin .mul (.num 1) (.num 2))` 처럼 되어
-> 아무도 읽지 않는다. 1장의 재미가 전부 사라진다. **DSL은 선택이 아니라 필수다.**
+DSL은 `IntExp.bin .add (.var "x") (IntExp.bin .mul (.num 1) (.num 2))`처럼 중첩된
+생성자 표현을 줄여, 예제의 구문 구조를 표기에서 바로 읽게 한다.
 
 ### 여러 실현(realization)
 
 Reynolds는 같은 추상 구문의 세 가지 실현을 든다: 괄호 중위 문자열, 접두 문자열, 구문 트리.
+이 저장소는 그중 연습 1.3의 괄호 없는 접두 표기를 형식화한다. 문자열의 토큰화 문제를
+섞지 않으려고 결과를 `String`이 아니라 `List Tok`으로 둔다.
 
 ```lean
-/-- 실현 1 — 완전 괄호 중위 표기. Reynolds §1.1의 첫 번째 예. -/
-def IntExp.toInfix : IntExp String → String
-/-- 실현 2 — 괄호 접두 표기 `add(subtract(0, 1), negate(2))`. -/
-def IntExp.toPrefix : IntExp String → String
-/-- 실현 3 — 구문 트리. Lean에서는 `IntExp` 자체가 이미 트리다. -/
+/-- 괄호 없는 접두 표기를 이루는 토큰 열. -/
+def IntExp.toPrefix : IntExp String → List Tok
+
+/-- 실제 식을 나타내는 토큰 열만 모은 구문 세계. -/
+def PrefixPhrase := {xs : List Tok // ∃ e : IntExp String, e.toPrefix = xs}
+
+/-- 구문 트리와 접두 표기 구문 세계의 일대일 대응. -/
+noncomputable def IntExp.equivPrefixPhrase : IntExp String ≃ PrefixPhrase
 ```
 
-**핵심 관찰을 코드로**: 세 실현은 전부 **같은 재귀자에 다른 대수를 먹인 것**이다.
-`IntExp.rec`으로 세 함수를 다 만들 수 있다 → `Initiality.lean`으로 이어진다.
+`toPrefix_prefixFree`와 `toPrefix_injective`는 괄호가 없어도 식의 경계가 모호해지지 않음을
+증명한다. `equivPrefixPhrase`는 여기에 모든 접두 구가 실제 식에서 왔다는 조건까지 더한다.
+이런 구문 재귀가 왜 유일한지는 `Depth/Algebra.lean`에서 초기성으로 설명한다.
 
-### `Initiality.lean` (선택 심화)
+### `Depth/Algebra.lean` (선택 심화)
 
 범주론을 아는 사람을 위한 보너스이자, Reynolds의 각주
 *"the reader who is familiar with universal algebra will recognize that these conditions
@@ -264,12 +267,12 @@ structure IntExpAlg (V : Type u) where
   neg : carrier → carrier
   bin : IntOp → carrier → carrier → carrier
 
-/-- 시작성(initiality): 임의의 대수로 가는 준동형(homomorphism)이 **유일하게** 존재한다. -/
+/-- 초기성(initiality): 임의의 대수로 가는 준동형(homomorphism)이 **유일하게** 존재한다. -/
 theorem IntExp.initial (A : IntExpAlg V) :
     ∃! f : IntExp V → A.carrier, IsHom f A
 ```
-그리고 `toInfix`, `toPrefix`, `eval`, `fv`가 전부 이 유일 준동형의 사례임을 보인다.
-→ **"의미론이 왜 합성적(compositional)이어야 하는가"에 대한 가장 깊은 답**이다.
+현재 파일은 `eval`과 `fv`가 이 유일 준동형으로 얻는 fold와 같음을 증명한다.
+`toPrefix`도 같은 재귀 구조를 따르지만, 그 일치 정리는 아직 따로 두지 않았다.
 
 ---
 
@@ -286,7 +289,7 @@ def IntExp.eval : IntExp V → State V → Int
 -- ANCHOR_END: eval
 ```
 
-`IntOp.denote`에 대한 **중요한 docstring**:
+`IntOp.denote`의 docstring은 0으로 나누는 경우를 다음처럼 설명한다.
 
 ```lean
 /--
@@ -294,13 +297,10 @@ def IntExp.eval : IntExp V → State V → Int
 
 Reynolds §1.2: *"expressions always terminate without an error stop.
 In particular, division by zero must produce some integer result."*
-그가 §2.7에서 다시 다루는 논점이다: 언어 설계자는 오류를 **검사할지 무시할지**
-골라야 하고, 무시하기로 했다면 그 연산은 "하드웨어가 실제로 계산하는 (틀린) 함수"여야 하며
-**어쨌든 함수이기만 하면 된다**.
+그가 여기서 요구하는 것은 0으로 나누는 경우에도 정수 하나를 돌려주는 전함수라는 점까지다.
 
-Lean의 `Int.div`는 `x / 0 = 0`이다. 우리는 이 규약을 쓴다.
-§2.7의 `ArithErrors.lean`에서 "어떤 규약을 쓰든 성립하는 등식들"을 증명하며,
-그때 이 선택이 정말 무관함을 확인한다.
+이 형식화는 Lean의 규약인 `x / 0 = 0`, `x % 0 = x`를 쓴다. 0인 제수의 구체적인 결과를
+사용하는 명제는 이 선택에 의존하고, 그 경우를 사용하지 않는 명제만 선택과 무관하다.
 -/
 def IntOp.denote : IntOp → Int → Int → Int
 ```
@@ -313,25 +313,26 @@ def IntOp.denote : IntOp → Int → Int → Int
 `⟦p⟧ σ` — 단언의 의미. Reynolds의 `⟦-⟧assert ∈ ⟨assert⟩ → Σ → 𝔹`.
 
 **책과의 차이**: Reynolds는 𝔹 = {true, false}로 간다. 여기서는 `Prop`이다.
-이유는 양화사다. `⟦∀v. p⟧ σ = ∀ n : ℤ, ⟦p⟧ σ[v ↦ n]` 인데 ℤ가 무한하므로
-이건 계산할 수 없다. `Bool`로 두면 아예 정의가 안 된다.
+정수 산술과 양화를 포함한 단언 언어 전체에는 실행 가능한 공통 진리 판정기가 없다.
+계산 가능한 `Bool` 평가기는 그런 판정기를 요구하지만, `Prop`은 판정 절차 없이 뜻을
+표현할 수 있다.
 
 이 경계는 우연이 아니다. Reynolds가 §2.1에서 명령형 언어의 ⟨boolexp⟩를 만들 때
 *"the same as assertions except for the omission of quantifiers
 (for the obvious reason that they are noncomputable)"* 라고 쓴다.
-즉 `Prop` vs `Bool`의 차이가 곧 ⟨assert⟩ vs ⟨boolexp⟩의 차이다.
+이 형식화에서는 그 계산 가능성의 경계를 `Prop`과 `Bool`의 차이로 드러낸다.
 
 2장에서 `BoolExp.eval : BoolExp V → State V → Bool` 을 만들고, 양화사 없는 조각에서
 두 의미가 일치함을 증명한다(`Ch02/Semantics.lean`의 `boolExp_eval_iff`).
 -/
-def Assert.eval : Assert V → State V → Prop
+def Assert.eval [DecidableEq V] : Assert V → State V → Prop
   | .tru,            _ => True
   | .fls,            _ => False
   | .cmp c e₀ e₁,    σ => c.denote (e₀.eval σ) (e₁.eval σ)
   | .not p,          σ => ¬ p.eval σ
   | .bin op p q,     σ => op.denote (p.eval σ) (q.eval σ)
-  | .quant .all v p, σ => ∀ n : Int, p.eval (σ[v ↦ n])
-  | .quant .ex  v p, σ => ∃ n : Int, p.eval (σ[v ↦ n])
+  | .quant .all v p, σ => ∀ n : Int, p.eval (σ[v := n])
+  | .quant .ex  v p, σ => ∃ n : Int, p.eval (σ[v := n])
 -- ANCHOR_END: assertEval
 ```
 
@@ -341,32 +342,29 @@ def Assert.eval : Assert V → State V → Prop
 - 객체 변수 = `V`의 원소 (`"x" : String`)
 
 DSL이 이 구분을 눈에 보이게 만든다: `⟪ x ⟫`의 `x`는 문자열이고,
-`⟪ %v ⟫` 같은 안티쿼트(antiquote)로 메타변수를 삽입한다. **이 구분을 DSL 설계에 반영할 것.**
+`⟪ %v ⟫` 같은 안티쿼트(antiquote)로 메타변수를 삽입한다. DSL은 이 구분을 설계에 반영한다.
 
 ---
 
 ## §1.3 타당성과 추론
 
 ```lean
-/-- `p`가 σ에서 참이다 / σ가 p를 만족한다. Reynolds §1.3의 여러 표현이 다 이것이다. -/
-def Assert.holdsAt (p : Assert V) (σ : State V) : Prop := p.eval σ
-
 /-- **타당(valid)** — 모든 상태에서 참. -/
-def Valid (p : Assert V) : Prop := ∀ σ, p.eval σ
+def Valid (p : Assert V) : Prop := ∀ σ : State V, ⟦p⟧ₐ σ
 
 /-- **충족 불가능(unsatisfiable)** — 모든 상태에서 거짓. -/
-def Unsat (p : Assert V) : Prop := ∀ σ, ¬ p.eval σ
+def Unsat (p : Assert V) : Prop := ∀ σ : State V, ¬ ⟦p⟧ₐ σ
 
 /-- `p`가 `q`보다 **강하다(stronger)**. `Valid (p ⇒ q)`와 같다. -/
-def Stronger (p q : Assert V) : Prop := ∀ σ, p.eval σ → q.eval σ
+def Stronger (p q : Assert V) : Prop := ∀ σ : State V, ⟦p⟧ₐ σ → ⟦q⟧ₐ σ
 
 /-- **동치(equivalent)** — 같은 의미. -/
-def Equivalent (p q : Assert V) : Prop := ∀ σ, (p.eval σ ↔ q.eval σ)
+def Equivalent (p q : Assert V) : Prop := ∀ σ : State V, (⟦p⟧ₐ σ ↔ ⟦q⟧ₐ σ)
 ```
 
 증명할 것:
-- `Stronger`가 전순서(preorder)임 — Reynolds가 "dual preorders라 영어 어감과는 안 맞는다"고
-  적는 대목. `instPreorder` 인스턴스로 준다.
+- `Stronger`의 반사성과 추이성 — Reynolds가 "dual preorders라 영어 어감과는 안 맞는다"고
+  적는 대목. `Stronger.refl`과 `Stronger.trans`로 증명한다.
 - `Valid .tru`, `Unsat .fls`, `Stronger .fls p`, `Stronger p .tru`
 - `Equivalent p q ↔ Stronger p q ∧ Stronger q p`
 
@@ -376,7 +374,7 @@ Reynolds는 완전한 체계를 주지 않는다(*"consult any elementary text o
 그의 목적은 **개념의 예시**다. 그래서 우리도 작은 체계를 주고 **건전성(soundness)** 을 증명한다.
 
 ```lean
--- ANCHOR: proof
+-- ANCHOR: proofSystem
 /--
 술어 논리의 작은 추론 체계. Reynolds §1.3이 예시로 드는 규칙들이다.
 
@@ -384,28 +382,30 @@ Reynolds는 완전한 체계를 주지 않는다(*"consult any elementary text o
 Reynolds의 가로선과 정확히 대응한다.
 -/
 inductive Proof : Assert V → Prop where
-  /-- 공리(axiom): `e₀ = e₁` 로부터 `e₁ = e₀`. -/
-  | eqSymm  (e₀ e₁ : IntExp V) : Proof (⟪ %e₀ = %e₁ ⟫) → Proof (⟪ %e₁ = %e₀ ⟫)
-  /-- 전건 긍정(modus ponens). Reynolds의 두 전제 규칙. -/
-  | mp {p q} : Proof p → Proof (p ⇒ q) → Proof q
-  /-- 보편 일반화(∀-도입). **전제가 타당해야** 결론이 타당하다. -/
-  | genAll (v) {p} : Proof p → Proof (.quant .all v p)
-  /-- 공리꼴 (1.13): `(∀v. p) ⇒ p / v ↦ e`. §1.4의 치환 정리가 이 규칙의 근거다. -/
-  | instAll (v e p) : Proof (.bin .imp (.quant .all v p) (p / v ↦ e))
--- ANCHOR_END: proof
+  /-- 공리꼴: `e = e`. -/
+  | eqRefl (e : IntExp V) : Proof (.cmp .eq e e)
+  /-- 한 전제 규칙: `e₀ = e₁`로부터 `e₁ = e₀`. -/
+  | eqSymm {e₀ e₁ : IntExp V} : Proof (.cmp .eq e₀ e₁) → Proof (.cmp .eq e₁ e₀)
+  /-- 두 전제 규칙 — 전건 긍정(modus ponens). -/
+  | mp {p q : Assert V} : Proof p → Proof (.bin .imp p q) → Proof q
+  /-- 두 전제 규칙 — 연언 도입. -/
+  | andIntro {p q : Assert V} : Proof p → Proof q → Proof (.bin .and p q)
+  /-- 보편 일반화(∀-도입). -/
+  | genAll (v : V) {p : Assert V} : Proof p → Proof (.quant .all v p)
+-- ANCHOR_END: proofSystem
 
 /-- **건전성(soundness)** — 증명된 것은 타당하다. -/
 theorem Proof.sound {p : Assert V} : Proof p → Valid p
 ```
 
-### ★ §1.3의 교육적 핵심: `∀`-도입은 규칙이지 함의가 아니다
+### `∀`-도입은 규칙이지 함의가 아니다
 
-Reynolds가 한 페이지를 할애하는 논점이다. 반드시 Lean으로 보여준다.
+Reynolds가 한 페이지를 할애하는 논점을 두 정리로 비교한다.
 
 ```lean
 -- ANCHOR: genVsImp
 /-- 건전한 규칙: `p`가 **타당**하면 `∀v. p`도 타당하다. -/
-@[exercise "§1.3 gen-sound" (stars := 1)]
+@[exercise "§1.3 gen-sound" 1]
 theorem valid_forall_of_valid {p : Assert V} (v : V) (h : Valid p) :
     Valid (.quant .all v p) := by sorry
 
@@ -417,7 +417,7 @@ Reynolds의 반례를 그대로 쓴다: `v`가 `x`, `p`가 `x > 0`일 때
 
 이것이 "추론(inference)"과 "함의(⇒)"를 헷갈리면 안 되는 이유다.
 -/
-@[exercise "§1.3 gen-not-imp" (stars := 2)]
+@[exercise "§1.3 gen-not-imp" 2]
 theorem not_valid_imp_forall :
     ¬ Valid (⟪ x > 0 ⇒ ∀ x, x > 0 ⟫ : Assert String) := by sorry
 -- ANCHOR_END: genVsImp
@@ -475,28 +475,22 @@ def Assert.fv [DecidableEq V] : Assert V → Finset V
 증명은 구조적 귀납법(structural induction)이다. Reynolds는 이 증명을
 "형식 언어의 성질을 증명하는 중요한 방법"의 첫 예로 든다.
 -/
-@[exercise "Prop 1.1a" (stars := 2) (ref := "§1.4")]
+@[exercise "Prop 1.1a" 2]
 theorem coincidence_intExp [DecidableEq V] {e : IntExp V} {σ σ' : State V}
     (h : ∀ w ∈ e.fv, σ w = σ' w) : e.eval σ = e.eval σ' := by sorry
 
 /--
 **명제 1.1 (일치 정리)** — 단언 판.
 
-양화사 케이스가 새롭다. Reynolds가 짚는 요령:
-
-> *"In applying the induction hypothesis, which holds for arbitrary states σ and σ',
-> we take σ and σ' to be **different** states from the σ and σ' for which we are
-> trying to prove the conclusion."*
-
-구체적으로, `∀v. q`를 다룰 때는 귀납 가설을 `σ`, `σ'`가 아니라
-`σ[v ↦ n]`, `σ'[v ↦ n]`에 적용한다. `FV(∀v.q) = FV(q) \ {v}` 이므로
+양화사 케이스가 새롭다. Reynolds는 `∀v. q`를 다룰 때 귀납 가설을 `σ`, `σ'`가 아니라
+`σ[v := n]`, `σ'[v := n]`에 적용하라고 설명한다. `FV(∀v.q) = FV(q) \ {v}` 이므로
 `v`만 빼고 일치하던 두 상태를 `v`에 같은 값으로 덮으면 `FV(q)` 전체에서 일치하게 된다.
 
 Lean에서는 이게 "귀납 가설이 `∀ σ σ'`로 일반화되어 있어야 한다"는 뜻이다.
 `induction p generalizing σ σ'` 를 쓰거나, 애초에 `σ σ'`를 `theorem` 인자에서
-빼고 `∀`로 두어야 한다. **여기서 막히는 사람이 많다. Answers에 크게 주석 달 것.**
+빼고 `∀`로 둔다.
 -/
-@[exercise "Prop 1.1b" (stars := 3) (ref := "§1.4")]
+@[exercise "Prop 1.1b" 3]
 theorem coincidence_assert [DecidableEq V] {p : Assert V} {σ σ' : State V}
     (h : ∀ w ∈ p.fv, σ w = σ' w) : (p.eval σ ↔ p.eval σ') := by sorry
 -- ANCHOR_END: coincidence
@@ -507,7 +501,7 @@ theorem coincidence_assert [DecidableEq V] {p : Assert V} {σ σ' : State V}
 
 ### 치환
 
-Reynolds의 핵심 논증을 그대로 옮긴다:
+Reynolds가 변수 포획의 문제를 보이는 반례를 따라간다.
 
 > 공리꼴 `(∀v. p) ⇒ (p / v → e)` 에서 `p := ∃y. y > x`, `v := x`, `e := y + 1` 을 넣으면
 > `(∀x. ∃y. y > x) ⇒ ((∃y. y > x) / x → y+1)`.
@@ -529,7 +523,7 @@ def IntExp.subst [DecidableEq V] : IntExp V → Subst V → IntExp V
 
 양화사 케이스:
 ```
-(∀v. p) /ₛ δ = ∀ vnew. (p /ₛ δ[v ↦ .var vnew])
+(∀v. p) /ₛ δ = ∀ vnew. (p /ₛ δ[v := .var vnew])
   where vnew ∉ ⋃ { FV(δ w) | w ∈ FV(p) \ {v} }
 ```
 
@@ -548,8 +542,9 @@ def Assert.subst [DecidableEq V] [HasFresh V] : Assert V → Subst V → Assert 
       .quant q vnew (p.subst (Function.update δ v (.var vnew)))
   | …
 
-/-- `p / v ↦ e` — 한 변수 치환. Reynolds의 `p / v → e`. -/
-notation:max p " / " v " ↦ " e => Assert.subst p (Function.update IntExp.var v e)
+/-- `p /[v := e]` — 한 변수 치환. Reynolds의 `p / v → e`. -/
+scoped notation:80 p:80 " /[" v ":=" e "] " =>
+  Assert.subst p (Function.update IntExp.var v e)
 -- ANCHOR_END: subst
 ```
 
@@ -557,51 +552,54 @@ notation:max p " / " v " ↦ " e => Assert.subst p (Function.update IntExp.var v
 
 ```lean
 /-- **명제 1.2(a)** — 자유 변수 위에서 같은 치환은 같은 결과를 낸다. -/
-@[exercise "Prop 1.2a" (stars := 2)]
-theorem subst_congr (h : ∀ w ∈ p.fv, δ w = δ' w) : p /ₛ δ = p /ₛ δ'
+@[exercise "Prop 1.2a" 2]
+theorem subst_congr_intExp
+    (h : ∀ w ∈ e.fv, δ w = δ' w) : e /ₑ δ = e /ₑ δ'
 
 /-- **명제 1.2(b)** — 항등 치환. Reynolds: `p / c_var = p`.
     "변수를 대응하는 정수 식으로 보내는 생성자 `c_var`가 항등 치환으로 작동한다." -/
-@[exercise "Prop 1.2b" (stars := 1)]
-theorem subst_var : p /ₛ IntExp.var = p
+theorem subst_var_intExp (e : IntExp V) : e /ₑ IntExp.var = e
 
 /-- **명제 1.2(c)** — 치환 후의 자유 변수. -/
-@[exercise "Prop 1.2c" (stars := 3)]
-theorem fv_subst : (p /ₛ δ).fv = p.fv.biUnion fun w => (δ w).fv
+@[exercise "Prop 1.2c" 2]
+theorem fv_subst_intExp (e : IntExp V) (δ : Subst V) :
+    (e /ₑ δ).fv = e.fv.biUnion fun w => (δ w).fv
+
+@[exercise "Prop 1.2b-assert" 3]
+theorem subst_var_assert [HasFresh V] (p : Assert V) : p /ₛ IntExp.var = p
 ```
 
 ### 명제 1.3 — 치환 정리 (Substitution Theorem)
-
-책에서 사용자가 여백에 **"important"** 라고 적어둔 그 명제다.
 
 ```lean
 /--
 **명제 1.3 (치환 정리, substitution theorem)**
 
-> If p is a phrase of type θ, and σw = ⟦δw⟧intexp σ' for all w ∈ FV_θ(p),
-> then ⟦p /ₛ δ⟧ σ' = ⟦p⟧ σ.
+`FV(p)`의 모든 `w`에서 `σ w = ⟦δ w⟧ σ'`이면,
+`σ'`에서 `p /ₛ δ`를 평가한 결과와 `σ`에서 `p`를 평가한 결과가 같다.
 
 **구문적 치환과 의미적 상태 변경이 대응한다**는 것이 요점이다.
 "δ로 치환한 뒤 σ'에서 평가"하는 것과 "δ를 σ'에서 평가해 만든 상태 σ에서 평가"하는 것이 같다.
 
 증명의 까다로운 부분은 양화사 케이스다. Reynolds의 논증을 따라가면:
-`σ[v ↦ n] w = ⟦δ[v ↦ vnew] w⟧ (σ'[vnew ↦ n])` 이 `FV(q)` 전체에서 성립함을 먼저 보이고
+`σ[v := n] w = ⟦δ[v := .var vnew] w⟧ (σ'[vnew := n])` 이 `FV(q)` 전체에서 성립함을 먼저 보이고
 (w = v 일 때와 w ∈ FV(q)\{v} 일 때를 나눈다. 후자에서 `vnew ∉ FV(δw)`가 결정적이다),
 그 다음 귀납 가설을 쓴다.
 -/
-@[exercise "Prop 1.3" (stars := 3) (ref := "§1.4, 치환 정리")]
+@[exercise "Prop 1.3-assert" 3]
 theorem substitution_assert [DecidableEq V] [HasFresh V]
     {p : Assert V} {δ : Subst V} {σ σ' : State V}
     (h : ∀ w ∈ p.fv, σ w = (δ w).eval σ') :
     ((p /ₛ δ).eval σ' ↔ p.eval σ)
 ```
 
-### 명제 1.4 — 유한 치환 따름정리
+### 명제 1.4 — 한 변수 치환 따름정리
 
 ```lean
-/-- **명제 1.4 (유한 치환 정리)** — 명제 1.3의 따름정리. -/
-@[exercise "Prop 1.4" (stars := 2)]
-theorem substitution_finite …
+/-- **명제 1.4** — 명제 1.3에서 얻는 한 변수 치환 정리. -/
+theorem substitution_single [HasFresh V]
+    (p : Assert V) (v : V) (e : IntExp V) (σ : State V) :
+    (⟦p /[v := e] ⟧ₐ σ ↔ ⟦p⟧ₐ (σ[v := ⟦e⟧ₑ σ]))
 ```
 
 ### 명제 1.5 — 이름 바꾸기 정리 (α-변환)
@@ -610,44 +608,39 @@ theorem substitution_finite …
 /--
 **명제 1.5 (이름 바꾸기 정리, renaming theorem)**
 
-`vnew ∉ FV(q) \ {v}` 이면 `⟦∀vnew. (q / v ↦ vnew)⟧ = ⟦∀v. q⟧`.
+`vnew ∉ FV(q) \ {v}` 이면 `⟦∀vnew. (q /[v := var vnew])⟧ = ⟦∀v. q⟧`.
 
 **결합 변수의 이름은 뜻에 영향을 주지 않는다.** λ-계산법에서 α-변환(alpha conversion)이라
-부르는 것이다. Reynolds:
+부르는 것이다.
 
-> *"The principle that renaming preserves meaning is a property of all languages
-> with well-behaved binding. (We will see in Section 11.7, however, that this does
-> not include all well-known programming languages.)"*
-
-§11.7의 동적 결합(dynamic binding)이 이 성질을 깨뜨린다는 예고다.
+Reynolds는 이 성질이 잘 작동하는 결합을 가진 언어에 적용되지만 예외도 있다고 덧붙인다.
+§11.7의 동적 결합(dynamic binding)이 그 예외다.
 -/
-@[exercise "Prop 1.5" (stars := 2)]
 theorem renaming_assert …
 ```
 
 ### 마무리: 공리꼴 (1.13)의 타당성
 
 ```lean
-/-- Reynolds §1.4가 명제 1.4의 응용으로 드는 것: 공리꼴 `(∀v. p) ⇒ p / v ↦ e` 는 타당하다.
-    §1.3의 `Proof.instAll` 규칙이 건전한 이유가 바로 이것이다. -/
-@[exercise "§1.4 (1.13)" (stars := 2)]
-theorem valid_instAll : Valid (.bin .imp (.quant .all v p) (p / v ↦ e))
+/-- Reynolds §1.4가 명제 1.4의 응용으로 드는 공리꼴 `(∀v. p) ⇒ p /[v := e]`는 타당하다. -/
+theorem valid_instAll : Valid (.bin .imp (.quant .all v p) (p /[v := e]))
 ```
 
 ### 고차 추상 구문에 대한 각주
 
-Reynolds가 §1.4 끝에서 언급하는 **고차 추상 구문(higher-order abstract syntax)** —
-"결합 변수 이름을 구체 구문의 일부로 보는" 관점. Verso 문서에 산문으로 쓰고,
-**de Bruijn 색인 / locally nameless** 접근을 CSlib의
-`Cslib/Languages/LambdaCalculus/LocallyNameless/*` 로 가리킨다.
-코드로 만들지는 않는다 (1장의 목표를 벗어난다).
+Reynolds는 §1.4 끝에서 결합 변수 이름을 구체 구문에만 남기고 α-동치인 표기들을 같은
+추상 구의 표현으로 보는 관점을 고차 추상 구문(higher-order abstract syntax)이라고 부른다.
+현대 용례의 HOAS는 메타언어의 함수와 결합자로 객체언어의 결합을 나타내는 더 구체적인
+기법을 가리킨다. Verso 문서는 이 차이를 설명하고, de Bruijn 색인과 locally nameless
+접근은 CSlib의 `Cslib/Languages/LambdaCalculus/LocallyNameless/*`를 가리킨다.
+이 장에서는 어느 방식도 새로 구현하지 않는다.
 
 → `manual/Manual/Ch01.lean` 의 "곁가지 — 이름을 어떻게 다룰 것인가" 절에 있다.
 §11.7 동적 결합 예고는 "곁가지 — 이름 바꾸기가 깨지는 언어" 절에 있다.
 
-> CSlib를 의존성으로 두었으므로 이 대조가 **링크가 아니라 실제 코드**다.
-> `.lake/packages/cslib/Cslib/Languages/LambdaCalculus/LocallyNameless/Untyped/Basic.lean`을
-> 열어 우리의 이름 있는(named) 치환과 비교해 보는 것이 좋은 스터디 토론거리다.
+CSlib 의존성 소스의
+`.lake/packages/cslib/Cslib/Languages/LambdaCalculus/LocallyNameless/Untyped/Basic.lean`에
+locally nameless 구현이 있다. 우리의 이름 있는(named) 치환과 나란히 비교할 수 있다.
 
 ---
 
@@ -658,23 +651,23 @@ Reynolds가 §1.4 끝에서 언급하는 **고차 추상 구문(higher-order abs
 | **1.0** (자체 추가) | `num : Int` → `num : Nat` + `neg` 로 바꿔도 명제들이 그대로인지 | ★ | §1.1 "책과의 차이 2" 확인 |
 | **1.1** (a)~(d) | DSL로 단언을 작성하고, **그 뜻이 의도와 같음을 정리로 증명** | ★★ | 예: `⟦p⟧ σ ↔ ∃! n, 0 < n ∧ n < 2`. 정답 검증이 기계화된다 |
 | **1.2** (a)~(d) | 약수·공약수·최대공약수·소수를 `÷`, `rem` 없이 작성 + 뜻 증명 | ★★ | 자연수 범위 가정 |
-| **1.3** | 괄호 없는 접두 표기 실현 + 생성자 단사성 | ★★★ | `toPrefixNoParen` 후 `parse ∘ print = some` 왕복 정리로 대체 권장 |
+| **1.3** | 괄호 없는 접두 구문 세계와 생성자, 표기 단사성 | ★★★ | `toPrefix_prefixFree`를 일반화해 `toPrefix_injective`를 증명 |
 | **1.4** (a)~(c) | 동시 치환 계산 | ★ | `#guard (p /ₛ δ) = 기대값` — `DecidableEq`로 **자동 채점** |
 | **1.5** (a)~(d) | 합 식 `Σ v : e₀ to e₁. e₂` 추가. (a) 문법 (b) 의미 (c) FV·치환 (d) **추론 규칙** | ★★★ | 자족 파일 `Ex/Summation.lean` 에 축소판 언어 `SExp` 로. 채점은 일치 정리와 규칙 넷 |
-| **1.6** | 부정합 `Σv. e` 의 문제점 논의. `v` 가 묶이면서 동시에 상계로 자유롭다 | ★★★ | 같은 파일. 이름 바꾸기 정리가 깨지는 반례를 증명한다 |
+| **1.6** | 부정 합 `Σv. e` 의 문제점 논의. `v` 가 묶이면서 동시에 상계로 자유롭다 | ★★★ | 같은 파일. 이름 바꾸기 정리가 깨지는 반례를 증명한다 |
 | **1.7** (a)(b) | 치환 합성 법칙 | ★★★ | `vo = vl` 특수 케이스 주의 (책 힌트) |
 
-**1.1/1.2의 설계가 핵심이다.** "술어 논리로 표현하라"는 문제는 채점이 어려운데,
-Lean에서는 **"작성한 단언의 의미가 메타 수준 명제와 동치임을 증명하라"** 로 바꾸면
-답이 맞았는지가 기계적으로 판정된다. 이게 이 프로젝트가 종이 연습보다 나은 지점이다.
+1.1과 1.2의 “술어 논리로 표현하라”는 문제는 식만으로 자동 채점하기 어렵다.
+Lean에서는 작성한 단언의 의미가 의도한 메타 수준 명제와 동치임을 함께 증명해,
+식의 의미까지 기계적으로 검사한다.
 
 ---
 
 ## 이 장에서 학습자가 얻는 것
 
 1. `inductive`가 곧 추상 구문이고, Reynolds의 조건들이 공짜라는 것
-2. 합성적(compositional) 의미 함수 = 구조적 재귀 = 시작 대수의 유일 준동형
+2. 합성적(compositional) 의미 함수 = 구조적 재귀 = 초기 대수의 유일 준동형
 3. 구조적 귀납법의 감각, 특히 **결합 케이스에서 귀납 가설을 일반화해야 한다**는 것
-4. `Prop`/`Bool` 경계 = 계산 가능성 경계
+4. 단언과 불 식에서 `Prop`/`Bool` 선택이 계산 가능성의 경계를 어떻게 드러내는지
 5. 변수 포획이 왜 실제 문제인지 (Reynolds의 반례를 Lean에서 직접 재현)
 6. 추론(inference)과 함의(⇒)의 차이 — 형식 체계를 다룰 때 가장 흔한 오해
