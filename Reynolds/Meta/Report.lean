@@ -11,17 +11,17 @@ public meta import Reynolds.Meta.Exercise
 /-!
 # 채점 판정과 리포트
 
-`@[exercise]` 가 붙은 선언 하나하나에 대해 **커널이 무엇을 믿고 있는지** 확인한다.
+`@[exercise]` 가 붙은 선언마다 커널이 무엇을 믿고 있는지 확인한다.
 
-판정은 `Lean.collectAxioms` 하나로 끝난다. 증명이 참인지는 볼 필요가 없다 —
-`lake build` 가 통과했다면 커널이 이미 확인했다. 남은 질문은 하나뿐이다:
-**그 증명이 `sorry` 나 다른 반칙에 기대고 있는가?**
+증명이 참인지는 확인하지 않는다. `lake build` 가 통과했다면 커널이 이미 검사했다.
+남는 질문은 그 증명이 `sorry` 나 다른 반칙에 기대는지 하나이고,
+`Lean.collectAxioms` 로 답할 수 있다.
 
 ## `meta` 가 아닌 이유
 
-`lake exe grade` 는 **런타임에 도는 프로그램**이다. `meta` 선언은 컴파일 시점 전용이라
+`lake exe grade` 는 런타임에 도는 프로그램이고, `meta` 선언은 컴파일 시점 전용이라
 런타임 코드에서 참조할 수 없다. `Lean.collectAxioms` 는 평범한 `public def` 이므로
-런타임에서도 그대로 쓸 수 있다.
+런타임에서 그대로 쓸 수 있다.
 -/
 
 @[expose] public section
@@ -33,9 +33,9 @@ namespace Reynolds
 /--
 증명에서 허용하는 공리.
 
-이 넷은 Lean/Mathlib 에서 일상적으로 쓰이며 수학적으로 문제가 없다.
-`sorryAx`(미완성)와 `Lean.ofReduceBool`(= `native_decide`, 커널 밖 계산을 신뢰)은
-여기 없으므로 자동으로 불합격 처리된다.
+Lean 과 Mathlib 에서 일상적으로 쓰이는 넷이다.
+`sorryAx`(미완성)와 `Lean.ofReduceBool`(`native_decide` 가 남기는 흔적)은 목록에 없으므로
+자동으로 불합격이 된다.
 -/
 def allowedAxioms : Array Name :=
   #[``Classical.choice, ``Quot.sound, ``propext, ``funext]
@@ -84,7 +84,7 @@ def stars (n : Nat) : String :=
 /--
 선언 하나를 판정한다.
 
-`collectAxioms` 는 import 된 선언에 대해서도 동작한다 — olean 에 미리 계산되어 저장되므로
+`collectAxioms` 는 import 된 선언에도 동작한다. 결과가 olean 에 미리 계산되어 있어서
 모듈 경계를 넘어 증명 항을 뒤질 필요가 없다.
 -/
 def verdictOf (declName : Name) : CoreM Verdict := do

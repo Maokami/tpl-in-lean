@@ -29,7 +29,7 @@ Reynolds §N.M (pp. ..–..)
 ---
 
 ### 체크리스트
-- [ ] `lake build --wfail --iofail ReynoldsTests` 통과 (Answers·테스트 경고 0)
+- [ ] `lake build --wfail ReynoldsTests` 통과 (Answers·테스트 경고 0)
 - [ ] `lake test` 통과
 - [ ] `lake exe grade --answers` 통과
 - [ ] Answers ↔ Exercises 가 파일·선언·`@[exercise]` 태그까지 1:1

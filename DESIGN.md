@@ -161,7 +161,7 @@ cslib v4.33.0  (commit 3951377e5a3f, 2026-08-10)
 
 **(4) 도입할 도구 세트** — CSlib에서 그대로 가져온다.
 ```bash
-lake build --wfail --iofail   # 경고도 실패로 (CI 엄격도)
+lake build --wfail            # 경고도 실패로 (CI 엄격도). --iofail 은 #eval 과 충돌하므로 안 쓴다
 lake test                      # testDriver
 lake lint                      # 환경 린터 (batteries/runLinter)
 lake exe lint-style            # 텍스트 스타일 린터
@@ -877,7 +877,7 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
    `meta instance : Inhabited ExerciseInfo := …` 를 따로 준다.
 
 3. **`--wfail` 을 전체에 걸면 안 된다.** `Exercises` 는 의도적으로 `sorry` 를 갖는다.
-   → 엄격 게이트는 **`lake build --wfail --iofail ReynoldsTests`**.
+   → 엄격 게이트는 **`lake build --wfail ReynoldsTests`**.
    `ReynoldsTests` 가 `Answers` 만 import 하므로 이 한 줄로 Answers 전체 + 테스트가 검사된다.
 
 4. **`#guard` 는 컴파일 시점에 계산한다** → 테스트 모듈에 `public meta import` 가 필요하다.
@@ -931,7 +931,7 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 | **`#guard` / `#guard_msgs`** | `ReynoldsTests/*` | 골든 테스트. 출력이 바뀌면 CI가 잡는다 |
 | **`calc` / `conv` / `show`** | 책의 계산을 그대로 옮길 때 | Reynolds의 등식 사슬을 그대로 표현 |
 | **`simp?` → 최소 `simp` 집합** | 전 증명 | `simp_all`로 뭉개지 않고 무엇이 쓰였는지 드러내기 |
-| **Lake 위생 도구** `--wfail --iofail`, `lake lint`, `lint-style`, `shake`, `mk_all` | CI + 로컬 | 프로젝트 운영을 배우는 부분 |
+| **Lake 위생 도구** `--wfail`, `lake lint`, `lint-style`, `shake`, `mk_all` | CI + 로컬 | 프로젝트 운영을 배우는 부분 |
 | **Verso** `anchor` / `docstring` / `anchorInfo` | `manual/` | 문서-코드 동기화 |
 | **CSlib 타입클래스** `HasFresh` / `HasSubstitution` / `HasAlphaEquiv` / `InferenceSystem` | 1·3장 | 생태계 라이브러리 사용법 |
 
@@ -1198,7 +1198,7 @@ Copybara를 도입하면 워크플로 하나를 영구히 떠안게 되는데 �
 (절 하나가 완결된 상태에서 봐야 판단이 선다).
 
 ```bash
-lake build --wfail --iofail && lake test && lake exe grade --answers   # 먼저 기계 검증
+lake build --wfail ReynoldsTests && lake test && lake exe grade --answers   # 먼저 기계 검증
 codex review --base main                                              # 그 다음 사람/AI 리뷰
 ```
 기계 검증을 먼저 통과시키는 순서가 중요하다. 빌드도 안 되는 코드를 리뷰시키면

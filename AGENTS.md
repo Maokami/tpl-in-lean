@@ -109,6 +109,37 @@ end
 - Lean 식별자·태틱·타입 이름은 번역하지 않는다: `Finset`, `induction`, `omega`.
 - 맞춤법과 띄어쓰기를 지킨다. 문장은 `~다`로 끝낸다 (`~습니다` 아님).
 
+### 2.1.1 피해야 할 문체 (실제로 지적받은 것들)
+
+주석이 "AI가 쓴 것처럼" 읽히는 데는 몇 가지 반복 패턴이 있다.
+금지어 목록이 아니라 **글 전체에서 같은 장치가 자동으로 반복되는지**를 본다.
+
+| 패턴 | 증상 | 고치는 법 |
+|---|---|---|
+| 거대한 도입 | "이 파일이 그 답이다", "1장에서 가장 중요한 교훈이다" | 중요성을 선언하지 말고 그냥 내용을 쓴다 |
+| 자동 대조문 | "A가 아니다. B다." 가 절마다 등장 | 버려야 할 오해가 실제로 있을 때만 대조한다 |
+| 장식적 형용사 | 근거 없는 "핵심", "결정적", "우아한", "강력한" | 무엇이 무엇을 계산·보존·구분하는지 쓴다 |
+| 수사 질문 후 즉답 | "왜 유일한가?" 하고 바로 답함 | 서술로 바꾼다. 진짜 열린 질문만 남긴다 |
+| 절 끝 요약 | "## 정리", "기억할 것은 하나다" | 이미 말한 것을 다시 말하지 않는다 |
+| 균일한 리듬 | 모든 절이 같은 순서·같은 길이 | 절의 기능에 따라 길이와 구조를 바꾼다 |
+| 복선 회수 남발 | 같은 예고를 여러 파일에서 반복 | 가장 결정적인 한 곳에서만 연결한다 |
+| 볼드·기호 남용 | `**...**` 와 `★` 가 문단마다 | 대비가 정말 필요한 곳만. `★` 는 별점에만 쓴다 |
+| 명령조 남발 | "~보라", "~주목할 것", "~눈여겨보라" | 서술로 바꾼다 |
+
+**목표 목소리**: 한 단계 먼저 헤매 본 동료가 옆에서 설명하는 톤.
+가르치려 들지 않고, 판단의 근거와 범위와 한계를 솔직하게 밝힌다.
+자신감은 형용사가 아니라 정확한 범위와 검증 가능한 서술에서 나온다.
+
+**고쳐 쓴 예**
+
+```
+✗  **왜 유일한가?** 그는 답하지 않는다. 이 파일이 그 답이다.
+   그리고 그 답이 `eval`, `fv` 가 **하나의 구성**임을 보여 준다.
+
+✓  구문 지향이면 왜 유일해지는지는 설명하지 않는다. 여기서 그 이유를 따라간다.
+   따라가다 보면 `eval` 과 `fv` 가 같은 구성의 두 사례라는 것도 같이 나온다.
+```
+
 ### 2.2 3층 구조
 
 #### (a) 모듈 docstring — 파일 최상단 `/-! … -/`
@@ -371,18 +402,28 @@ theorem substitution_assert … := by
 작업을 "끝났다"고 말하기 전에 **전부** 통과해야 한다.
 
 ```bash
-lake build --wfail --iofail ReynoldsTests   # 엄격 모드 — Answers + 테스트, 경고 0
+python3 scripts/gen-exercises.py            # Answers → Exercises 재생성 (손으로 고치지 마라)
+lake build --wfail ReynoldsTests            # 엄격 모드 — Answers + 테스트, 경고 0
 lake build                                  # 전체 (Exercises 의 sorry 경고 허용)
 lake test                                   # #guard 단위 테스트
 lake lint                                   # 환경 린터 (docBlame 등)
 lake exe grade --answers                    # Answers sorry-free · 불법 공리 없음
 lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확인
+python3 scripts/gen-exercises.py --check    # 두 트리가 어긋나지 않는지
 ./scripts/check-anchors.sh                  # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치
 ```
+
+> **`Reynolds/Exercises/**` 를 직접 고치지 마라.** `scripts/gen-exercises.py` 가 Answers 에서
+> 생성한다. 연습을 추가하거나 힌트를 바꾸려면 그 스크립트의 `BLANKS` 표를 고친다.
+> 어떤 정리를 비울지 고르는 규칙(반사슬 조건)도 그 파일 docstring 에 적혀 있다.
 
 > **엄격 모드에 왜 `ReynoldsTests` 를 넣나**: `Exercises` 트리는 **의도적으로** `sorry` 를
 > 갖고 있어서 `--wfail` 을 전체에 걸면 항상 실패한다. `ReynoldsTests` 는 `Answers` 만
 > import 하므로, 이 타겟을 엄격 빌드하면 **Answers 전체 + 테스트**가 경고 0 인지 검사된다.
+>
+> **`--iofail` 은 쓰지 않는다.** 그 플래그는 빌드 중 **모든 IO 출력**을 실패로 본다.
+> 그런데 교육용 파일(`Background.lean` 등)은 `#eval` 로 값을 보여 주는 것이 목적이다.
+> 둘은 근본적으로 충돌한다. 잡고 싶은 것(경고·`sorry`·deprecation)은 `--wfail` 이 다 잡는다.
 
 새 파일을 추가하면 루트 모듈 `Reynolds.lean` 에 `public import` 를 한 줄 더한다.
 `emit_exercise_registry` 호출은 **반드시 파일 맨 아래**여야 한다.
@@ -547,7 +588,7 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 ### 12.1 리뷰 순서
 
 ```
-lake build --wfail --iofail && lake test && lake exe grade --answers   ① 기계 검증
+lake build --wfail ReynoldsTests && lake test && lake exe grade --answers   ① 기계 검증
         ↓  (통과해야 다음으로)
 codex review --base main                                              ② 로컬 1차 (푸시 전)
         ↓

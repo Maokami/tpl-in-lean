@@ -17,8 +17,8 @@ theorem coincidence_intExp … := by sorry
 
 ## 이 파일이 왜 따로 있는가
 
-`initialize`로 만든 환경 확장(environment extension)은 **같은 모듈에서 사용할 수 없다.**
-그래서 세 모듈로 나뉜다:
+`initialize` 로 만든 환경 확장(environment extension)은 같은 모듈에서 사용할 수 없다.
+그래서 세 모듈로 나뉜다.
 
 | 모듈 | 역할 |
 |---|---|
@@ -100,18 +100,16 @@ emit_exercise_registry exerciseRegistry
 
 ## 왜 이런 게 필요한가
 
-Lean 4 모듈 시스템에서 애트리뷰트(환경 확장)는 **`meta`** 여야 한다 —
-그래야 컴파일 시점에 `@[exercise …]` 를 해석할 수 있다.
-그런데 `lake exe grade` 는 **런타임 프로그램**이고, 런타임 코드는 `meta` 선언을 참조할 수 없다:
+Lean 4 모듈 시스템에서 애트리뷰트(환경 확장)는 `meta` 여야 컴파일 시점에 `@[exercise …]` 를
+해석할 수 있다. 그런데 `lake exe grade` 는 런타임 프로그램이라 `meta` 선언을 참조할 수 없다.
 
 ```
 error: Invalid definition `collect`, may not access declaration `exerciseExt` marked as `meta`
 ```
 
-그래서 컴파일 시점에 애트리뷰트를 읽어 **평범한 `def`** 로 옮겨 놓는다.
-이 커맨드가 그 다리 역할을 한다. 이름을 `Name` 이 아니라 `String` 으로 담는 이유는
-문자열 리터럴이 인용(quotation)하기에 가장 안전하기 때문이다 — 읽는 쪽에서
-`String.toName` 으로 되돌린다.
+그래서 컴파일 시점에 애트리뷰트를 읽어 평범한 `def` 로 옮겨 놓는다.
+이름을 `Name` 이 아니라 `String` 으로 담은 것은 문자열 리터럴이 인용(quotation)하기
+가장 안전해서다. 읽는 쪽에서 `String.toName` 으로 되돌린다.
 -/
 elab "emit_exercise_registry" declId:ident : command => do
   let env ← Lean.Elab.Command.liftCoreM Lean.getEnv

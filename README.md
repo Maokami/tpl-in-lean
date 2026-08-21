@@ -84,7 +84,7 @@ lake exe grade --chapter 1     # 1장만
 | 명령 | 용도 |
 |---|---|
 | `lake build` | 전체 빌드 (Exercises 의 `sorry` 경고 허용) |
-| `lake build --wfail --iofail ReynoldsTests` | **엄격 모드** — Answers 와 테스트에 경고 0 |
+| `lake build --wfail ReynoldsTests` | **엄격 모드** — Answers 와 테스트에 경고 0 |
 | `lake test` | `#guard` 단위 테스트 |
 | `lake exe grade` | 연습 채점 |
 | `lake exe grade --answers` | Answers 검증 (CI용) |

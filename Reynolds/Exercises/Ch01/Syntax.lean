@@ -16,20 +16,21 @@ Reynolds §1.1 (pp. 1–7)에 대응한다.
 - 정수 식 ⟨intexp⟩ 의 추상 구문
 - Reynolds가 손으로 부과하는 **추상 구문 조건**이 Lean에서는 왜 공짜인가
 
-## 핵심 아이디어
+## 배경
 
-Reynolds는 형식 언어의 구문을 문자열이 아니라 **추상적 개체**로 다뤄야 한다고 말한다.
-자연수를 다룰 때 "숫자 문자열"이 아니라 수 자체를 다루는 것과 같은 이유다.
+Reynolds 는 형식 언어의 구문을 문자열이 아니라 추상적 개체로 다뤄야 한다고 말한다.
+자연수를 다룰 때 숫자 문자열이 아니라 수 자체를 다루는 것과 같은 이유다.
 
-그가 추상 구문에 요구하는 조건은 셋이다:
+그가 추상 구문에 요구하는 조건은 셋이다.
 
-1. 각 생성자(constructor)는 **단사(injective)** 여야 한다
-2. 같은 반송자(carrier)로 가는 두 생성자의 **치역이 서로소** 여야 한다
-3. 모든 원소가 **유한 번의 생성자 적용**으로 만들어져야 한다
+1. 각 생성자(constructor)는 단사(injective)여야 한다
+2. 같은 반송자(carrier)로 가는 두 생성자는 치역이 서로소여야 한다
+3. 모든 원소가 유한 번의 생성자 적용으로 만들어져야 한다
 
-Lean의 `inductive` 가 이 셋을 정확히, 그리고 공짜로 준다. 아래 `추상구문조건` 절에서
-직접 확인한다. (Reynolds가 각주로 언급하는 "다중 정렬 시작 대수(many-sorted initial
-algebra)"가 바로 이것이다.)
+Lean 의 `inductive` 는 이 셋을 선언과 동시에 준다.
+`AbstractSyntaxConditions` 절에서 확인한다.
+Reynolds 가 각주에서 언급하는 "다중 정렬 초기 대수(many-sorted initial algebra)" 도
+같은 이야기이고, `Depth/Algebra.lean` 에서 이어 간다.
 
 ## 읽는 순서
 이 파일 → `Semantics.lean` → `FreeVars.lean`
@@ -80,28 +81,95 @@ inductive IntExp (V : Type u) where
   | bin : IntOp → IntExp V → IntExp V → IntExp V
   deriving DecidableEq, Repr
 
-/-! ## Reynolds의 추상 구문 조건은 Lean에서 공짜다
+/-! ## 추상 구문 조건 확인
 
-이 절은 증명해야 할 것이 아니라 **보여 주려는 것**이다.
-Reynolds가 §1.1에서 한 페이지를 들여 손으로 부과하는 조건들이,
-`inductive` 선언 한 번으로 전부 딸려 온다.
+Reynolds 가 §1.1 에서 한 페이지에 걸쳐 부과하는 조건 셋을 실제로 확인한다.
+새로 증명할 것은 없다. `inductive` 선언에서 이미 따라 나온 것들이다.
 -/
 
 section AbstractSyntaxConditions
 
 variable {V : Type u} (n : Int) (v : V)
 
-/-- **조건 1** — 생성자는 단사다. Reynolds가 요구하는 것을 `injection`이 바로 준다. -/
+/-- 조건 1. 생성자는 단사다. `injection` 이 바로 처리한다. -/
 example : Function.Injective (IntExp.var (V := V)) := fun _ _ h => by injection h
 
-/-- **조건 2** — 서로 다른 생성자의 치역은 서로소다. -/
+/-- 조건 2. 서로 다른 생성자의 치역은 서로소다. -/
 example : IntExp.num (V := V) n ≠ IntExp.var v := by nofun
 
-/-- **조건 3** — 모든 정수 식은 유한 번의 생성자 적용으로 만들어진다.
-    이것이 구조적 귀납법(structural induction)이 정당한 이유이고,
-    `IntExp.rec`가 바로 그 원리를 담은 재귀자다. -/
+/-- 조건 3. 모든 정수 식은 유한 번의 생성자 적용으로 만들어진다.
+    구조적 귀납법(structural induction)이 정당한 근거이고, 재귀자 `IntExp.rec` 가 그 형태다. -/
 example : True := trivial
 
 end AbstractSyntaxConditions
+
+/-! Reynolds 는 이 조건들이 "다중 정렬 초기 대수" 를 이룬다고 각주에 적는다.
+그 말이 무엇이고 왜 `eval` 과 `fv` 가 같은 구성인지는 `Depth/Algebra.lean` 에 있다. (선택) -/
+
+/-! ## 단언 (assertions)
+
+Reynolds §1.1 의 ⟨assert⟩ — 논리학자가 "정형식(well-formed formula)"이라 부르는 것.
+-/
+
+/-- 비교 연산자. Reynolds §1.1 의 `=  ≠  <  ≤  >  ≥`. -/
+inductive Cmp where
+  /-- 같음 `=`. -/
+  | eq
+  /-- 다름 `≠`. -/
+  | ne
+  /-- 작음 `<`. -/
+  | lt
+  /-- 작거나 같음 `≤`. -/
+  | le
+  /-- 큼 `>`. -/
+  | gt
+  /-- 크거나 같음 `≥`. -/
+  | ge
+  deriving DecidableEq, Repr
+
+/-- 이항 논리 연산자. Reynolds §1.1 의 `∧  ∨  ⇒  ⇔`. -/
+inductive LogOp where
+  /-- 그리고 `∧`. -/
+  | and
+  /-- 또는 `∨`. -/
+  | or
+  /-- 함의 `⇒`. -/
+  | imp
+  /-- 동치 `⇔`. -/
+  | iff
+  deriving DecidableEq, Repr
+
+/-- 양화사. Reynolds §1.1 의 `∀  ∃`. -/
+inductive Quant where
+  /-- 전칭 `∀v. p`. -/
+  | all
+  /-- 존재 `∃v. p`. -/
+  | ex
+  deriving DecidableEq, Repr
+
+/--
+단언(assertion). Reynolds §1.1 의 ⟨assert⟩.
+
+`Assert` 는 `IntExp` 를 참조하지만 반대는 아니다. ⟨assert⟩ 의 생성 규칙에 ⟨intexp⟩ 가
+나오고 그 역은 없는 Reynolds 의 문법을 그대로 옮긴 것이라, 상호 귀납이 아니라
+별도 `inductive` 둘이면 된다.
+
+`quant q v p` 의 `v` 는 결합 발생(binding occurrence)이고 유효 범위(scope)는 `p` 다.
+1장에서 결합이 나오는 자리는 여기뿐이고, §1.4 는 이것 하나를 다룬다.
+-/
+inductive Assert (V : Type u) where
+  /-- 참 `true`. -/
+  | tru
+  /-- 거짓 `false`. -/
+  | fls
+  /-- 정수 비교 `e₀ ∼ e₁`. -/
+  | cmp : Cmp → IntExp V → IntExp V → Assert V
+  /-- 부정 `¬p`. -/
+  | not : Assert V → Assert V
+  /-- 이항 논리 연산 `p₀ ∘ p₁`. -/
+  | bin : LogOp → Assert V → Assert V → Assert V
+  /-- 양화 `∀v. p` / `∃v. p`. **결합 구성자**. -/
+  | quant : Quant → V → Assert V → Assert V
+  deriving DecidableEq, Repr
 
 end Reynolds.Exercises.Ch01
