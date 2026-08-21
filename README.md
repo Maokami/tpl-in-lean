@@ -115,9 +115,12 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 | 심화 A · 대수와 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#1](../../pull/1) | 〃 |
 | 심화 B · 시그니처 함자와 Lambek | [`Depth/SignatureFunctor.lean`](./Reynolds/Answers/Ch01/Depth/SignatureFunctor.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 치환은 bind 다 | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
+| §1.1 구체 구문 · DSL | [`Notation.lean`](./Reynolds/Answers/Ch01/Notation.lean) | [#2](../../pull/2) | [`ch01-ex01-ex04`](../../tree/ch01-ex01-ex04) |
+| §1.1 실현 · 연습 1.3 | [`Realizations.lean`](./Reynolds/Answers/Ch01/Realizations.lean) | [#2](../../pull/2) | 〃 |
+| 연습 1.1 · 1.2 · 1.4 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) | [#2](../../pull/2) | 〃 |
 
-1장은 절 단위로 PR 을 쪼개지 못하고 한 번에 올라왔다. 뼈대가 서로 얽혀 있었기 때문이고,
-2장부터는 [`AGENTS.md` §7.1](./AGENTS.md) 대로 절마다 PR 과 태그를 나눈다.
+1장 본문은 절 단위로 PR 을 쪼개지 못하고 한 번에 올라왔다. 뼈대가 서로 얽혀 있었기 때문이다.
+연습 PR 부터는 [`AGENTS.md` §7.1](./AGENTS.md) 대로 단위를 나눈다.
 
 심화 트랙이 무엇이고 왜 그 자리에 있는지는 [`docs/depth-track.md`](./docs/depth-track.md).
 
