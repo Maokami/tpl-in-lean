@@ -67,6 +67,9 @@ lake exe grade --chapter 1     # 1장만
 ```
 4. 막히거나 다 풀었으면 `Reynolds/Answers/ChNN/` 의 같은 이름 선언과 비교한다
 
+막혔을 때 무엇부터 볼지는 [`docs/solving-guide.md`](./docs/solving-guide.md) 에 정리해 두었다.
+이 저장소가 반복해 쓰는 증명 패턴 넷과 자주 만나는 오류 메시지가 들어 있다.
+
 ### 왜 `sorry` 만 보면 채점이 되는가
 
 `lake build` 가 통과했다면 **커널이 이미 증명을 검사했다.**
@@ -130,6 +133,8 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 | [`DESIGN.md`](./DESIGN.md) | 조사·설계 전체. 왜 이런 구조인가 |
 | [`AGENTS.md`](./AGENTS.md) | 작업 규약 (사람·AI 공통). **기여 전 필독** |
 | [`STUDY.md`](./STUDY.md) | 스터디 진행 방식 |
+| [`docs/solving-guide.md`](./docs/solving-guide.md) | **연습 푸는 법** — 막혔을 때 먼저 볼 것 |
+| [`docs/depth-track.md`](./docs/depth-track.md) | 심화 트랙 설계 |
 | [`docs/chapter-01.md`](./docs/chapter-01.md) | 1장 형식화 상세 설계 |
 | [`docs/chapter-02.md`](./docs/chapter-02.md) | 2장 형식화 상세 설계 |
 

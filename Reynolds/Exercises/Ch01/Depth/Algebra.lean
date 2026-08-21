@@ -156,6 +156,7 @@ Reynolds 의 각주가 말하는 "initial algebra" 가 이것이다.
 @[exercise "심화 A1.1" 2]
 theorem IntExp.initial {V : Type u} (A : IntExpAlg.{u, v} V) :
     ∃! h : IntExp V → A.Carrier, IsHom A h := by
+  -- 먼저 볼 것: 바로 위 `IntExpAlg.fold_isHom`. 존재 쪽은 그것으로 끝난다.
   -- 힌트: 존재는 `A.fold` 이고 `A.fold_isHom` 이 이미 있다.
   -- 유일성은 `funext` 다음 `induction e with`.
   sorry

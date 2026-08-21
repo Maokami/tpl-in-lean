@@ -68,6 +68,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "end Reynolds.Exercises.Ch01",
         """theorem coincidence_assert :
     ∀ (p : Assert V) (σ σ' : State V), (∀ w ∈ p.fv, σ w = σ' w) → (⟦p⟧ₐ σ ↔ ⟦p⟧ₐ σ') := by
+  -- 먼저 볼 것: 바로 위 `coincidence_intExp` 의 완성 증명. 같은 모양이고 케이스만 늘어난다.
   -- 힌트 1: 진술이 `∀ (p) (σ σ')` 꼴인 것이 증명을 좌우한다.
   --         `σ σ'` 를 인자로 빼면 양화사 케이스에서 귀납 가설이 안 맞는다.
   -- 힌트 2: `quant` 케이스에서 귀납 가설을 `σ[v := n]`, `σ'[v := n]` 에 적용한다.
@@ -83,7 +84,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem Proof.sound {p : Assert V}",
         "/-! ## 4. 추론과 함의",
         """theorem Proof.sound {p : Assert V} : Proof p → Valid p := by
-  -- 힌트: `Proof` 에 대한 귀납법. 케이스 하나가 규칙 하나의 건전성에 대응한다.
+  -- 먼저 볼 것: `Proof` 의 정의. 생성자 하나가 규칙 하나이고, 케이스도 하나씩 대응한다.
+  -- 힌트: `genAll` 케이스에서 "전제가 타당하다" 가 무엇을 주는지 보면 §4 의 논점이 보인다.
   sorry
 
 """,
@@ -146,6 +148,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem subst_var_assert [HasFresh V]",
         "/-! ## 5. 명제 1.3",
         """theorem subst_var_assert [HasFresh V] (p : Assert V) : p /ₛ IntExp.var = p := by
+  -- 먼저 볼 것: `subst_var_intExp` (완성본). 양화사 케이스만 새로 생각하면 된다.
   -- 힌트: 양화사 케이스가 전부다. 항등 치환에서는 `captureSet` 이 `p.fv.erase v` 로 줄고,
   -- `v` 는 거기 없으므로 `newBinder` 가 `v` 를 그대로 돌려준다.
   sorry
@@ -159,6 +162,9 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem substitution_assert [HasFresh V] :
     ∀ (p : Assert V) (δ : Subst V) (σ σ' : State V),
       (∀ w ∈ p.fv, σ w = ⟦δ w⟧ₑ σ') → (⟦p /ₛ δ⟧ₐ σ' ↔ ⟦p⟧ₐ σ) := by
+  -- 먼저 볼 것: `substitution_intExp` (완성본) 과 `coincidence_assert` 의 양화사 케이스.
+  -- 이 증명은 그 둘을 합친 모양이다.
+  --
   -- 이 파일에서 가장 손이 많이 가는 증명이다. 양화사 케이스의 순서는 이렇다.
   --   1. `set vnew := newBinder p v δ`
   --   2. `∀ n` 아래에서 귀납 가설을 `σ[v := n]`, `σ'[vnew := n]`,
@@ -177,6 +183,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "/-! ## 6. `eval` 과 `fv` 는 접기다",
         """theorem IntExp.initial {V : Type u} (A : IntExpAlg.{u, v} V) :
     ∃! h : IntExp V → A.Carrier, IsHom A h := by
+  -- 먼저 볼 것: 바로 위 `IntExpAlg.fold_isHom`. 존재 쪽은 그것으로 끝난다.
   -- 힌트: 존재는 `A.fold` 이고 `A.fold_isHom` 이 이미 있다.
   -- 유일성은 `funext` 다음 `induction e with`.
   sorry
@@ -294,7 +301,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective", "/-! ## 왜 이것이",
         """theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
-  -- 힌트: `toPrefix_prefixFree` 에 꼬리를 빈 열로 넣으면 된다.
+  -- 먼저 볼 것: 바로 위 `toPrefix_prefixFree` (완성본).
+  -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.
   sorry
 
 """,

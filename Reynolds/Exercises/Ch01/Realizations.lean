@@ -149,7 +149,8 @@ theorem IntExp.toPrefix_prefixFree :
 -/
 @[exercise "Ex 1.3" 3]
 theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
-  -- 힌트: `toPrefix_prefixFree` 에 꼬리를 빈 열로 넣으면 된다.
+  -- 먼저 볼 것: 바로 위 `toPrefix_prefixFree` (완성본).
+  -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.
   sorry
 
 /-! ## 왜 이것이 "실현" 인가
