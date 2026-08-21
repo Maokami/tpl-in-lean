@@ -5,6 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 import VersoManual
 import Manual.Intro
+import Manual.Ch01
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -31,3 +32,5 @@ Lean 4 로 따라 읽는 스터디 자료다.
 그것이 목적이다 — 설명과 코드가 어긋날 수 없다.
 
 {include 1 Manual.Intro}
+
+{include 1 Manual.Ch01}
