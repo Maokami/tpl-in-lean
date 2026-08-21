@@ -102,11 +102,24 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 
 ## 목차
 
-| 절 | PR | 태그 |
-|---|---|---|
-| §1.1 추상 구문 | — | — |
-| §1.2 표시적 의미론 | — | — |
-| §1.4 자유 변수와 일치 정리 | — | — |
+### 1장 술어 논리 (Predicate Logic)
+
+| 절 | 파일 | PR | 태그 |
+|---|---|---|---|
+| 들어가기 전 | [`Background.lean`](./Reynolds/Answers/Ch01/Background.lean) | [#1](../../pull/1) | [`ch01-s01-s04`](../../tree/ch01-s01-s04) |
+| §1.1 추상 구문 | [`Syntax.lean`](./Reynolds/Answers/Ch01/Syntax.lean) | [#1](../../pull/1) | 〃 |
+| §1.2 표시적 의미론 | [`Semantics.lean`](./Reynolds/Answers/Ch01/Semantics.lean) | [#1](../../pull/1) | 〃 |
+| §1.3 타당성과 추론 | [`Validity.lean`](./Reynolds/Answers/Ch01/Validity.lean) | [#1](../../pull/1) | 〃 |
+| §1.4 자유 변수와 일치 정리 | [`FreeVars.lean`](./Reynolds/Answers/Ch01/FreeVars.lean) | [#1](../../pull/1) | 〃 |
+| §1.4 치환 | [`Substitution.lean`](./Reynolds/Answers/Ch01/Substitution.lean) | [#1](../../pull/1) | 〃 |
+| 심화 A · 대수와 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#1](../../pull/1) | 〃 |
+| 심화 B · 시그니처 함자와 Lambek | [`Depth/SignatureFunctor.lean`](./Reynolds/Answers/Ch01/Depth/SignatureFunctor.lean) | [#1](../../pull/1) | 〃 |
+| 심화 A · 치환은 bind 다 | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
+
+1장은 절 단위로 PR 을 쪼개지 못하고 한 번에 올라왔다. 뼈대가 서로 얽혀 있었기 때문이고,
+2장부터는 [`AGENTS.md` §7.1](./AGENTS.md) 대로 절마다 PR 과 태그를 나눈다.
+
+심화 트랙이 무엇이고 왜 그 자리에 있는지는 [`docs/depth-track.md`](./docs/depth-track.md).
 
 > 링크는 저장소가 조직으로 이전되어도 안 깨지도록 **상대 경로**로 쓴다:
 > `[#12](../../pull/12)`, `[ch01-s04](../../tree/ch01-s04)`
