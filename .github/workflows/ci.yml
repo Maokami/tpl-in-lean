@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       # elan 설치 + Mathlib 캐시만 맡기고, 빌드·테스트·린트는 아래에서 직접 돌린다.
       # 어느 단계가 깨졌는지 보이게 하려는 것이고, 순서도 우리가 정해야 하기 때문이다.
