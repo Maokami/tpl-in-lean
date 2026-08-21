@@ -69,7 +69,7 @@ IntExp.eval                          IntExp.fv
 반송자(carrier) 타입 하나와, 생성자마다 연산 하나로 이루어진다.
 `IntExp` 의 생성자가 넷이므로 연산도 넷이다.
 
-§1 에서 본 생김새를 그대로 옮겨 적은 것이다. 대수라는 이름은 보편 대수(universal algebra)
+이 파일 §1 에서 본 생김새를 그대로 옮겨 적은 것이다. 대수라는 이름은 보편 대수(universal algebra)
 에서 왔지만, 여기서 필요한 뜻은 "반송자 + 연산 목록" 이상이 아니다.
 
 `IntExp V` 자신도 대수다. 생성자를 그대로 연산으로 쓰면 된다.
@@ -100,7 +100,7 @@ def termAlg (V : Type u) : IntExpAlg V where
 /--
 `A.fold e` — 구 `e` 의 생성자를 대수 `A` 의 연산으로 하나씩 갈아 끼운다.
 
-`eval` 과 `fv` 는 이 함수에 서로 다른 대수를 먹인 결과다. §6 에서 확인한다.
+`eval` 과 `fv` 는 이 함수에 서로 다른 대수를 먹인 결과다. 이 파일 §6 에서 확인한다.
 -/
 def IntExpAlg.fold {V : Type u} (A : IntExpAlg.{u, v} V) : IntExp V → A.Carrier
   | .num n        => A.num n
@@ -143,7 +143,7 @@ theorem IntExpAlg.fold_isHom {V : Type u} (A : IntExpAlg.{u, v} V) : IsHom A A.f
 /--
 어떤 대수 `A` 를 골라도, `IntExp V` 에서 `A` 로 가는 준동형이 정확히 하나 있다.
 
-존재하는 쪽은 `A.fold` 이고 §4 에서 이미 확인했다.
+존재하는 쪽은 `A.fold` 이고 이 파일 §4 에서 이미 확인했다.
 유일성은 구조적 귀납법으로 나온다. 두 준동형이 모든 생성자에서 같은 규칙을 따르면
 값이 갈라질 자리가 없다.
 
@@ -212,7 +212,7 @@ theorem fv_eq_fold {V : Type u} [DecidableEq V] (e : IntExp V) : e.fv = (fvAlg V
 Reynolds 가 *"they define the functions uniquely"* 라고만 쓰고 지나간 주장이다.
 
 증명에 귀납법이 없다. 가설 넷을 모으면 그대로 `IsHom (evalAlg V) f` 가 되고,
-나머지는 §5 의 유일성이 처리한다.
+나머지는 이 파일 §5 의 유일성이 처리한다.
 
 2장에서 같은 질문이 다른 답을 받는다. `while` 의 풀기(unwinding) 방정식은 이런 유일성이
 없어서, `⟦while true do skip⟧` 자리에는 `Σ → Σ⊥` 의 아무 함수나 들어갈 수 있다.

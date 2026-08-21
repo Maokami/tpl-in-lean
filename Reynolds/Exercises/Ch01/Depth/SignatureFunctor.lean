@@ -26,7 +26,7 @@ Reynolds 는 §2.4 끝에서 §1.1 의 추상 문법 정의를 다시 꺼낸다.
 `IntExp V ≃ Sig V (IntExp V)` 라는 동형이 그 내용이고, Lambek 보조정리라고 부른다.
 
 ## 사전 지식
-`Depth/Algebra.lean`. 함자(functor)는 §1 에서 설명한다.
+`Depth/Algebra.lean`. 함자(functor)는 이 파일 §1 에서 설명한다.
 
 ## 읽는 순서
 `Depth/Algebra.lean` → 이 파일 → (2장) `Depth/FixpointAlgebraically.lean`

@@ -67,7 +67,7 @@ variable {V : Type u} [DecidableEq V]
 치환 사상(substitution map). Reynolds 의 `Θ = ⟨var⟩ → ⟨intexp⟩`.
 
 변수 하나가 아니라 **모든 변수를 한꺼번에** 옮기는 함수다.
-Reynolds 가 동시 치환을 기본으로 두는 이유는 §3 의 양화사 절 때문이다.
+Reynolds 가 동시 치환을 기본으로 두는 이유는 이 파일 §3 의 양화사 절 때문이다.
 한 변수씩 정의하면 결합 변수를 새 이름으로 바꾸는 단계에서 정의가 서지 않는다.
 -/
 abbrev Subst (V : Type u) := V → IntExp V
