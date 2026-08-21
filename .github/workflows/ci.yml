@@ -50,6 +50,11 @@ jobs:
       - name: ANCHOR · 태그 정합성
         run: ./scripts/check-anchors.sh
 
+      # 문서에 손으로 적은 연습 개수가 실제 `@[exercise]` 와 맞는지.
+      # `--grade` 는 레지스트리와 총계까지 대조하므로 빌드 뒤에 와야 한다.
+      - name: 문서의 연습 개수
+        run: python3 scripts/check-doc-counts.py --grade
+
       # 4) Verso 문서. 코드를 `anchor` 로 **그대로 인용**하므로, 코드가 바뀌면 여기서 깨진다.
       #    그게 목적이다 — 설명과 코드가 어긋나면 빌드가 실패해야 한다.
       #
