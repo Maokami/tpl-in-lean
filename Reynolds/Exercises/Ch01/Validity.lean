@@ -149,7 +149,8 @@ inductive Proof : Assert V → Prop where
 -/
 @[exercise "§1.3 건전성" 2]
 theorem Proof.sound {p : Assert V} : Proof p → Valid p := by
-  -- 힌트: `Proof` 에 대한 귀납법. 케이스 하나가 규칙 하나의 건전성에 대응한다.
+  -- 먼저 볼 것: `Proof` 의 정의. 생성자 하나가 규칙 하나이고, 케이스도 하나씩 대응한다.
+  -- 힌트: `genAll` 케이스에서 "전제가 타당하다" 가 무엇을 주는지 보면 §4 의 논점이 보인다.
   sorry
 
 /-! ## 4. 추론과 함의

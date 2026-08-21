@@ -83,6 +83,24 @@ theorem State.subst_def : σ[v := n] = Function.update σ v n := rfl
 
 end StateUpdate
 
+/-!
+## 예제용 변수 타입
+
+`String` 을 변수로 쓰면 예제가 읽힌다. 그런데 §1.4 의 치환은 `HasFresh` 를 요구하고,
+Mathlib 이 주는 `Infinite String` 경유 인스턴스는 계산 불가능해서 `#eval` 이나 `#guard` 로
+돌려 볼 수가 없다. 그래서 계산되는 인스턴스를 직접 만든다.
+-/
+
+/-- `ℕ ↪ String`. `n` 을 `'x'` 를 `n` 번 반복한 문자열로 보낸다. -/
+def natToString : ℕ ↪ String where
+  toFun n := String.ofList (List.replicate n 'x')
+  inj' a b h := by
+    have hl := String.ofList_injective h
+    simpa using congrArg List.length hl
+
+/-- 계산 가능한 `HasFresh String`. `Nat.find` 로 아직 안 쓴 이름을 찾는다. -/
+instance hasFreshString : Cslib.HasFresh String := Cslib.HasFresh.ofNatEmbed natToString
+
 /--
 모든 변수를 `n` 으로 보내는 상수 상태. 예제와 `#eval` 에서 쓴다.
 

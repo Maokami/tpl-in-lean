@@ -192,6 +192,7 @@ theorem fv_subst_intExp (e : IntExp V) (δ : Subst V) :
 /-- 단언 판의 명제 1.2(b). 양화사 절에서 `newBinder` 가 `v` 를 그대로 돌려주는 것이 핵심이다. -/
 @[exercise "Prop 1.2b-assert" 3]
 theorem subst_var_assert [HasFresh V] (p : Assert V) : p /ₛ IntExp.var = p := by
+  -- 먼저 볼 것: `subst_var_intExp` (완성본). 양화사 케이스만 새로 생각하면 된다.
   -- 힌트: 양화사 케이스가 전부다. 항등 치환에서는 `captureSet` 이 `p.fv.erase v` 로 줄고,
   -- `v` 는 거기 없으므로 `newBinder` 가 `v` 를 그대로 돌려준다.
   sorry
@@ -241,6 +242,9 @@ theorem substitution_intExp :
 theorem substitution_assert [HasFresh V] :
     ∀ (p : Assert V) (δ : Subst V) (σ σ' : State V),
       (∀ w ∈ p.fv, σ w = ⟦δ w⟧ₑ σ') → (⟦p /ₛ δ⟧ₐ σ' ↔ ⟦p⟧ₐ σ) := by
+  -- 먼저 볼 것: `substitution_intExp` (완성본) 과 `coincidence_assert` 의 양화사 케이스.
+  -- 이 증명은 그 둘을 합친 모양이다.
+  --
   -- 이 파일에서 가장 손이 많이 가는 증명이다. 양화사 케이스의 순서는 이렇다.
   --   1. `set vnew := newBinder p v δ`
   --   2. `∀ n` 아래에서 귀납 가설을 `σ[v := n]`, `σ'[vnew := n]`,
