@@ -30,6 +30,16 @@ from __future__ import annotations
 import pathlib
 import sys
 
+# Exercises 로 복제하지 않고 Answers 쪽을 그대로 쓰는 모듈.
+#
+# `Notation.lean` 은 `declare_syntax_cat` 으로 **전역** 구문 범주를 만든다.
+# 두 트리에 같은 범주가 생기면 루트 모듈에서 충돌한다:
+#   environment already contains 'Lean.Parser.Category.reyA'
+# 게다가 DSL 은 연습 대상이 아니라 인프라라서 복제할 이유도 없다.
+# 매크로가 뱉는 이름(`IntExp.var` 등)은 한정되지 않아서, Exercises 이름공간 안에서
+# 쓰면 Exercises 의 정의로 해석된다.
+SHARED = {"Ch01/Notation.lean"}
+
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ANSWERS = ROOT / "Reynolds" / "Answers"
 EXERCISES = ROOT / "Reynolds" / "Exercises"
@@ -208,12 +218,97 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+# ── 연습 1.1 · 1.2 (전부 서로 독립이다)
+    (
+        "Ch01/Ex.lean", "theorem e11a_correct", "/-- 1.1(b)",
+        """theorem e11a_correct (σ : State String) :
+    (⟦e11a⟧ₐ σ ↔ ∃ n : Int, 0 < n ∧ n < 2) := by
+  -- 힌트: `simp [e11a, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]`
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e11b_correct", "/-- 1.1(c)",
+        """theorem e11b_correct (σ : State String) :
+    (⟦e11b⟧ₐ σ ↔ ∀ m n : Int, (0 < m ∧ m < 2) ∧ (0 < n ∧ n < 2) → m = n) := by
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e11c_correct", "/--\n1.1(d)",
+        """theorem e11c_correct (σ : State String) :
+    (⟦e11c⟧ₐ σ ↔ ∃ m n : Int, m ≠ n ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3)) := by
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e11d_correct", "/-! ## 연습 1.2",
+        """theorem e11d_correct (σ : State String) :
+    (⟦e11d⟧ₐ σ ↔ ∀ l m n : Int,
+      (0 < l ∧ l < 3) ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3) →
+        (l = m ∨ l = n ∨ m = n)) := by
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e12a_correct", "/-- 1.2(b)",
+        """theorem e12a_correct (σ : State String) :
+    (⟦e12a⟧ₐ σ ↔ σ "a" ∣ σ "b") := by
+  -- 힌트: `dvd_def` 가 `a ∣ b ↔ ∃ c, b = a * c` 다. `IntOp.denote` 도 펼쳐야 한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e12b_correct", "/--\n1.2(c)",
+        """theorem e12b_correct (σ : State String) :
+    (⟦e12b⟧ₐ σ ↔ (σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")) := by
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e12c_correct", "/--\n1.2(d)",
+        """theorem e12c_correct (σ : State String) :
+    (⟦e12c⟧ₐ σ ↔
+      ((σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")
+        ∧ ∀ d : Int, (d ∣ σ "b" ∧ d ∣ σ "c") → d ≤ σ "a")) := by
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "theorem e12d_correct", "/-! ## 연습 1.4",
+        """theorem e12d_correct (σ : State String) :
+    (⟦e12d⟧ₐ σ ↔
+      (σ "p" > 1 ∧ ∀ d : Int, (d > 0 ∧ d ∣ σ "p") → (d = 1 ∨ d = σ "p"))) := by
+  sorry
+
+""",
+    ),
+    # ── 연습 1.3 (접두사 자유성은 완성본으로 주고 단사성만 비운다)
+    (
+        "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective", "/-! ## 왜 이것이",
+        """theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
+  -- 힌트: `toPrefix_prefixFree` 에 꼬리를 빈 열로 넣으면 된다.
+  sorry
+
+""",
+    ),
 ]
 
 
 def transform(text: str, blanks: list[tuple[str, str, str]]) -> str:
     """이름공간 치환 · ANCHOR 제거 · 증명 비우기."""
     out = text.replace("Reynolds.Answers.Ch01", "Reynolds.Exercises.Ch01")
+    # 공유 모듈은 Answers 쪽을 그대로 가리키게 되돌린다.
+    for shared in SHARED:
+        mod = "Reynolds.Exercises." + shared.removesuffix(".lean").replace("/", ".")
+        out = out.replace(mod, mod.replace("Exercises", "Answers"))
     out = out.replace("완성본 (Answers)", "연습 (Exercises)")
     # ANCHOR 제거보다 **먼저** 증명을 비운다. 끝 마커로 `-- ANCHOR_END:` 를 쓰는 항목이 있다.
     for start, end, stub in blanks:
@@ -235,6 +330,8 @@ def build() -> dict[pathlib.Path, str]:
     result: dict[pathlib.Path, str] = {}
     for src in sorted(ANSWERS.rglob("*.lean")):
         rel = src.relative_to(ANSWERS)
+        if str(rel) in SHARED:
+            continue
         # ANCHOR 제거 뒤 마커 위치가 밀리므로, 파일별 blanks 를 그대로 넘긴다.
         result[EXERCISES / rel] = transform(src.read_text(), per_file.get(str(rel), []))
     return result
