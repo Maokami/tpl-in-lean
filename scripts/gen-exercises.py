@@ -484,6 +484,49 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.3 도메인과 연속 함수
+    (
+        "Ch02/Domain.lean",
+        "theorem Continuous.monotone",
+        "end ContinuousBasic",
+        """theorem Continuous.monotone {f : α → β} (hf : Continuous f) : Monotone f := by
+  -- 힌트 1: `x ⊑ y` 를 보이는 데 필요한 사슬은 `Chain.step hxy` 하나다 (`x, y, y, …`).
+  -- 힌트 2: 그 사슬의 극한이 `y` 임을 먼저 세워라. 극한은 유일하므로
+  --         `Chain.isLUB.unique` 로 보인다. `Chain.range_step` 이 훑는 값을 `{x, y}` 로 준다.
+  -- 힌트 3: 연속성이 주는 `IsLUB` 의 **상계** 부분만 쓰면 끝난다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Domain.lean",
+        "theorem continuous_iff_le",
+        "-- ANCHOR_END: prop21",
+        """theorem continuous_iff_le [PartialOrder α] [PartialOrder β] [Predomain α] [Predomain β]
+    {f : α → β} (hf : Monotone f) :
+    Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub := by
+  -- 힌트 1: 두 방향 다 `Chain.range_map` 으로 상과 옮긴 사슬을 오간다.
+  -- 힌트 2: (→) 극한은 유일하다. 같은 집합의 최소 상계 둘이면 같은 값이다.
+  -- 힌트 3: (←) 상계 쪽은 `hf (c.le_lub n)` 한 줄이다. 최소 쪽에서 가정한 부등식을 쓴다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Domain.lean",
+        "theorem exists_monotone_not_continuous",
+        "-- ANCHOR_END: notContinuous",
+        """theorem exists_monotone_not_continuous :
+    ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f := by
+  -- 먼저 볼 것: 바로 위의 `initSegs` 와 `initSegs_lub`. 둘 다 완성되어 있다.
+  -- 힌트 1: `f s = (s = Set.univ)` 를 쓴다. `Prop` 의 순서는 함의다.
+  -- 힌트 2: 연속이라고 가정하고 `initSegs` 를 먹인 뒤, 상이 전부 거짓임을 보여라.
+  --         그러면 `False` 도 상계이므로 최소 상계가 참일 수 없다.
+  -- 힌트 3: `{k | k < n} = ℕ` 이면 `n < n` 이 된다.
+  sorry
+
+""",
+    ),
 ]
 
 

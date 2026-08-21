@@ -172,6 +172,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.1 추상 구문 | [`Syntax.lean`](./Reynolds/Answers/Ch02/Syntax.lean) | [#4](../../pull/4) | [`ch02-s01`](../../tree/ch02-s01) |
 | §2.1 구체 구문 · 명령 DSL | [`Notation.lean`](./Reynolds/Answers/Ch02/Notation.lean) | [#4](../../pull/4) | 〃 |
 | §2.2 표시적 의미론 | [`Semantics.lean`](./Reynolds/Answers/Ch02/Semantics.lean) | [#5](../../pull/5) | [`ch02-s02`](../../tree/ch02-s02) |
+| §2.3 도메인과 연속 함수 | [`Domain.lean`](./Reynolds/Answers/Ch02/Domain.lean) | [#12](../../pull/12) | [`ch02-s03a`](../../tree/ch02-s03a) |
 
 2장은 절 단위로 PR 을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
