@@ -77,7 +77,8 @@ Reynolds 의 `⟦e⟧intexp` 를 흉내낸 표기. `open Reynolds.Exercises.Ch01
 
 아래 첨자를 붙인 것은 Mathlib 이 `⟦a⟧` 를 몫(quotient) 대표원소 표기로 이미 쓰기 때문이다.
 그대로 두면 중복 정의로 애매해진다. Reynolds 도 구의 종류마다 `⟦-⟧intexp`, `⟦-⟧assert`
-처럼 아래 첨자를 붙이므로 표기가 오히려 책에 가까워졌다. 2장의 명령은 `⟦c⟧꜀` 가 된다.
+처럼 아래 첨자를 붙이므로 표기가 오히려 책에 가까워졌다.
+2장에서는 불 식이 `⟦b⟧ᵇ`, 명령이 `⟦c⟧ᶜ` 다. 유니코드에 아래 첨자 `b`, `c` 가 없어서 위 첨자를 쓴다.
 -/
 scoped notation:max "⟦" e "⟧ₑ" => IntExp.eval e
 

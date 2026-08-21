@@ -385,6 +385,58 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.2 표시적 의미론
+    (
+        "Ch02/Semantics.lean",
+        "theorem boolExp_eval_iff",
+        "-- ANCHOR_END: boolAgree",
+        """theorem boolExp_eval_iff {V : Type u} [DecidableEq V] (b : BoolExp V) (σ : State V) :
+    ⟦b.toAssert⟧ₐ σ ↔ ⟦b⟧ᵇ σ = true := by
+  -- 먼저 볼 것: `Cmp.denoteBool_iff` 와 `LogOp.denoteBool_iff`. 둘 다 이 파일 앞쪽에 있다.
+  -- 힌트 1: `b` 에 대한 구조적 귀납법. 양화사 절이 없으므로 다섯 가지다.
+  -- 힌트 2: `bin` 절에서 귀납 가설의 방향이 보조정리와 반대다. `.symm` 이 필요하다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Semantics.lean",
+        "theorem liftBot_eq_bind",
+        "/-- `Option.bind` 가 곧 `>>=` 다.",
+        """theorem liftBot_eq_bind {V : Type u} (f : State V → SigmaBot V) (x : SigmaBot V) :
+    liftBot f x = Option.bind x f := by
+  -- 힌트: `x` 를 두 가지로 나누면 양변이 정의상 같아진다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Semantics.lean",
+        "theorem unwinding_not_unique",
+        "-- ANCHOR_END: unwindingNotUnique",
+        """theorem unwinding_not_unique :
+    ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g := by
+  -- 먼저 볼 것: 바로 위의 `unwindsDecr_true` 와 `unwindsDecr_fake`. 둘 다 완성되어 있다.
+  -- 힌트 1: 두 해를 그대로 제시하고, 다른 값을 내는 상태를 하나 짚으면 된다.
+  -- 힌트 2: `x` 가 1 인 상태가 그러하다. 홀수라 반복이 끝나지 않는다.
+  -- 힌트 3: `f ≠ g` 는 `intro h` 로 받아 `congrFun h σ` 로 한 점으로 줄인다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Semantics.lean",
+        "theorem unwinding_trivial",
+        "/-! ## 5. 여기서 어디로 가나",
+        """theorem unwinding_trivial (f : State String → SigmaBot String) :
+    ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Option.bind (some σ : SigmaBot String) f
+                else some σ := by
+  -- 힌트: 조건이 언제나 참이고 본체가 상태를 바꾸지 않으므로
+  --       우변이 좌변과 같아진다. 정의를 펼치기만 하면 된다.
+  sorry
+
+""",
+    ),
 ]
 
 
