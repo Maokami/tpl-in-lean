@@ -122,7 +122,7 @@ Reynolds 의 연습 1.7(a) 진술을 다시 보자.
 그 마지막 단계가 정수 식 판 치환 정리다.
 
 Reynolds 의 "is a renaming of" 를 구문 수준에서 정확히 말하려면 α-동치가 필요하다.
-§3 에서 그 이야기를 이어 간다.
+이 파일 §3 에서 그 이야기를 이어 간다.
 -/
 theorem subst_assoc_assert_meaning [Cslib.HasFresh V]
     (p : Assert V) (δ δ' : Subst V) (σ : State V) :
