@@ -299,7 +299,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
     ),
     # ── 연습 1.3 (접두사 자유성은 완성본으로 주고 단사성만 비운다)
     (
-        "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective", "/-! ## 왜 이것이",
+        "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective",
+        "/-! ## 접두 표기의 구문 세계",
         """theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
   -- 먼저 볼 것: 바로 위 `toPrefix_prefixFree` (완성본).
   -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.

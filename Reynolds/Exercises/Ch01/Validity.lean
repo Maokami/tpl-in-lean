@@ -60,14 +60,16 @@ def Valid (p : Assert V) : Prop := ∀ σ : State V, ⟦p⟧ₐ σ
 def Unsat (p : Assert V) : Prop := ∀ σ : State V, ¬ ⟦p⟧ₐ σ
 
 /--
-`p` 가 `q` 보다 **강하다(stronger)**. `q` 는 `p` 보다 **약하다(weaker)**.
+`p`가 `q`보다 **강하다(stronger)**. `q`는 `p`보다 **약하다(weaker)**.
 
-Reynolds 가 곧바로 붙이는 단서가 있다.
+Reynolds가 곧바로 붙이는 단서가 있다.
 
 > *"'stronger' and 'weaker' are dual preorders, which does not quite jibe with normal
 > English usage. For example, any assertion is both stronger and weaker than itself."*
 
-전순서(preorder)라서 반대칭성이 없다. 어떤 단언이든 자기 자신보다 강하면서 동시에 약하다.
+`Stronger`는 반사적이고 추이적인 준순서(preorder)다. 어떤 단언이든 자기 자신보다 강하면서
+동시에 약한 것은 반사성 때문이다. 의미가 같지만 구문이 다른 단언도 서로 강하므로, 구문
+등식에 대한 반대칭성은 일반적으로 성립하지 않는다.
 -/
 def Stronger (p q : Assert V) : Prop := ∀ σ : State V, ⟦p⟧ₐ σ → ⟦q⟧ₐ σ
 
@@ -114,7 +116,7 @@ Reynolds 는 *"proof trees are more perspicuous than sequences"* 라고 하면�
 조판 문제로 나무 대신 열(sequence)을 쓴다고 적는데, Lean 에서는 나무 쪽이 기본이다. -/
 
 /--
-술어 논리의 작은 추론 체계. Reynolds §1.3 이 예시로 드는 규칙들이다.
+술어 논리의 작은 추론 체계. Reynolds §1.3이 예시로 드는 규칙들이다.
 
 완전한 체계가 아니고 그럴 의도도 없다. 추론 규칙과 건전성이 무엇인지 보이는 데 필요한
 최소한만 담았다.
@@ -122,7 +124,7 @@ Reynolds 는 *"proof trees are more perspicuous than sequences"* 라고 하면�
 inductive Proof : Assert V → Prop where
   /-- 공리꼴: `e = e`. -/
   | eqRefl (e : IntExp V) : Proof (.cmp .eq e e)
-  /-- 한 전제 규칙: `e₀ = e₁` 로부터 `e₁ = e₀`. -/
+  /-- 한 전제 규칙: `e₀ = e₁`로부터 `e₁ = e₀`. -/
   | eqSymm {e₀ e₁ : IntExp V} : Proof (.cmp .eq e₀ e₁) → Proof (.cmp .eq e₁ e₀)
   /-- 두 전제 규칙 — 전건 긍정(modus ponens). -/
   | mp {p q : Assert V} : Proof p → Proof (.bin .imp p q) → Proof q
@@ -131,7 +133,7 @@ inductive Proof : Assert V → Prop where
   /--
   보편 일반화(∀-도입).
 
-  전제가 타당할 때만 결론이 타당해진다. 이 파일 §4 에서 이 규칙과 함의 `p ⇒ ∀v. p` 를
+  전제가 타당할 때만 결론이 타당해진다. 이 파일 §4에서 이 규칙과 함의 `p ⇒ ∀v. p`를
   나란히 놓고 비교한다.
   -/
   | genAll (v : V) {p : Assert V} : Proof p → Proof (.quant .all v p)
@@ -166,17 +168,17 @@ Reynolds 가 §1.3 에서 한 페이지를 들여 다루는 대목이다. 두 �
 가로선은 타당한 것에서 타당한 것을 얻는다는 뜻이고,
 화살표는 한 상태 안에서 앞이 참이면 뒤도 참이라는 뜻이다. 범위가 다르다. -/
 
-/-- 규칙 쪽. `p` 가 타당하면 `∀v. p` 도 타당하다. -/
+/-- 규칙 쪽. `p`가 타당하면 `∀v. p`도 타당하다. -/
 @[exercise "§1.3 gen-sound" 1]
 theorem valid_forall_of_valid (v : V) {p : Assert V} (h : Valid p) :
     Valid (.quant .all v p) := by
   sorry
 
 /--
-함의 쪽. `x > 0 ⇒ ∀x. x > 0` 은 타당하지 않다.
+함의 쪽. `x > 0 ⇒ ∀x. x > 0`은 타당하지 않다.
 
-Reynolds 의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서 왼쪽은 참이고,
-오른쪽은 `x` 에 0 을 넣으면 거짓이다.
+Reynolds의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서 왼쪽은 참이고,
+오른쪽은 `x`에 0 을 넣으면 거짓이다.
 
 같은 재료로 만든 규칙(위)과 함의(여기)의 판정이 갈린다.
 -/
@@ -194,9 +196,13 @@ Reynolds 는 §1.3 을 이렇게 닫는다.
 **논리적 타당성(logical validity)** — 표현식 연산의 의미까지 임의로 바꿔도 성립하는 것.
 **완전성(completeness)** — 건전성의 역. 타당한 것은 모두 증명된다.
 
-여기서처럼 타당성을 정수에 대한 고정된 해석으로 정의하면 어떤 유한한 규칙 집합도
-완전하지 않다(괴델의 불완전성 정리). 논리적 타당성으로 정의하면 완전한 유한 체계가 있다
-(괴델의 완전성 정리).
+정수의 표준 해석을 고정하면 닫힌 단언 가운데 참인 산술 문장도 모두 다뤄야 한다. 이때
+산술을 충분히 표현하면서 공리와 증명을 기계적으로 열거·검사할 수 있는 일관된 체계는
+모든 참인 문장을 증명할 수 없다. 괴델의 불완전성 정리에는 이런 표현력과 효과성 조건이
+필요하다.
+
+반면 모든 구조에서 참인 문장만 묻는 일차 논리에는 건전하고 완전한 효과적 증명 체계가
+있다. 이것이 괴델의 완전성 정리다.
 
 Reynolds 는 프로그램 검증에서 논리적 완전성이 별 쓸모가 없다고 덧붙인다.
 `+` 가 정말 덧셈인 해석에만 관심이 있기 때문이다. 예외는 §3.8 에서 다룬다.

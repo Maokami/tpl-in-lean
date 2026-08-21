@@ -66,11 +66,12 @@ inductive IntOp where
 /--
 정수 식(integer expression). Reynolds §1.1의 ⟨intexp⟩.
 
-변수 타입 `V`는 고정하지 않는다 — Reynolds가 ⟨var⟩를 "표현이 지정되지 않은
-가산 무한 집합"으로 두는 것과 같은 이유다. 자세한 논의는 `Reynolds.Prelude`.
+변수 타입 `V`는 고정하지 않는다. Reynolds는 ⟨var⟩를 "표현이 지정되지 않은 가산 무한
+집합"으로 두지만, 구문 자체에는 가산성이 필요 없어서 임의의 타입으로 일반화했다.
+포획 회피 치환에서만 `HasFresh V`를 요구한다. 자세한 논의는 `Reynolds.Prelude`에 있다.
 -/
 inductive IntExp (V : Type u) where
-  /-- 정수 상수. Reynolds의 `c₀, c₁, c₂, …`. -/
+  /-- 정수 상수. Reynolds의 `c₀, c₁, c₂, …`를 음의 정수까지 일반화했다. -/
   | num : Int → IntExp V
   /-- 변수. Reynolds의 `c_var` — 변수를 정수 식으로 넣어 주는 생성자다.
       §1.4 명제 1.2(b)에서 이것이 "항등 치환"으로 작동한다는 사실이 쓰인다. -/
@@ -91,15 +92,15 @@ section AbstractSyntaxConditions
 
 variable {V : Type u} (n : Int) (v : V)
 
-/-- 조건 1. 생성자는 단사다. `injection` 이 바로 처리한다. -/
+/-- 조건 1. 생성자는 단사다. `injection`이 바로 처리한다. -/
 example : Function.Injective (IntExp.var (V := V)) := fun _ _ h => by injection h
 
 /-- 조건 2. 서로 다른 생성자의 치역은 서로소다. -/
 example : IntExp.num (V := V) n ≠ IntExp.var v := by nofun
 
-/-- 조건 3. 모든 정수 식은 유한 번의 생성자 적용으로 만들어진다.
-    구조적 귀납법(structural induction)이 정당한 근거이고, 재귀자 `IntExp.rec` 가 그 형태다. -/
-example : True := trivial
+-- 조건 3. 모든 정수 식은 유한 번의 생성자 적용으로 만들어진다.
+-- 별도의 `True` 증명이 아니라, Lean이 생성한 재귀자 자체가 유한 구성을 따라가는 원리다.
+#check IntExp.rec
 
 end AbstractSyntaxConditions
 

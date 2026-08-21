@@ -31,13 +31,14 @@ Reynolds §2.3 에 대응한다. 분량이 있어서 둘로 나눈다. 이 파�
 Mathlib 에 `OmegaCompletePartialOrder` 가 있다. 그런데 §2.3 은 **그것을 만드는 절**이다.
 꺼내 쓰면 이 절이 통째로 사라진다.
 
-다만 완비 격자(complete lattice)처럼 Mathlib 이 이미 갖춘 것에서 예비도메인이 따라 나오는
+다만 완비 격자(complete lattice)처럼 Mathlib 이 이미 갖춘 것에서
+프리도메인(predomain)이 따라 나오는
 경로는 인스턴스 하나로 열어 둔다. 멱집합 도메인이 그 경로로 들어온다.
 직접 만든 것과 Mathlib 대응물의 대조표는 `MathlibBridge.lean` 에 따로 둘 것이다.
 
 ## 이 파일에서 다루는 것
 - 사슬(chain) — 가산 증가 열
-- 예비도메인(predomain)과 도메인(domain)
+- 프리도메인과 도메인(domain)
 - 연속(continuous) 함수, 그리고 연속이면 단조라는 것
 - **명제 2.1** — 단조 함수가 언제 연속인가
 - **단조인데 연속이 아닌 함수** — 이 절의 핵심
@@ -117,18 +118,18 @@ theorem Chain.range_step [Preorder α] {x y : α} (h : x ≤ y) :
     · exact ⟨0, rfl⟩
     · exact ⟨1, rfl⟩
 
-/-! ## 2. 예비도메인과 도메인
+/-! ## 2. 프리도메인과 도메인
 
 Reynolds 는 용어가 저자마다 다르다는 것을 §2.3 에서 직접 경고한다. 우리는 그의 용어를 쓴다.
 
-- **예비도메인(predomain)** — 모든 사슬이 최소 상계를 갖는 부분 순서 집합
-- **도메인(domain)** — 최소원 `⊥` 이 있는 예비도메인
+- **프리도메인** — 모든 사슬이 최소 상계를 갖는 부분 순서 집합
+- **도메인(domain)** — 최소원 `⊥` 이 있는 프리도메인
 
 Gunter 와 Winskel 은 앞의 것을 complete partial order 라 부르고, Tennent 는 뒤의 것을
 domain 이라 부른다. 이름이 겹치므로 논문을 읽을 때는 정의를 확인해야 한다. -/
 
 /--
-예비도메인(predomain) — 모든 사슬이 최소 상계를 갖는 부분 순서 집합.
+프리도메인 — 모든 사슬이 최소 상계를 갖는 부분 순서 집합.
 
 **`PartialOrder` 를 확장하지 않고 인스턴스 인자로 받는다.** 확장하면 Mathlib 이 이미
 순서를 주는 타입에서 순서 경로가 둘이 되어 다이아몬드가 생긴다. 인자로 받으면 순서는
@@ -141,7 +142,7 @@ class Predomain (α : Type u) [PartialOrder α] where
   lub_isLUB (c : Chain α) : IsLUB (Set.range c.seq) (lub c)
 
 /--
-도메인(domain) — 최소원(least element)을 가진 예비도메인. Reynolds §2.3.
+도메인(domain) — 최소원(least element)을 가진 프리도메인. Reynolds §2.3.
 
 클래스를 새로 만들지 않고 인스턴스 셋을 함께 요구하는 것으로 쓴다.
 `Domain` 을 클래스로 만들면 `OrderBot` 을 이미 갖춘 타입에서 최소원 경로가 둘이 되어
@@ -169,12 +170,12 @@ theorem Chain.lub_le [PartialOrder α] [Predomain α] {c : Chain α} {b : α}
     (h : ∀ n, c.seq n ≤ b) : c.lub ≤ b :=
   c.isLUB.2 (by rintro _ ⟨n, rfl⟩; exact h n)
 
-/-! ### 완비 격자는 예비도메인이다
+/-! ### 완비 격자는 프리도메인이다
 
-Mathlib 이 완비 격자를 주는 타입은 그대로 예비도메인이 된다. 사슬의 극한이 `⨆` 다.
+Mathlib 이 완비 격자를 주는 타입은 그대로 프리도메인이 된다. 사슬의 극한이 `⨆` 다.
 Reynolds 가 드는 예 중 **멱집합 도메인** `𝒫 S` 가 이 경로로 들어온다. -/
 
-/-- 완비 격자에서 예비도메인 인스턴스. 우선순위를 낮춰 직접 만든 인스턴스가 먼저 잡히게 한다. -/
+/-- 완비 격자에서 프리도메인 인스턴스. 우선순위를 낮춰 직접 만든 인스턴스가 먼저 잡히게 한다. -/
 instance (priority := 100) Predomain.ofCompleteLattice [CompleteLattice α] : Predomain α where
   lub c := ⨆ n, c.seq n
   lub_isLUB _ := isLUB_iSup
@@ -188,7 +189,7 @@ f (⨆ᵢ xᵢ) = ⨆ᵢ f(xᵢ)
 ```
 
 Lean 에서는 오른쪽이 존재한다고 가정하지 않고 **`f (⨆ xᵢ)` 가 상의 최소 상계다** 라고
-쓴다. 그러면 공역이 예비도메인인지와 무관하게 진술이 서고, 극한의 유일성에서 위 등식이 따라온다. -/
+쓴다. 그러면 공역이 프리도메인인지와 무관하게 진술이 서고, 극한의 유일성에서 위 등식이 따라온다. -/
 
 /--
 연속(continuous) — 사슬의 극한을 상의 극한으로 보낸다.
@@ -278,7 +279,7 @@ Reynolds 는 수직 자연수 `ℕ⊤` 에서 두 점 도메인으로 가는 함
 `⨆ f(xᵢ)` 는 거짓이다.
 
 여기서는 같은 이야기를 **멱집합 도메인**으로 옮긴다. Mathlib 이 `Set ℕ` 에 완비 격자를
-주므로 예비도메인이 공짜로 따라오고, `ℕ⊤` 처럼 형변환 보조정리를 뒤질 일이 없다.
+주므로 프리도메인이 공짜로 따라오고, `ℕ⊤` 처럼 형변환 보조정리를 뒤질 일이 없다.
 `ℕ⊤` 판을 직접 써 보는 것은 좋은 연습이다.
 
 사슬은 `{k | k < n}` 이다. 앞자리부터 하나씩 채워 가는 열이고, 극한이 `ℕ` 전체다.

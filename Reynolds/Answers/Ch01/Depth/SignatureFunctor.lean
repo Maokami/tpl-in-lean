@@ -21,9 +21,10 @@ Reynolds 는 §2.4 끝에서 §1.1 의 추상 문법 정의를 다시 꺼낸다.
 > stems from the fact that each `fᵢ` is **finitely generated**, which in turn stems from the fact
 > that **the constructors of the abstract syntax have a finite number of arguments**."*
 
-1장의 구문과 2장의 최소 고정점을 같은 것으로 보는 관점이다.
-여기서는 1장 쪽 절반, 즉 `Depth/Algebra.lean` 의 초기 대수가 왜 고정점이기도 한지를 다룬다.
-`IntExp V ≃ Sig V (IntExp V)` 라는 동형이 그 내용이고, Lambek 보조정리라고 부른다.
+인용문은 1장의 추상 구문 반송자를 부분집합 격자 위 최소 고정점으로 다시 구성한다.
+이 파일은 여기서 다른 연결을 따라간다. `Depth/Algebra.lean`에서 만든 초기 대수의 구조
+사상이 동형이라는 사실을 `IntExp V ≃ Sig V (IntExp V)`로 직접 확인한다. 이를 Lambek
+보조정리라고 부른다.
 
 ## 사전 지식
 `Depth/Algebra.lean`. 함자(functor)는 이 파일 §1 에서 설명한다.
@@ -119,9 +120,12 @@ IntExp V  ≃  Sig V (IntExp V)
 ```
 
 구문에서 생성자 한 겹을 벗겨도 다시 구문이 나온다는 뜻이다.
-`X = Sig V X` 라는 방정식의 해이므로 고정점이라고 부른다.
-2장에서 `Y f` 가 `f (Y f) = Y f` 를 만족하는 것과 같은 종류의 사실이고,
-무대가 집합이냐 도메인이냐만 다르다.
+`X ≃ Sig V X`라는 동형을 함자 고정점이라고 부르기도 한다. 여기서 보인 것은 구체적인
+`roll`과 `unroll`의 동형이다. 일반 Lambek 보조정리는 이 동형을 초기성에서 유도한다.
+
+2장의 `Y f`는 순서가 있는 한 도메인의 원소에 대한 자기함수 `f : D → D`의 **최소**
+고정점이다. 두 구성은 재귀 방정식의 해를 보편 성질로 고른다는 유사성이 있지만,
+Lambek 동형 자체에는 근사 순서나 최소성 조건이 들어 있지 않다.
 
 Lean 에서 `roll` 과 `unroll` 은 생성자를 그대로 옮기므로 증명이 `cases` 한 줄로 끝난다.
 `inductive` 를 쓰는 시점에 고정점이 이미 만들어져 있기 때문이다.
@@ -173,7 +177,8 @@ inductive FreeM (P : PFunctor) : Type v → Type _
   | liftBind (a : P.A) (cont : P.B a → FreeM P α) : FreeM P α
 ```
 
-우리 `IntExp V` 가 정확히 이것이다:
+적절한 다항 시그니처를 고르면 `IntExp`와 `FreeM` 사이에 다음 대응이 생긴다.
+실제 동형은 이 파일에서 증명하지 않고 연습으로 남긴다.
 
 | CSlib | 우리 |
 |---|---|
@@ -183,18 +188,25 @@ inductive FreeM (P : PFunctor) : Type v → Type _
 | `P.B a` | 그 연산의 **자식 자리 개수** (`Empty` / `Unit` / `Bool`) |
 | `bind` | **치환** (`Depth/TermMonad.lean`) |
 
-`Depth/Algebra.lean` §5 에서 손으로 증명한 초기성이 CSlib 에는 이미 있다.
-`FreeM.Interprets.iff` 의 docstring 이 그대로 이렇게 적고 있다.
+CSlib의 `FreeM.Interprets.iff`에는 이와 관련되지만 층이 다른 보편 성질이 있다.
+그 정리는 효과 handler를 확장하는 모나드 interpreter가 유일하다고 말한다.
 
 > *"The universal property of the free monad. That is, `liftM handler` is the unique
 > interpreter that extends the effect handler `handler`."*
 
-동형을 실제로 세우는 일은 연습으로 남긴다.
+`Depth/Algebra.lean`의 `IntExp.initial`은 변수 타입 `V`를 고정한 뒤 임의의
+`IntExpAlg V`로 가는 대수 준동형의 유일성을 말한다. 둘을 대응시키려면 모든 변수 타입에
+자연적인 동형을 세우고 그 동형이 `pure`와 `bind`, 각 생성자를 보존함을 따로 증명해야 한다.
+고정된 `V` 하나에서의 타입 동형만으로는 충분하지 않다. 이 파일은 그 동형과 호환성 증명을
+연습으로 남긴다.
+
+동형 자체를 실제로 세우는 일도 연습으로 남긴다.
 자식을 `P.B a → …` 꼴의 함수로 바꿔야 해서 정지성 증명에 손이 조금 간다.
 
-## 5. 이 다리의 반대쪽
+## 5. 고정점이라는 말이 가리키는 것들
 
-2장에서 `Depth/FixpointAlgebraically.lean` 이 같은 이야기를 도메인 쪽에서 한다:
+2장에서 `Depth/FixpointAlgebraically.lean`은 도메인 위 최소 고정점을 다룬다.
+아래 표는 유사점을 보여 주지만 두 고정점을 동일시하지는 않는다.
 
 | | 1장 (여기) | 2장 |
 |---|---|---|
@@ -202,11 +214,14 @@ inductive FreeM (P : PFunctor) : Type v → Type _
 | 구성 | 초기 `Sig`-대수 | 최소 고정점 `⨆ₙ Fⁿ⊥` |
 | 사슬 | `∅ → Sig ∅ → Sig² ∅ → ⋯` | `⊥ ⊑ F⊥ ⊑ F²⊥ ⊑ ⋯` |
 | 극한 | 여극한(colimit) | 최소 상계(join) |
-| "진짜 고정점" | **Lambek** (위 §2) | `f x = x` |
+| 방정식의 모양 | `X ≃ Sig V X` (Lambek) | `f x = x` |
 | Lean | `inductive` | 직접 만든 `lfp` |
-| 왜 되나 | 자식이 유한 개 | `F` 가 연속 |
+| 고정점 방정식이 성립하는 이유 | Lambek 보조정리 | 자기함수의 연속성과 완비성 |
 
-표의 마지막 줄이 두 열을 잇는 자리다. Reynolds 가 §2.4 에서 그 연결을 직접 적는다.
+여기서는 세 대상을 구분해야 한다. Reynolds §2.4는 생성자를 반복해 구문 반송자를 만든다.
+2장의 `Y`는 명령 의미가 사는 함수 도메인에서 최소 고정점을 고른다. Lambek 보조정리는
+초기 대수의 구조 사상이 동형임을 말한다. 유한 생성에서 연속성으로 이어지는 연결은 있지만,
+셋은 같은 구성이 아니다.
 -/
 
 end Reynolds.Answers.Ch01

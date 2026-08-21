@@ -55,9 +55,9 @@ Reynolds 가 불 식을 도입하는 방식이 특이하다. 새로 정의하지
 > *"boolean expressions are the same as assertions except for the omission of quantifiers
 > (for the obvious reason that they are noncomputable)"*
 
-이 한 문장이 이 장의 성격을 정한다. 1장에서 단언의 뜻을 `Prop` 으로 준 이유가 양화사였다 —
-`∀ n : Int, …` 는 정수 전체를 훑으므로 결정 가능하지 않다. 양화사가 빠지면 그 이유가
-사라지고, 불 식의 뜻은 `Bool` 로 갈 수 있다.
+이 한 문장이 이 장의 성격을 정한다. 정수 산술과 양화를 포함한 1장 단언 언어 전체에는
+실행 가능한 공통 진리 판정기가 없다. 양화사를 뺀 불 식은 구문을 따라 계산할 수 있으므로,
+뜻을 `Bool`로 줄 수 있다.
 
 그 차이가 `Semantics.lean` 에서 드러난다. `Assert.eval` 은 `Prop` 을 돌려주고
 `BoolExp.eval` 은 `Bool` 을 돌려준다. 후자는 `#eval` 로 실제로 돌아간다. -/

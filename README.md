@@ -153,7 +153,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §1.4 치환 | [`Substitution.lean`](./Reynolds/Answers/Ch01/Substitution.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 대수와 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#1](../../pull/1) | 〃 |
 | 심화 B · 시그니처 함자와 Lambek | [`Depth/SignatureFunctor.lean`](./Reynolds/Answers/Ch01/Depth/SignatureFunctor.lean) | [#1](../../pull/1) | 〃 |
-| 심화 A · 치환은 bind 다 | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
+| 심화 A · 치환과 bind | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
 | §1.1 구체 구문 · DSL | [`Notation.lean`](./Reynolds/Answers/Ch01/Notation.lean) | [#2](../../pull/2) | [`ch01-ex01-ex04`](../../tree/ch01-ex01-ex04) |
 | §1.1 실현 · 연습 1.3 | [`Realizations.lean`](./Reynolds/Answers/Ch01/Realizations.lean) | [#2](../../pull/2) | 〃 |
 | 연습 1.1 · 1.2 · 1.4 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) | [#2](../../pull/2) | 〃 |

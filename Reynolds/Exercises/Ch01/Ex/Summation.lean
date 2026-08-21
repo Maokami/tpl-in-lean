@@ -53,7 +53,7 @@ public meta import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 
 이 비대칭이 (b)(c)(d) 전부에 그대로 나타난다. `fv` 에서 `e₀.fv ∪ e₁.fv` 는 지우지 않고
 `e₂.fv` 만 `erase` 하는 것, `subst` 에서 `e₀ e₁` 은 원래 `δ` 로 치환하고 `e₂` 만 갱신된 `δ` 로
-치환하는 것이 같은 사실의 두 얼굴이다.
+치환하는 것 모두 `v`의 유효 범위가 `e₂`에만 미친다는 데서 나온다.
 
 ## 채점되는 것과 안 되는 것
 
@@ -184,7 +184,7 @@ FV(Σv : e₀ to e₁. e₂)  =  FV(e₀) ∪ FV(e₁) ∪ (FV(e₂) \ {v})
 본체의 `i` 는 0, 1, … 로 훑는 값이다. 같은 글자지만 다른 변수다.
 -/
 
-/-- `FV(e)` — 합 식이 있는 정수 식의 자유 변수. `sum` 절에서 `e₂` 만 `erase` 한다. -/
+/-- `FV(e)` — 합 식이 있는 정수 식의 자유 변수. `sum` 절에서 `e₂`만 `erase` 한다. -/
 def SExp.fv : SExp V → Finset V
   | .num _         => ∅
   | .var v         => {v}
@@ -270,8 +270,8 @@ scoped notation:80 e:80 " /[" v ":=" e' "] " => SExp.subst e (Function.update SE
 /-! ## (c-3) 명제들이 그대로 성립하는가
 
 1.5(c) 는 정의를 아무렇게나 쓰지 말고 **§1.4 의 명제들이 살아남도록** 쓰라고 요구한다.
-그중 대표가 일치 정리다. 이것이 성립하면 `fv` 가 "뜻이 실제로 의존하는 변수" 를 제대로
-모으고 있다는 뜻이 된다.
+그중 대표가 일치 정리다. 이것이 성립하면 `fv`가 뜻에 영향을 줄 수 있는 변수를 빠뜨리지
+않았다는 것을 알 수 있다. `fv`에 들어간 변수가 모두 실제로 영향을 준다는 뜻은 아니다.
 -/
 
 /--
@@ -335,7 +335,7 @@ theorem sum_empty (h : ⟦e₁⟧ₛ σ < ⟦e₀⟧ₛ σ) :
 **한 항 규칙.** 아래끝과 위끝이 같으면 합은 항 하나다.
 
 오른쪽을 `⟦e₂⟧ₛ (σ[v := ⟦e₀⟧ₛ σ])` 로 썼다. 치환으로 `e₂ /[v := e₀]` 라고 써도 같은 뜻이지만,
-그러려면 치환 정리(명제 1.4)의 합 식 판이 먼저 있어야 한다. 상태 갱신으로 쓰면 그 의존이 없다.
+그러려면 치환 정리(명제 1.3)의 합 식 판이 먼저 있어야 한다. 상태 갱신으로 쓰면 그 의존이 없다.
 -/
 @[exercise "Ex 1.5d-2" 2]
 theorem sum_single (h : ⟦e₀⟧ₛ σ = ⟦e₁⟧ₛ σ) :
@@ -348,8 +348,9 @@ theorem sum_single (h : ⟦e₀⟧ₛ σ = ⟦e₁⟧ₛ σ) :
 
 `Σv : e₀ to e₁+1. e₂ = (Σv : e₀ to e₁. e₂) + e₂[v := e₁+1]`.
 
-`e₀ ≤ e₁ + 1` 이라는 단서가 필요하다. 그게 없으면 왼쪽도 오른쪽도 빈 합이라 등식은
-여전히 맞지만, `Icc` 를 쪼개는 단계가 성립하지 않는다.
+`e₀ ≤ e₁ + 1`이라는 단서가 필요하다. 아래끝이 `5`, 위끝이 `0`, 본체가 `1`인 경우를
+넣어 보면 바로 드러난다. 왼쪽의 `5..1`과 오른쪽의 `5..0`은 둘 다 빈 범위지만,
+오른쪽에는 마지막 항 `1`이 따로 남는다.
 
 이 규칙이 있으면 합을 위끝에 대한 귀납으로 계산할 수 있다. Reynolds 가 말하는
 "nontrivial" 에 해당하는 것이 이것이다.
@@ -383,7 +384,7 @@ theorem sum_add (e e' : SExp V) :
 
 /-! ## 남겨 둔 것 — 치환 정리
 
-명제 1.4(치환 정리)의 합 식 판은 여기에 없다. 진술은 이렇게 된다.
+명제 1.3(치환 정리)의 합 식 판은 여기에 없다. 진술은 이렇게 된다.
 
 ```
 ⟦e /ₜ δ⟧ₛ σ = ⟦e⟧ₛ (fun w => ⟦δ w⟧ₛ σ)
@@ -396,7 +397,7 @@ theorem sum_add (e e' : SExp V) :
 직접 해 보려면 `Substitution.lean` 의 `newBinder_notMem_fv` 부터 옮기면 된다.
 -/
 
-/-! # 연습 1.6 — 부정합(indefinite summation)
+/-! # 연습 1.6 — 부정 합(indefinite summation)
 
 > *"Suppose the language in the previous exercise is further extended by introducing an integer
 > expression for 'indefinite' summation, `Σv. e`, with the same meaning as `Σ_{v=0}^{v-1} e`.
@@ -419,7 +420,7 @@ theorem sum_add (e e' : SExp V) :
 
 namespace Indefinite
 
-/-- 부정합만 있는 최소 언어. 문제를 드러내는 데 필요한 것만 남겼다. -/
+/-- 부정 합만 있는 최소 언어. 문제를 드러내는 데 필요한 것만 남겼다. -/
 inductive ISExp (V : Type u) where
   /-- 정수 상수. -/
   | num : Int → ISExp V
@@ -432,7 +433,7 @@ inductive ISExp (V : Type u) where
   deriving DecidableEq, Repr
 
 /--
-부정합의 뜻. `Σv. e = Σ_{k=0}^{σv - 1} ⟦e⟧ (σ[v := k])`.
+부정 합의 뜻. `Σv. e = Σ_{k=0}^{σv - 1} ⟦e⟧ (σ[v := k])`.
 
 위끝 `σ v` 를 **갱신 전** 상태에서 읽는다는 것이 정의의 전부다.
 `Finset.Ico 0 (σ v)` 가 `0 ≤ k < σ v` 를 준다.
@@ -447,7 +448,7 @@ def ISExp.eval : ISExp V → State V → Int
 scoped notation:max "⟦" e "⟧ᵢ" => ISExp.eval e
 
 /--
-부정합의 자유 변수.
+부정 합의 자유 변수.
 
 `isum` 절에 `insert v` 가 붙는다. 본체에서는 `v` 를 지우지만 위끝으로 다시 들어온다.
 `FV(Σv. e) = {v} ∪ (FV(e) \ {v})` 이므로 결과적으로 `v` 는 언제나 자유롭다.
@@ -463,8 +464,8 @@ def ISExp.fv : ISExp V → Finset V
 
 /-! ## 어려움 1 — 이름 바꾸기가 뜻을 바꾼다
 
-명제 1.5(이름 바꾸기 정리)는 `vnew ∉ FV(q) \ {v}` 이면 결합 변수를 `vnew` 로 바꿔도 뜻이
-같다고 말한다. 부정합에서는 그 단서를 만족시켜도 뜻이 달라진다.
+명제 1.5(이름 바꾸기 정리)는 `vnew ∉ FV(q) \ {v}`이면 결합 변수를 `vnew`로 바꿔도 뜻이
+같다고 말한다. 부정 합에서는 그 단서를 만족시켜도 뜻이 달라진다.
 
 `Σi. 1` 을 보자. 본체에 `i` 가 없으므로 `FV(1) \ {i} = ∅` 이고, 어떤 `vnew` 든 단서를
 통과한다. `i` 를 `j` 로 바꾸면 `Σj. 1` 이 되는데, 앞의 뜻은 `σi` 이고 뒤의 뜻은 `σj` 다.
@@ -496,7 +497,7 @@ theorem isum_renaming_fails :
 `Assert.subst` 는 `(∀v. p) /ₛ δ` 에서 `δ` 의 `v` 자리를 `var vnew` 로 덮어썼다.
 `v` 는 묶여 있으니 `δ v` 를 볼 일이 없다는 판단이었다.
 
-부정합에서는 그 판단이 틀린다. 위끝의 `v` 는 자유롭고, 치환은 그 자리를 `δ v` 로 바꿔야 한다.
+부정 합에서는 그 판단이 틀린다. 위끝의 `v`는 자유롭고, 치환은 그 자리를 `δ v`로 바꿔야 한다.
 그런데 위끝은 부분식이 아니라 결합 변수 자체다. `Σv. e` 에 `v ↦ e'` 를 넣으면
 "위끝은 `e'` 로, 본체의 `v` 는 그대로" 를 표현해야 하는데, 구문에 그런 자리가 없다.
 

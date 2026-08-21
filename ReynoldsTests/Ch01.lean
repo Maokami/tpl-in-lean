@@ -56,8 +56,18 @@ example :
 
 /-! ## 단언 -/
 
--- 단언의 뜻은 `Prop` 이라 `#guard` 로 못 돌린다. 대신 `example` 로 확인한다.
--- 이것 자체가 §1.2 의 논점이다: 양화사는 계산 불가능하다.
+-- Reynolds의 결합 규칙대로 같은 논리 연산자를 왼쪽부터 묶는다.
+#guard (⟪ tt ∧ ff ∧ tt ⟫ₐ : Assert String)
+        == .bin .and (.bin .and .tru .fls) .tru
+#guard (⟪ tt ∨ ff ∨ tt ⟫ₐ : Assert String)
+        == .bin .or (.bin .or .tru .fls) .tru
+#guard (⟪ tt ⇒ ff ⇒ tt ⟫ₐ : Assert String)
+        == .bin .imp (.bin .imp .tru .fls) .tru
+#guard (⟪ tt ⇔ ff ⇔ tt ⟫ₐ : Assert String)
+        == .bin .iff (.bin .iff .tru .fls) .tru
+
+-- 단언의 뜻은 `Prop`이므로 명제와 증명으로 확인한다. 결정 가능한 구체적 명제라면
+-- `#guard decide ...`도 가능하지만, 정수 양화를 포함한 언어 전체의 판정기는 없다.
 
 -- `∀y. y ≤ y` 는 어떤 상태에서도 참이다.
 example : ⟦Assert.quant .all "y" (.cmp .le (.var "y") (.var "y"))⟧ₐ (State.const 0) := by

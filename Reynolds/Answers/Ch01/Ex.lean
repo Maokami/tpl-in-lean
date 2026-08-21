@@ -69,7 +69,7 @@ def e11c : Assert String :=
 @[exercise "Ex 1.1c" 2]
 theorem e11c_correct (σ : State String) :
     (⟦e11c⟧ₐ σ ↔ ∃ m n : Int, m ≠ n ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3)) := by
-  simp [e11c, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]
+  simp [e11c, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, and_assoc]
 
 /--
 1.1(d) 0 보다 크고 3 보다 작은 서로 다른 정수가 **많아야 둘** 있다.
@@ -86,7 +86,7 @@ theorem e11d_correct (σ : State String) :
     (⟦e11d⟧ₐ σ ↔ ∀ l m n : Int,
       (0 < l ∧ l < 3) ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3) →
         (l = m ∨ l = n ∨ m = n)) := by
-  simp [e11d, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]
+  simp [e11d, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, and_assoc, or_assoc]
 
 /-! ## 연습 1.2 — 나눗셈 없이 정수론 말하기
 
@@ -182,7 +182,7 @@ theorem e14b_meaning (σ : State String) :
 
 **1.3** (괄호 없는 접두 표기와 생성자 단사성) 은 `Realizations.lean` 에 있다.
 
-**1.5** (합 식 `Σv : e₀ to e₁. e₂` 추가) 와 **1.6** (부정합 `Σv. e`) 은
+**1.5** (합 식 `Σv : e₀ to e₁. e₂` 추가) 와 **1.6** (부정 합 `Σv. e`) 은
 `Ex/Summation.lean` 에 있다. 문법·의미·자유 변수·치환·추론 규칙을 전부 새로 얹어야 해서
 축소판 언어 `SExp` 를 따로 세웠다.
 

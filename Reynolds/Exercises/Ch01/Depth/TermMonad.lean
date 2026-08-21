@@ -9,7 +9,7 @@ public import Reynolds.Exercises.Ch01.Substitution
 public import Reynolds.Exercises.Ch01.Depth.SignatureFunctor
 
 /-!
-# 심화 A · 치환은 bind 다
+# 심화 A · 치환과 bind
 
 선택 파일이다. `Ch01/Substitution.lean` 을 먼저 읽어야 한다.
 
@@ -25,7 +25,9 @@ Reynolds 는 명제 1.2(b) 에 이런 주석을 단다.
 > *"If `p` is a phrase of type θ, and `δ''w = (δw)/δ'` for all `w ∈ FV_θ(p)`,
 > then `p/δ''` is a renaming of `(p/δ)/δ'`."*
 
-두 진술을 나란히 놓으면 모나드 법칙 세 개가 나온다.
+두 진술을 나란히 놓으면 모나드 법칙 세 개와 같은 모양이 나온다. 다만 이 파일에서는
+변수 타입을 `V` 하나로 고정한다. 다른 변수 타입 `W`로도 보낼 수 있는 다형적 `bind`나
+`Monad IntExp` 인스턴스까지 만들지는 않는다.
 
 | Reynolds | 모나드 |
 |---|---|
@@ -59,8 +61,9 @@ variable {V : Type u} [DecidableEq V]
 /-! ## 1. 정수 식 — 세 법칙이 등식으로 성립한다
 
 `IntExp V` 를 "변수 자리가 `V` 인 항" 으로 보면, 치환은 그 자리에 다른 항을 끼우는 연산이다.
-`Depth/SignatureFunctor.lean` §4 에서 본 `PFunctor.FreeM` 의 구조와 같다 —
-`var` 가 잎(`pure`)이고 치환이 `bind` 다. -/
+`Depth/SignatureFunctor.lean` §4 에서 본 `PFunctor.FreeM` 의 구조와 대응한다.
+`var`가 잎(`pure`)이고 치환이 `bind` 역할을 한다. 아래 정리들은 변수 타입이 치환 전후에
+같은 경우만 다룬다. -/
 
 omit [DecidableEq V] in
 /--
@@ -139,11 +142,12 @@ theorem subst_assoc_assert_meaning [Cslib.HasFresh V]
     exact (substitution_intExp (δ w) δ' τ σ fun u _ => rfl).symm
   rw [hL, hL2, hR, hstate]
 
-/-! ## 3. 결합자가 있으면 몫으로 가야 한다
+/-! ## 3. 결합자가 있는 구문을 다루는 방법
 
-정수 식에는 결합자가 없어서 치환이 항 위에서 그대로 모나드를 이룬다.
+정수 식에는 결합자가 없어서 모나드 법칙과 같은 모양의 치환 법칙이 구문적 등식으로 성립한다.
 단언에는 `∀v` 가 있어서, 같은 뜻을 가진 항이 결합 변수 이름만 다른 채로 여럿 생긴다.
-모나드 법칙은 그 이름 차이를 무시해야 성립한다.
+현재의 포획 회피 치환에 대해 모나드 법칙을 구문적 등식으로 말하려면 그 이름 차이를
+무시하는 표현이 필요하다.
 
 이것이 구문을 다루는 세 가지 표준적인 대응이 존재하는 이유다.
 
@@ -166,9 +170,11 @@ Reynolds 도 §1.4 끝에서 같은 문제를 짚고 네 번째 길을 언급한
 포획 회피 치환을 직접 정의해 보는 경험이 §1.4 의 내용이기 때문이다.
 α-동치로 나눈 몫에서 결합법칙을 등식으로 만드는 것은 연습으로 남긴다.
 
-이론적으로 더 들어가면, 결합자가 있는 구문의 초기 대수는 집합이 아니라
-준층(presheaf)에서 산다. Fiore, Plotkin, Turi, *Abstract Syntax with Variable Binding*
-(LICS 1999) 이 그 이야기다. `Depth/Algebra.lean` 의 초기 대수가 그 방향으로 확장된다.
+이름을 직접 쓰는 원시 구문(raw named syntax) 자체는 이 저장소가 이미 보였듯 `Type` 위
+초기 대수로 다룰 수 있다. 다만 문맥 확장과 α-동치, 포획 회피 치환까지 표현 자체에 담으려면
+준층 범주(presheaf category)를 쓰는 것이 표준적인 방법 중 하나다. Fiore, Plotkin, Turi,
+*Abstract Syntax with Variable Binding* (LICS 1999)이 그 방향을 전개한다.
+
 -/
 
 /-- 이름 바꾸기 정리(명제 1.5)를 α-동치의 의미론 판으로 다시 읽은 것. -/

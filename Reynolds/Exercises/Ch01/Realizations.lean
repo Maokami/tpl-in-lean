@@ -21,10 +21,9 @@ public meta import Reynolds.Answers.Ch01.Notation
 Reynolds §1.1 은 같은 추상 구문의 여러 실현을 든다. 괄호 붙인 중위 문자열,
 괄호 붙인 접두 문자열, 구문 트리. 그리고 연습 1.3 에서 하나를 더 요구한다.
 
-> *"Define a universe of phrases, and the constructors displayed in (1.1) in Section 1.1,
-> to obtain an unparenthesized prefix notation. For instance,
-> `c₊(c₋ᵦ(c₀(), c₁()), c₋ᵤ(c₂()))` should be the string "add, subtract, 0, 1, negate, 0".
-> Be sure that the universe of phrases is defined so that the constructors are injective."*
+연습은 괄호 없는 접두 표기의 구문 세계와 생성자를 정의하고, 생성자가 단사인지 확인하라고
+한다. 책의 예시는 `c₊(c₋ᵦ(c₀(), c₁()), c₋ᵤ(c₂()))`의 마지막 토큰을 `0`이라고 적지만,
+식의 두 번째 인자는 `c₂()`이므로 문맥상 `2`의 오탈자로 보인다. 아래 예제도 `2`를 쓴다.
 
 괄호가 없다는 것이 요점이다. 괄호 없이도 읽을 수 있으려면 연산자마다 인자 개수가 고정되어
 있어야 하고, 그 사실이 곧 §1.1 의 세 조건 중 첫째(생성자 단사성)로 이어진다.
@@ -80,9 +79,9 @@ def IntExp.toPrefix : IntExp String → List Tok
 
 /-! ## 접두 표기는 접두사 자유(prefix-free)다
 
-접두 표기가 애매하지 않다는 것을 어떻게 보이나. 파서를 짜서 되돌리는 방법도 있지만,
-더 짧은 길이 있다. **한 식의 토큰 열은 다른 식의 토큰 열의 진접두사가 될 수 없다** 는
-사실을 직접 증명하면 단사성이 따라온다.
+파서를 만들어 왕복 성질을 증명할 수도 있다. 여기서는 더 직접적으로,
+**한 식의 토큰 열은 다른 식의 토큰 열의 진접두사가 될 수 없다**는 사실을 증명한다.
+그러면 표기의 단사성이 따라온다.
 
 진술을 "뒤에 아무거나 붙여도" 형태로 일반화해야 귀납이 돈다.
 이것도 §1.4 의 일치 정리와 같은 종류의 일반화다. -/
@@ -143,7 +142,7 @@ theorem IntExp.toPrefix_prefixFree :
       | num _ | var _ | neg _ => simp [IntExp.toPrefix] at h
 
 /--
-접두 표기 생성자가 단사다. Reynolds 가 연습 1.3 에서 확인하라고 하는 것이다.
+표기 함수 `toPrefix`가 단사다. 서로 다른 구문 트리는 서로 다른 토큰 열을 만든다.
 
 꼬리를 빈 열로 두면 접두사 자유성에서 바로 나온다.
 -/
@@ -153,10 +152,67 @@ theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
   -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.
   sorry
 
+/-! ## 접두 표기의 구문 세계
+
+모든 토큰 목록을 구로 인정하면 빈 목록이나 인자가 모자란 목록 같은 쓰레기 원소가 들어온다.
+그래서 실제 구문 세계는 `toPrefix`의 치역으로 잡는다. -/
+
+/--
+괄호 없는 접두 표기로 표현되는 토큰 목록만 모은 타입.
+
+부분타입(subtype)의 조건이 Reynolds 연습 1.3에서 요구한 구의 세계를 정확히 제한한다.
+-/
+def PrefixPhrase := {xs : List Tok // ∃ e : IntExp String, e.toPrefix = xs}
+
+namespace PrefixPhrase
+
+/-- 정수 상수 접두 구. -/
+def num (n : Int) : PrefixPhrase := ⟨[.num n], ⟨.num n, rfl⟩⟩
+
+/-- 변수 접두 구. -/
+def var (v : String) : PrefixPhrase := ⟨[.var v], ⟨.var v, rfl⟩⟩
+
+/-- 단항 마이너스 접두 구. -/
+def neg (x : PrefixPhrase) : PrefixPhrase := by
+  refine ⟨.neg :: x.1, ?_⟩
+  obtain ⟨e, he⟩ := x.2
+  exact ⟨.neg e, by rw [IntExp.toPrefix, he]⟩
+
+/-- 이항 연산자 접두 구. -/
+def bin (op : IntOp) (x y : PrefixPhrase) : PrefixPhrase := by
+  refine ⟨.op op :: (x.1 ++ y.1), ?_⟩
+  obtain ⟨e₀, he₀⟩ := x.2
+  obtain ⟨e₁, he₁⟩ := y.2
+  exact ⟨.bin op e₀ e₁, by rw [IntExp.toPrefix, he₀, he₁]⟩
+
+end PrefixPhrase
+
+/-- 정수 식을 그 접두 표기 구로 보낸다. -/
+def IntExp.toPrefixPhrase (e : IntExp String) : PrefixPhrase :=
+  ⟨e.toPrefix, ⟨e, rfl⟩⟩
+
+/-- 접두 표기 구는 정수 식과 일대일로 대응한다. -/
+theorem IntExp.toPrefixPhrase_bijective : Function.Bijective IntExp.toPrefixPhrase := by
+  constructor
+  · intro e₀ e₁ h
+    exact (IntExp.toPrefix_prefixFree e₀ e₁ [] [] (by
+      simpa [IntExp.toPrefixPhrase] using congrArg Subtype.val h)).1
+  · rintro ⟨xs, e, he⟩
+    refine ⟨e, ?_⟩
+    apply Subtype.ext
+    exact he
+
+/--
+정수 식과 괄호 없는 접두 표기 구 사이의 동형.
+
+역함수를 파서로 구현하지 않고 전사성 증명에서 선택하므로 `noncomputable`이다.
+-/
+noncomputable def IntExp.equivPrefixPhrase : IntExp String ≃ PrefixPhrase :=
+  Equiv.ofBijective IntExp.toPrefixPhrase IntExp.toPrefixPhrase_bijective
+
 /-! ## 왜 이것이 "실현" 인가
 
-Reynolds 의 관점에서 실현이란 추상 구문 조건을 만족하는 구체적인 집합과 함수들이다.
-여기서는 반송자가 `List Tok` 이고 생성자가 이렇게 된다.
+`PrefixPhrase`는 `toPrefix`가 만드는 목록만 남기고, 생성자는 이 안에서 다음 목록을 만든다.
 
 ```
 c₀()            = [Tok.num 0]
@@ -165,11 +221,9 @@ c₋ᵤ(x)          = Tok.neg :: x
 c₊(x, y)        = Tok.op .add :: (x ++ y)
 ```
 
-`toPrefix_injective` 가 세 조건 중 첫째를 확인한 것이다.
-치역이 서로소라는 둘째 조건도 첫 토큰이 결정하므로 같은 증명 안에 들어 있다.
-
-`Depth/Algebra.lean` 의 어휘로 다시 읽으면, `toPrefix` 는 반송자가 `List Tok` 인
-대수로 가는 유일한 준동형이다. 실현을 하나 고른다는 것이 대수를 하나 고른다는 뜻이다.
+`toPrefix_prefixFree`에서 얻은 `toPrefix_injective`는 표기가 구문 트리를 잊지 않음을 확인한다.
+`equivPrefixPhrase`는 쓰레기 원소 없이 모든 접두 구가 유일한 정수 식과 대응함을 확인한다.
+이 대응 아래의 네 생성자는 `IntExp`의 생성자를 그대로 옮긴 것이다.
 -/
 
 end Reynolds.Exercises.Ch01
