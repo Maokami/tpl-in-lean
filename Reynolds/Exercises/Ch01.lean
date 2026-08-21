@@ -13,6 +13,7 @@ public import Reynolds.Exercises.Ch01.Validity
 public import Reynolds.Exercises.Ch01.FreeVars
 public import Reynolds.Exercises.Ch01.Substitution
 public import Reynolds.Exercises.Ch01.Ex
+public import Reynolds.Exercises.Ch01.Ex.Summation
 public import Reynolds.Exercises.Ch01.Background
 public import Reynolds.Exercises.Ch01.Depth.Algebra
 public import Reynolds.Exercises.Ch01.Depth.SignatureFunctor
@@ -31,7 +32,8 @@ public import Reynolds.Exercises.Ch01.Depth.TermMonad
 7. `Substitution.lean` — §1.4 치환, 명제 1.2~1.5
 8. `Realizations.lean` — §1.1 실현 (연습 1.3)
 9. `Ex.lean` — 책 연습문제 1.1~1.7
-10. `Depth/Algebra.lean` — 심화 A (선택). 대수와 초기성
-11. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
-12. `Depth/TermMonad.lean` — 심화 A (선택). 치환은 bind 다
+10. `Ex/Summation.lean` — 연습 1.5·1.6 (합 식). 축소판 언어로 따로 세운다
+11. `Depth/Algebra.lean` — 심화 A (선택). 대수와 초기성
+12. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
+13. `Depth/TermMonad.lean` — 심화 A (선택). 치환은 bind 다
 -/
