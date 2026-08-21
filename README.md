@@ -6,9 +6,6 @@
 책의 정의는 Lean 코드로, 설명은 한국어 주석으로, 명제는 **기계가 검사하는 정리**로 옮긴다.
 연습문제는 빈칸을 채우고 `lake exe grade` 로 확인한다.
 
-모델이 된 프로젝트: [fpinscala](https://github.com/fpinscala/fpinscala) (연습/정답 2트리),
-[j2kun/mlir-tutorial](https://github.com/j2kun/mlir-tutorial) (PR 하나가 글 한 편).
-
 ---
 
 ## 이 저장소를 읽는 법
