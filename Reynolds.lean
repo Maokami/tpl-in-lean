@@ -11,7 +11,9 @@ public import Reynolds.Prelude
 public import Reynolds.Meta.Exercise
 public import Reynolds.Meta.Report
 public import Reynolds.Answers.Ch01
+public import Reynolds.Answers.Ch02
 public import Reynolds.Exercises.Ch01
+public import Reynolds.Exercises.Ch02
 public meta import Reynolds.Meta.Exercise
 
 /-!
