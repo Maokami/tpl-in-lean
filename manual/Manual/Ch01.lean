@@ -15,6 +15,7 @@ set_option verso.exampleModule "Reynolds.Answers.Ch01.Syntax"
 #doc (Manual) "1장 술어 논리" =>
 %%%
 tag := "ch01"
+file := "ch01"
 number := false
 %%%
 
@@ -31,6 +32,7 @@ Reynolds 가 "여기서는 다루지 않는다" 고 적고 지나가는 자리�
 # 이 장에서 배우는 것
 %%%
 tag := "ch01-goals"
+file := "ch01-goals"
 number := false
 %%%
 
@@ -46,6 +48,7 @@ number := false
 # 읽는 순서
 %%%
 tag := "ch01-order"
+file := "ch01-order"
 number := false
 %%%
 
@@ -68,6 +71,7 @@ number := false
 ## 연습은 `Ex.lean` 에만 있지 않다
 %%%
 tag := "ch01-exercises-are-everywhere"
+file := "ch01-exercises-are-everywhere"
 number := false
 %%%
 
@@ -84,6 +88,7 @@ number := false
 # §1.1 추상 구문
 %%%
 tag := "ch01-syntax"
+file := "ch01-syntax"
 number := false
 %%%
 
@@ -180,6 +185,7 @@ inductive Assert (V : Type u) where
 # §1.2 표시적 의미론
 %%%
 tag := "ch01-semantics"
+file := "ch01-semantics"
 number := false
 %%%
 
@@ -236,6 +242,7 @@ example : ⟦IntExp.bin .add (.var "x") (.num 1)⟧ₑ (State.const 41) = 42 := 
 ## 곁가지 — "타입" 이라는 말이 가리키는 층
 %%%
 tag := "ch01-type-levels"
+file := "ch01-type-levels"
 number := false
 %%%
 
@@ -324,6 +331,7 @@ Reynolds 1장을 억지로 타입이 붙은 언어로 다시 읽으면 이렇게
 # §1.3 타당성과 추론
 %%%
 tag := "ch01-validity"
+file := "ch01-validity"
 number := false
 %%%
 
@@ -399,6 +407,7 @@ inductive Proof : Assert V → Prop where
 ## 규칙과 함의는 다른 것이다
 %%%
 tag := "ch01-rule-vs-implication"
+file := "ch01-rule-vs-implication"
 number := false
 %%%
 
@@ -438,6 +447,7 @@ theorem not_valid_imp_forall :
 ## 곁가지 — 완전성과 괴델
 %%%
 tag := "ch01-completeness"
+file := "ch01-completeness"
 number := false
 %%%
 
@@ -467,6 +477,7 @@ Lean 으로 괴델을 보고 싶다면 `mathlib` 밖의 별도 프로젝트를 �
 # §1.4 자유 변수와 일치 정리
 %%%
 tag := "ch01-freevars"
+file := "ch01-freevars"
 number := false
 %%%
 
@@ -509,6 +520,7 @@ def Assert.fv : Assert V → Finset V
 # §1.4 치환
 %%%
 tag := "ch01-substitution"
+file := "ch01-substitution"
 number := false
 %%%
 
@@ -555,6 +567,7 @@ Reynolds 가 동시 치환을 기본으로 두는 이유도 여기 있다. 한 �
 ## 곁가지 — 이름을 어떻게 다룰 것인가
 %%%
 tag := "ch01-binding-representations"
+file := "ch01-binding-representations"
 number := false
 %%%
 
@@ -597,6 +610,7 @@ Reynolds 는 §1.4 끝에서 *고차 추상 구문(higher-order abstract syntax)
 ## 곁가지 — 이름 바꾸기가 깨지는 언어
 %%%
 tag := "ch01-dynamic-binding"
+file := "ch01-dynamic-binding"
 number := false
 %%%
 
@@ -625,6 +639,7 @@ number := false
 # 정의를 왜 이렇게 써야 하나
 %%%
 tag := "ch01-design"
+file := "ch01-design"
 number := false
 %%%
 
@@ -656,6 +671,7 @@ _정의를 고르는 일_ 이다. 포획 회피가 왜 필요한지, 자유 변�
 # 연습 1.5 · 1.6 — 결합자가 정수 식으로 내려오면
 %%%
 tag := "ch01-summation"
+file := "ch01-summation"
 number := false
 %%%
 
@@ -692,6 +708,7 @@ def SExp.fv : SExp V → Finset V
 # 직접 해 보기
 %%%
 tag := "ch01-try"
+file := "ch01-try"
 number := false
 %%%
 
@@ -712,6 +729,7 @@ lake exe grade --chapter 1
 # 연습문제
 %%%
 tag := "ch01-exercise-list"
+file := "ch01-exercise-list"
 number := false
 %%%
 
@@ -737,6 +755,7 @@ number := false
 # 더 읽을거리
 %%%
 tag := "ch01-further"
+file := "ch01-further"
 number := false
 %%%
 
