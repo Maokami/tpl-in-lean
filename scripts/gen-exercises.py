@@ -38,7 +38,7 @@ import sys
 # 게다가 DSL 은 연습 대상이 아니라 인프라라서 복제할 이유도 없다.
 # 매크로가 뱉는 이름(`IntExp.var` 등)은 한정되지 않아서, Exercises 이름공간 안에서
 # 쓰면 Exercises 의 정의로 해석된다.
-SHARED = {"Ch01/Notation.lean"}
+SHARED = {"Ch01/Notation.lean", "Ch02/Notation.lean"}
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ANSWERS = ROOT / "Reynolds" / "Answers"
@@ -390,7 +390,9 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 def transform(text: str, blanks: list[tuple[str, str, str]]) -> str:
     """이름공간 치환 · ANCHOR 제거 · 증명 비우기."""
-    out = text.replace("Reynolds.Answers.Ch01", "Reynolds.Exercises.Ch01")
+    # 장 번호를 하드코딩하지 않는다. 모듈 이름은 점(.)으로 쓰므로 슬래시 경로
+    # (`Reynolds/Answers/…`, 산문에서 완성본을 가리킬 때 쓴다)는 건드리지 않는다.
+    out = text.replace("Reynolds.Answers.", "Reynolds.Exercises.")
     # 공유 모듈은 Answers 쪽을 그대로 가리키게 되돌린다.
     for shared in SHARED:
         mod = "Reynolds.Exercises." + shared.removesuffix(".lean").replace("/", ".")
