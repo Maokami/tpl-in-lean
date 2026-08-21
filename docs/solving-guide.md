@@ -129,6 +129,7 @@ simp [Assert.fv, IntExp.fv]
 | `simp made no progress` | 펼칠 정의가 목록에 없다 | 목표에 남은 이름을 `simp [...]` 에 넣는다 |
 | `motive is not type correct` | 의존 타입이 얽힌 `rw` | `simp only [...]` 나 `subst` 를 쓴다 |
 | `declaration uses 'sorry'` | 아직 안 채웠다 | 경고이지 오류가 아니다. 연습 중에는 정상 |
+| `failed to compile definition … 'noncomputable'` | 계산 불가능한 인스턴스가 딸려 왔다 | 정의를 고치기 전에 어떤 인스턴스인지 먼저 읽어라. `Ex/Summation.lean` 첫머리에 같은 사례가 있다 |
 
 모듈 시스템 오류는 대개 고치는 법을 직접 알려 준다. 끝까지 읽어라.
 

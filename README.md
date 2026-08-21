@@ -118,6 +118,7 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 | §1.1 구체 구문 · DSL | [`Notation.lean`](./Reynolds/Answers/Ch01/Notation.lean) | [#2](../../pull/2) | [`ch01-ex01-ex04`](../../tree/ch01-ex01-ex04) |
 | §1.1 실현 · 연습 1.3 | [`Realizations.lean`](./Reynolds/Answers/Ch01/Realizations.lean) | [#2](../../pull/2) | 〃 |
 | 연습 1.1 · 1.2 · 1.4 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) | [#2](../../pull/2) | 〃 |
+| 연습 1.5 · 1.6 합 식 | [`Ex/Summation.lean`](./Reynolds/Answers/Ch01/Ex/Summation.lean) | [#3](../../pull/3) | [`ch01-ex05-ex06`](../../tree/ch01-ex05-ex06) |
 
 1장 본문은 절 단위로 PR 을 쪼개지 못하고 한 번에 올라왔다. 뼈대가 서로 얽혀 있었기 때문이다.
 연습 PR 부터는 [`AGENTS.md` §7.1](./AGENTS.md) 대로 단위를 나눈다.
