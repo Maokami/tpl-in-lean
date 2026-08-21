@@ -131,6 +131,7 @@ python3 ../scripts/serve.py 8000 -d _out/html-multi
 |---|---|---|---|
 | §2.1 추상 구문 | [`Syntax.lean`](./Reynolds/Answers/Ch02/Syntax.lean) | [#4](../../pull/4) | [`ch02-s01`](../../tree/ch02-s01) |
 | §2.1 구체 구문 · 명령 DSL | [`Notation.lean`](./Reynolds/Answers/Ch02/Notation.lean) | [#4](../../pull/4) | 〃 |
+| §2.2 표시적 의미론 | [`Semantics.lean`](./Reynolds/Answers/Ch02/Semantics.lean) | [#5](../../pull/5) | [`ch02-s02`](../../tree/ch02-s02) |
 
 2장은 절 단위로 PR 을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
