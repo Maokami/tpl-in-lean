@@ -356,6 +356,34 @@ theorem substitution_assert … := by
 - **Answers와 Exercises의 태그 집합이 정확히 같아야 하고, 한 트리 안에서 id가 중복되면
   안 된다.** `scripts/check-anchors.sh` 가 검사한다.
 
+### 4.4 문서에 연습 개수를 적을 때
+
+산문에 적은 숫자는 `@[exercise]` 가 늘거나 줄어도 그대로 남는다. 1장 문서가 28 이라고
+적어 둔 동안 실제는 31 이었고, 표를 더해 본 사람이 나올 때까지 CI는 전부 초록이었다.
+그래서 개수는 아래 틀로만 적고 `scripts/check-doc-counts.py` 가 실제 태그와 대조한다.
+
+```markdown
+3장에는 채점되는 연습이 10 개 있다.
+
+| 갈래 | 개수 | 어디에 |
+|---|---|---|
+| 본문 명제 | 6 | `Semantics.lean`, `FixedPoint.lean` |
+| 심화 트랙 | 4 | `Depth/` |
+```
+
+실제로 쓰인 것은 `manual/Manual/Ch01.lean` 의 "연습문제" 절에 있다.
+
+- 문장의 두 숫자는 장 번호와 그 장의 총 개수다. 장 번호가 문장 안에 있으므로 Markdown이든
+  Verso Lean 소스든 같은 틀을 그대로 쓴다.
+- `어디에` 칸은 `Reynolds/Answers/ChNN/` 기준 상대 경로를 백틱으로 적는다.
+  `Depth/` 처럼 슬래시로 끝내면 그 디렉터리 아래 전부를 가리킨다.
+- 행은 그 장의 연습 파일을 빠짐없이, 겹치지 않게 나눈다. 연습이 든 파일이 어느 행에도
+  없으면 검사가 실패한다 — 파일을 새로 만들고 표를 안 고친 경우가 여기서 걸린다.
+- **연습이 있는 장에 `manual/Manual/ChNN.lean` 이 있으면 그 파일에 이 블록이 있어야 한다.**
+  틀을 안 쓰면 검사할 것도 없기 때문이다.
+- 숫자가 어긋나면 검사기가 고쳐 쓸 블록의 뼈대를 찍어 준다. 갈래 이름만 채우면 된다.
+- 이 규약 자체를 예시로 보일 때는 코드 울타리 안에 넣는다. 울타리 안은 검사하지 않는다.
+
 ---
 
 ## 5. 형식화 결정 지침
@@ -411,7 +439,11 @@ lake exe grade --answers                    # Answers sorry-free · 불법 공�
 lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확인
 python3 scripts/gen-exercises.py --check    # 두 트리가 어긋나지 않는지
 ./scripts/check-anchors.sh                  # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치
+python3 scripts/check-doc-counts.py --grade # 문서에 적은 연습 개수가 실제와 맞는지 (§4.4)
 ```
+
+> `check-doc-counts.py` 는 `--grade` 없이 돌리면 빌드 없이 소스만 세므로 즉시 끝난다.
+> `--grade` 는 `lake exe grade` 의 레지스트리와 총계를 대조하는 것이라 빌드가 있어야 한다.
 
 > **`Reynolds/Exercises/**` 를 직접 고치지 마라.** `scripts/gen-exercises.py` 가 Answers 에서
 > 생성한다. 연습을 추가하거나 힌트를 바꾸려면 그 스크립트의 `BLANKS` 표를 고친다.
@@ -521,6 +553,7 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 
 **문서**
 - [ ] `manual/Manual/ChNN.lean`에 해당 절 추가
+- [ ] 연습이 늘거나 줄었으면 `manual/Manual/ChNN.lean`의 개수 블록을 갱신 (§4.4)
 - [ ] `STUDY.md`에 주차 배정 추가
 
 **검증**
