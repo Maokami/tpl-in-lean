@@ -5,15 +5,18 @@ on:
     branches: [main]
   pull_request:
 
-# 문서 배포(GitHub Pages)에 필요한 권한. 빌드 자체에는 `contents: read` 면 된다.
+# 기본은 읽기만. Pages 쓰기 권한은 실제로 배포하는 잡에서만 연다.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    # `configure-pages` 는 `enablement` 가 false 라 Pages 설정을 읽기만 한다.
+    # 산출물 업로드는 GITHUB_TOKEN 이 아니라 러너 토큰을 쓰므로 따로 권한이 없어도 된다.
+    permissions:
+      contents: read
+      pages: read
     steps:
       - uses: actions/checkout@v5
 
@@ -105,6 +108,10 @@ jobs:
     concurrency:
       group: pages
       cancel-in-progress: false
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
