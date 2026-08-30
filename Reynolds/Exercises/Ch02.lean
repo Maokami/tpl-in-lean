@@ -11,6 +11,7 @@ public import Reynolds.Exercises.Ch02.Semantics
 public import Reynolds.Exercises.Ch02.Domain
 public import Reynolds.Exercises.Ch02.Domain.Lifting
 public import Reynolds.Exercises.Ch02.Domain.FunctionSpace
+public import Reynolds.Exercises.Ch02.Fixpoint
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
