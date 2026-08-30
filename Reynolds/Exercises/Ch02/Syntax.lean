@@ -14,17 +14,18 @@ Reynolds §2.1 에 대응한다.
 
 ## 이 파일에서 다루는 것
 - 불 식 ⟨boolexp⟩ 과 명령 ⟨comm⟩ 의 추상 구문
-- 왜 불 식이 1장의 단언에서 양화사만 뺀 것인가
-- 왜 `newvar` 를 §2.5 가 아니라 지금 넣는가
+- 불 식과 1장의 단언이 갈라지는 계산 가능성의 경계
+- §2.5의 `newvar`를 미리 포함한 형식화 결정
 
 ## 1장과 무엇이 다른가
 
 1장의 언어에는 **비종료가 없었다.** 정수 식도 단언도 구조적 재귀로 뜻이 정해졌고,
 의미 함수가 전함수(total function)였다.
 
-2장에서 `while` 이 들어온다. `while b do c` 의 뜻을 정의하려면 자기 자신을 불러야 하는데,
-그 재귀가 구문에 대한 재귀가 아니다. 이 파일에서는 아직 아무 문제가 없다 — 구문은
-여전히 유한한 트리다. 문제는 `Semantics.lean` 에서 시작한다.
+2장에서 `while` 이 들어온다. `while b do c`의 구문 노드는 여전히 자식 둘을 가진 유한한
+트리지만, 그 뜻을 풀어 쓰면 같은 `while` 명령의 뜻이 우변에 다시 나타난다. 구문의 재귀
+구조와 실행의 반복 구조가 여기서 갈라진다. 이 파일은 앞의 구조만 정의하고,
+`Semantics.lean`이 뒤의 구조를 다룬다.
 
 ## 책과의 차이
 
@@ -50,14 +51,13 @@ universe u
 
 /-! ## 불 식
 
-Reynolds 가 불 식을 도입하는 방식이 특이하다. 새로 정의하지 않고 1장의 단언을 가리킨다.
+Reynolds 는 불 식을 새 논리로 설명하지 않고, 1장의 단언에서 양화사를 뺀 조각으로 정한다.
 
 > *"boolean expressions are the same as assertions except for the omission of quantifiers
 > (for the obvious reason that they are noncomputable)"*
 
-이 한 문장이 이 장의 성격을 정한다. 정수 산술과 양화를 포함한 1장 단언 언어 전체에는
-실행 가능한 공통 진리 판정기가 없다. 양화사를 뺀 불 식은 구문을 따라 계산할 수 있으므로,
-뜻을 `Bool`로 줄 수 있다.
+정수 산술과 양화를 포함한 1장 단언 언어 전체에는 실행 가능한 공통 진리 판정기가 없다.
+양화사를 뺀 불 식은 각 생성자의 결과를 유한하게 계산할 수 있으므로 뜻을 `Bool`로 줄 수 있다.
 
 그 차이가 `Semantics.lean` 에서 드러난다. `Assert.eval` 은 `Prop` 을 돌려주고
 `BoolExp.eval` 은 `Bool` 을 돌려준다. 후자는 `#eval` 로 실제로 돌아간다. -/
@@ -116,7 +116,7 @@ inductive Comm (V : Type u) where
   | seq : Comm V → Comm V → Comm V
   /-- 조건 `if b then c₀ else c₁`. -/
   | ite : BoolExp V → Comm V → Comm V → Comm V
-  /-- 반복 `while b do c`. **이 장의 모든 어려움이 이 절 하나에서 나온다.** -/
+  /-- 반복 `while b do c`. 의미는 구문에 대한 구조적 재귀만으로 정의되지 않는다. -/
   | wh : BoolExp V → Comm V → Comm V
   /-- 변수 선언 `newvar v := e in c`. `v` 의 유효 범위는 `c` 다. -/
   | newvar : V → IntExp V → Comm V → Comm V
@@ -129,8 +129,9 @@ inductive Comm (V : Type u) where
 `inductive` 선언에서 그대로 나온다. 확인은 `Ch01/Syntax.lean` 의 `AbstractSyntaxConditions`
 절에서 이미 했으므로 되풀이하지 않는다.
 
-무한한 것은 `while` 이 만드는 **계산**이다. `while tt do skip` 은 유한한 트리인데
-그 뜻은 어떤 상태도 돌려주지 않는다. 구문의 유한함과 계산의 무한함이 갈리는 것,
-그것이 `Semantics.lean` 의 주제다. -/
+무한해질 수 있는 것은 `while`이 만드는 계산이다. `while tt do skip`은 유한한 구문
+트리지만 어떤 입력 상태에서도 결과 상태를 내지 않는다. `Semantics.lean`은 이 비종료를
+`SigmaBot`의 `none`으로 나타내고, `while`의 풀기 방정식이 왜 그 의미를 유일하게 정하지
+못하는지 확인한다. -/
 
 end Reynolds.Exercises.Ch02

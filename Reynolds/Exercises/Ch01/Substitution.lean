@@ -102,6 +102,10 @@ def captureSet (p : Assert V) (v : V) (δ : Subst V) : Finset V :=
 
 `v` 자체가 안전하면 `v` 를 그대로 쓴다. 불필요한 이름 바꾸기를 피하기 위해서다
 (Reynolds 도 같은 조건을 붙인다). 안전하지 않을 때만 `HasFresh.fresh` 로 새로 뽑는다.
+
+`HasFresh`가 어떤 안전한 이름을 고르는지는 구체 구문의 결과에 영향을 준다. 뒤의 치환 정리와
+이름 바꾸기 정리는 선택된 이름의 신선성만 사용하므로, 의미 수준의 결론은 그 선택 방식에
+의존하지 않는다. 두 선택이 만든 구문을 직접 같다고 하려면 등식 대신 α-동치가 필요하다.
 -/
 def newBinder [HasFresh V] (p : Assert V) (v : V) (δ : Subst V) : V :=
   if v ∈ captureSet p v δ then Cslib.HasFresh.fresh (captureSet p v δ) else v
@@ -135,6 +139,10 @@ theorem newBinder_notMem_fv [HasFresh V] {p : Assert V} {v w : V} {δ : Subst V}
 `v`를 새 이름 `vnew`로 바꾸고, 치환 사상 쪽에서도 `v`를 `var vnew`로 보내도록 고친다.
 `vnew`는 `newBinder`가 골라 주므로, 실제로 본문에 자유롭게 나타나 치환되는
 `w ∈ p.fv.erase v`에 대해 `δ w`의 자유 변수와 겹치지 않는다.
+
+이 정의가 내놓는 것은 신선한 이름 선택까지 기록한 원시 이름 구문이다. 따라서 서로 다른
+신선 이름 선택은 구문 등식으로 같지 않을 수 있지만, 명제 1.5가 그 이름 차이가 의미를
+바꾸지 않음을 보인다.
 
 **정지성**: 재귀 호출이 `p` 라는 진부분항에 대해 일어나므로 구조적 재귀다.
 "먼저 이름을 바꾸고 다시 치환한다"는 이름 있는 단일 치환의 직접 정의에는 별도의 정지성
@@ -191,7 +199,10 @@ theorem fv_subst_intExp (e : IntExp V) (δ : Subst V) :
   sorry
 
 
-/-- 단언 판의 명제 1.2(b). 양화사 절에서 `newBinder` 가 `v` 를 그대로 돌려주는 것이 핵심이다. -/
+/--
+단언 판의 명제 1.2(b). 변수 치환 `IntExp.var` 는 구문을 바꾸지 않는다.
+양화사 절에서는 `newBinder` 가 기존 결합자 `v` 를 그대로 선택하므로 귀납 가설을 적용할 수 있다.
+-/
 @[exercise "Prop 1.2b-assert" 3]
 theorem subst_var_assert [HasFresh V] (p : Assert V) : p /ₛ IntExp.var = p := by
   -- 먼저 볼 것: `subst_var_intExp` (완성본). 양화사 케이스만 새로 생각하면 된다.

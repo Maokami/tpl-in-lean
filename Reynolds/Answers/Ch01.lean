@@ -24,7 +24,7 @@ public import Reynolds.Answers.Ch01.Depth.TermMonad
 # 1장 «술어 논리» — 완성본 (Answers)
 
 ## 읽는 순서
-1. `Background.lean` — **먼저 읽어라.** 책이 가정하고 넘어가는 것 (메타/객체 구분)
+1. `Background.lean` — 학습 순서의 첫 파일. 메타언어와 객체언어
 2. `Syntax.lean` — §1.1 추상 구문
 3. `Notation.lean` — §1.1 구체 구문 (객체 언어 DSL)
 4. `Semantics.lean` — §1.2 표시적 의미론

@@ -428,7 +428,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Semantics.lean",
         "theorem unwinding_trivial",
-        "/-! ## 5. 여기서 어디로 가나",
+        "/-! ## 5. 해를 비교할 순서가 필요하다",
         """theorem unwinding_trivial (f : State String → SigmaBot String) :
     ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Option.bind (some σ : SigmaBot String) f
                 else some σ := by

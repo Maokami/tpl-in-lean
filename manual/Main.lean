@@ -8,10 +8,17 @@ import Manual
 
 open Verso.Genre Manual
 
-/-- 좁은 화면에서 긴 Lean 코드가 문서 전체 폭을 늘리지 않게 하는 보정 스타일. -/
+/-- 좁은 화면에서 코드와 제목이 본문 폭을 밀어내지 않게 하는 보정 스타일. -/
 def responsiveCodeStyle : Verso.Output.Html := open Verso.Output.Html in
   {{<style>{{Verso.Output.Html.text false "
     main section { min-width: 0; }
+    main h1, main h2 {
+      word-break: keep-all;
+      text-wrap: balance;
+    }
+    main li em, main li strong {
+      word-break: keep-all;
+    }
     .hl.lean.block {
       box-sizing: border-box;
       max-width: 100%;
@@ -19,7 +26,31 @@ def responsiveCodeStyle : Verso.Output.Html := open Verso.Output.Html in
     }
     .prev-next-buttons > * {
       min-width: 0;
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
+      text-wrap: balance;
+      word-break: keep-all;
+    }
+    @media screen and (max-width: 900px) {
+      :root {
+        --search-bar-width: 12rem;
+      }
+      .header-title-wrapper,
+      .header-title {
+        min-width: 0;
+      }
+      .header-title {
+        font-size: 1.25rem;
+        margin-right: calc(var(--search-bar-width) + 1rem);
+      }
+      .header-title h1 {
+        font-size: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .header-title h1::before {
+        content: 'tpl-in-lean';
+        font-size: 1.25rem;
+      }
     }
   "}}</style>}}
 
