@@ -13,6 +13,7 @@ public import Reynolds.Answers.Ch02.Domain.Lifting
 public import Reynolds.Answers.Ch02.Domain.FunctionSpace
 public import Reynolds.Answers.Ch02.Fixpoint
 public import Reynolds.Answers.Ch02.Eval
+public import Reynolds.Answers.Ch02.Interpreter
 
 /-!
 # 2장 «단순 명령형 언어» — 완성본 (Answers)

@@ -629,6 +629,23 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.4 연료 해석기
+    (
+        "Ch02/Interpreter.lean",
+        "theorem Comm.run_le_succ",
+        "-- ANCHOR_END: runMono",
+        """theorem Comm.run_le_succ : ∀ (c : Comm V) (n : ℕ) (σ : State V),
+    c.run n σ ≤ c.run (n + 1) σ := by
+  -- 먼저 볼 것: 바로 위의 `Option.bind_le_bind`. `seq` 와 `wh` 절이 그것으로 돈다.
+  -- 힌트 1: 명령에 대한 구조적 귀납. `skip` 과 `newvar` 는 DSL 이 키워드로 만들었으니
+  --         분기 이름을 `«skip»`, `«newvar»` 로 써야 한다.
+  -- 힌트 2: `run` 은 연료도 매칭하므로 자유 변수 연료로는 저절로 줄지 않는다.
+  --         분기마다 `simp only [Comm.run]` 이나 `rw [Comm.run]` 으로 방정식을 펴라.
+  -- 힌트 3: `wh` 절 안에서 연료에 대한 귀납을 겹친다. 0 은 `none ⊑ 무엇이든`.
+  sorry
+
+""",
+    ),
 ]
 
 
