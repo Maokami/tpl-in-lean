@@ -38,7 +38,9 @@ import sys
 # 게다가 DSL 은 연습 대상이 아니라 인프라라서 복제할 이유도 없다.
 # 매크로가 뱉는 이름(`IntExp.var` 등)은 한정되지 않아서, Exercises 이름공간 안에서
 # 쓰면 Exercises 의 정의로 해석된다.
-SHARED = {"Ch01/Notation.lean", "Ch02/Notation.lean"}
+# `Ch02/Domain/Flat.lean` — `Option` 은 루트 타입이라 순서 인스턴스를 복제하면
+# 같은 타입에 두 벌이 등록된다 (구문 범주가 전역인 것과 같은 사정).
+SHARED = {"Ch01/Notation.lean", "Ch02/Notation.lean", "Ch02/Domain/Flat.lean"}
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ANSWERS = ROOT / "Reynolds" / "Answers"
@@ -524,6 +526,64 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 힌트 2: 연속이라고 가정하고 `initSegs` 를 먹인 뒤, 상이 전부 거짓임을 보여라.
   --         그러면 `False` 도 상계이므로 최소 상계가 참일 수 없다.
   -- 힌트 3: `{k | k < n} = ℕ` 이면 `n < n` 이 된다.
+  sorry
+
+""",
+    ),
+    # ── §2.3 리프팅과 함수 공간
+    (
+        "Ch02/Domain/Lifting.lean",
+        "theorem Monotone.continuous_of_lub_mem",
+        "-- ANCHOR_END: monotoneContinuous",
+        """theorem Monotone.continuous_of_lub_mem [PartialOrder α] [PartialOrder β] [Predomain α]
+    {f : α → β} (hf : Monotone f)
+    (hmem : ∀ c : Chain α, c.lub ∈ Set.range c.seq) : Continuous f := by
+  -- 힌트 1: 상계 쪽은 단조성 그대로다. `rintro _ ⟨x, ⟨n, rfl⟩, rfl⟩` 로 상의 원소를 벗겨라.
+  -- 힌트 2: 최소 쪽에서 `hmem c` 가 극한이 `c.seq N` 이라고 알려 준다.
+  --         그러면 `f c.lub` 자체가 상의 원소이고, 상계 `b` 는 그 위에 있다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Domain/Lifting.lean",
+        "theorem liftBot_unique",
+        "-- ANCHOR_END: prop24",
+        """theorem liftBot_unique {V : Type u} {f : State V → SigmaBot V} {g : SigmaBot V → SigmaBot V}
+    (hstrict : g none = none) (hext : ∀ σ, g (some σ) = f σ) : g = liftBot f := by
+  -- 힌트: `funext x` 뒤 `cases x`. `Σ⊥` 에는 `⊥` 와 값밖에 없다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Domain/FunctionSpace.lean",
+        "theorem Continuous.comp",
+        "-- ANCHOR_END: prop23",
+        """theorem Continuous.comp [Predomain α] [Predomain β]
+    {g : β → γ} {f : α → β} (hg : Continuous g) (hf : Continuous f) :
+    Continuous (g ∘ f) := by
+  -- 먼저 볼 것: 바로 위의 `Continuous.map_lub`. 극한의 유일성을 등식으로 바꿔 둔 것이다.
+  -- 힌트 1: `hg (c.map hf.monotone)` 이 거의 답이다. 상을 `Chain.range_map` 과
+  --         `Set.image_comp` 로 `(g ∘ f) '' …` 모양으로 접어라.
+  -- 힌트 2: 남는 것은 `(g ∘ f) c.lub = g ((c.map _).lub)` 뿐이고, `hf.map_lub` 가 준다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Domain/FunctionSpace.lean",
+        "theorem lub_continuous",
+        "-- ANCHOR_END: prop22",
+        """theorem lub_continuous (c : Chain (Cont α β)) :
+    Continuous ((Chain.toFuns c).lub) := by
+  -- Reynolds 명제 2.2 의 극한 바꾸기다. `⨆ₙ⨆ᵢ = ⨆ᵢ⨆ₙ` 를 등식 없이
+  -- `le_lub` / `lub_le` 만으로 오간다.
+  -- 힌트 1: 먼저 점별 극한이 단조임을 `have` 로 세워라. 상계 쪽은 그 단조성 그대로다.
+  -- 힌트 2: 최소 쪽은 극한을 두 번 벗긴다 — 바깥은 `Chain.lub_le fun n => ?_`,
+  --         `(c.seq n).continuous.map_lub d` 로 안쪽 극한을 꺼낸 뒤 다시 `lub_le`.
+  -- 힌트 3: 마지막 사슬 항은 `fₙ(dᵢ) ⊑ h(dᵢ) ⊑ b` 로 잇는다. `change` 로 목표 모양을
+  --         맞춰야 `rw` 가 붙는 자리가 있다.
   sorry
 
 """,
