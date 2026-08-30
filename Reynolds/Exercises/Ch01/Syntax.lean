@@ -14,12 +14,13 @@ Reynolds §1.1 (pp. 1–7)에 대응한다.
 
 ## 이 파일에서 다루는 것
 - 정수 식 ⟨intexp⟩ 의 추상 구문
-- Reynolds가 손으로 부과하는 **추상 구문 조건**이 Lean에서는 왜 공짜인가
+- Reynolds가 추상 구문에 요구하는 세 조건과 Lean의 `inductive`
 
 ## 배경
 
-Reynolds 는 형식 언어의 구문을 문자열이 아니라 추상적 개체로 다뤄야 한다고 말한다.
-자연수를 다룰 때 숫자 문자열이 아니라 수 자체를 다루는 것과 같은 이유다.
+Reynolds 는 형식 언어의 구문을 특정 문자열 표현과 분리한다. 의미 함수가 받는 것은
+우선순위와 공백을 포함한 표기 문자열이 아니라, 어떤 생성자로 만들어졌는지가 드러나는
+추상 구다. 이 파일에서는 그 추상 구를 귀납 타입으로 표현한다.
 
 그가 추상 구문에 요구하는 조건은 셋이다.
 
@@ -27,10 +28,14 @@ Reynolds 는 형식 언어의 구문을 문자열이 아니라 추상적 개체�
 2. 같은 반송자(carrier)로 가는 두 생성자는 치역이 서로소여야 한다
 3. 모든 원소가 유한 번의 생성자 적용으로 만들어져야 한다
 
-Lean 의 `inductive` 는 이 셋을 선언과 동시에 준다.
-`AbstractSyntaxConditions` 절에서 확인한다.
-Reynolds 가 각주에서 언급하는 "다중 정렬 초기 대수(many-sorted initial algebra)" 도
-같은 이야기이고, `Depth/Algebra.lean` 에서 이어 간다.
+Lean 의 `inductive` 는 생성자 단사성과 치역의 서로소성을 위한 no-confusion 원리,
+유한한 생성 구조를 따라 정의하고 증명하는 재귀자와 귀납 원리를 함께 만든다.
+`AbstractSyntaxConditions` 절에서는 이 셋이 코드에서 어떤 모습인지 확인한다.
+
+Reynolds 는 이 조건들을 보편 대수의 말로 "다중 정렬 초기 대수(many-sorted initial
+algebra)"라고도 부른다. 세 조건의 목록과 초기성의 보편 성질은 설명의 층이 다르다.
+초기성은 임의의 목표 대수로 가는 준동형이 유일하다는 명제이며,
+`Depth/Algebra.lean`에서 `fold`와 구조적 귀납법으로 별도 증명한다.
 
 ## 읽는 순서
 이 파일 → `Semantics.lean` → `FreeVars.lean`
@@ -104,8 +109,10 @@ example : IntExp.num (V := V) n ≠ IntExp.var v := by nofun
 
 end AbstractSyntaxConditions
 
-/-! Reynolds 는 이 조건들이 "다중 정렬 초기 대수" 를 이룬다고 각주에 적는다.
-그 말이 무엇이고 왜 `eval` 과 `fv` 가 같은 구성인지는 `Depth/Algebra.lean` 에 있다. (선택) -/
+/-! Reynolds 는 이 구문을 다중 정렬 초기 대수로 읽을 수 있다고 각주에 적는다.
+여기서 확인한 생성자 성질만으로 초기성의 내용을 다 보인 것은 아니다. 임의의 목표 대수로
+가는 유일한 `fold`를 구성하는 단계가 남아 있으며, `Depth/Algebra.lean`에서 그 명제를
+정확히 적고 증명한다. -/
 
 /-! ## 단언 (assertions)
 

@@ -26,8 +26,10 @@ Reynolds 는 §1.1 에서 추상 구문 조건 셋을 나열한 뒤 이런 각�
 > *"they are (as the reader may verify) syntax-directed, and thus they
 > define the functions FV uniquely."*
 
-구문 지향이면 왜 유일해지는지는 설명하지 않는다. 여기서 그 이유를 따라간다.
-따라가다 보면 `eval` 과 `fv` 가 같은 구성의 두 사례라는 것도 같이 나온다.
+이 파일은 "구문 지향 방정식이 함수를 유일하게 정한다"는 말을 정리로 만든다.
+고정된 변수 타입 `V`에서 정수 식의 생성자들을 대수의 연산으로 읽고, 모든 목표 대수로
+가는 유일한 `fold`를 구성한다. `eval`과 `fv`는 그 `fold`에 서로 다른 목표 대수를 준
+두 사례로 나타난다.
 
 ## 사전 지식
 `Ch01/Syntax.lean`, `Ch01/Semantics.lean`.
@@ -58,8 +60,9 @@ IntExp.eval                          IntExp.fv
 그런데 생김새가 겹친다. 생성자마다 절이 하나씩이고, 재귀 호출은 부분구에만 있고,
 각 절은 부분구의 **결과**만 받아 조합한다. 부분구 자체를 다시 뜯어보는 절이 없다.
 
-세 번째 성질을 합성적(compositional)이라고 부른다.
-그리고 이 생김새는 타입으로 적을 수 있다. -/
+부분구의 구문 모양을 다시 검사하지 않고 그 의미만 조합하는 마지막 성질이
+합성성(compositionality)이다. 아래 `IntExpAlg`는 이런 방정식의 우변에 필요한 연산을
+한데 모은다. -/
 
 /-! ## 2. 생김새에 타입 주기 -/
 
@@ -69,8 +72,10 @@ IntExp.eval                          IntExp.fv
 반송자(carrier) 타입 하나와, 생성자마다 연산 하나로 이루어진다.
 `IntExp` 의 생성자가 넷이므로 연산도 넷이다.
 
-이 파일 §1 에서 본 생김새를 그대로 옮겨 적은 것이다. 대수라는 이름은 보편 대수(universal algebra)
-에서 왔지만, 여기서 필요한 뜻은 "반송자 + 연산 목록" 이상이 아니다.
+이 파일 §1 에서 본 생김새를 그대로 옮겨 적은 것이다. 대수라는 이름은 보편 대수(universal
+algebra)에서 왔다. 여기서는 변수 타입 `V`를 미리 고정하고 `.var v`도 `V`가 매개변수로
+붙은 영항 연산처럼 취급한다. 따라서 `IntExpAlg V`는 Reynolds의 문법 전체가 아니라,
+`V`가 고정된 정수 식 정렬 하나의 대수다.
 
 `IntExp V` 자신도 대수다. 생성자를 그대로 연산으로 쓰면 된다.
 그것을 항 대수(term algebra)라고 부른다.
@@ -113,13 +118,15 @@ def IntExpAlg.fold {V : Type u} (A : IntExpAlg.{u, v} V) : IntExp V → A.Carrie
 /--
 `h` 가 대수 `A` 로의 준동형(homomorphism)이라는 조건. 구조를 보존한다는 뜻이다.
 
-각 절이 Reynolds 의 의미 방정식 한 줄과 그대로 대응한다.
+출발 대수는 암묵적으로 `termAlg V`이고, `A`가 목표 대수다. 각 절은 생성자 하나를
+보존한다는 등식이며 Reynolds의 의미 방정식 한 줄과 대응한다.
 
 ```
 h (.neg e) = A.neg (h e)        ⟷        ⟦- e⟧ = -⟦e⟧
 ```
 
-의미 함수가 합성적이라는 말과 준동형이라는 말은 같은 것을 가리킨다.
+이 구문 대수에서 의미 함수가 합성적이라는 말은, 그 함수가 이 보존 등식들을 만족한다는
+말로 정확히 적을 수 있다.
 -/
 structure IsHom {V : Type u} (A : IntExpAlg.{u, v} V) (h : IntExp V → A.Carrier) : Prop where
   /-- 상수 절. -/
@@ -147,8 +154,8 @@ theorem IntExpAlg.fold_isHom {V : Type u} (A : IntExpAlg.{u, v} V) : IsHom A A.f
 유일성은 구조적 귀납법으로 나온다. 두 준동형이 모든 생성자에서 같은 규칙을 따르면
 값이 갈라질 자리가 없다.
 
-Reynolds 의 각주가 말하는 "initial algebra" 가 이것이다.
-초기(initial)라는 말은 다른 모든 대수로 가는 사상이 유일하게 존재한다는 뜻이다.
+범주론의 말로는 `termAlg V`가 이 대수들과 준동형이 이루는 범주의 초기 대상이라는
+진술이다. 여기서는 범주 인스턴스를 만들지 않고, 초기성의 내용인 `∃!`를 직접 쓴다.
 
 실질적인 결과는 이렇다. 의미론을 준다는 것은 대수를 하나 고르는 일이고,
 고르고 나면 의미 함수는 더 고를 여지 없이 정해진다.
@@ -209,7 +216,8 @@ theorem fv_eq_fold {V : Type u} [DecidableEq V] (e : IntExp V) : e.fv = (fvAlg V
 
 /--
 의미 방정식을 만족하는 함수는 `⟦-⟧ₑ` 뿐이다.
-Reynolds 가 *"they define the functions uniquely"* 라고만 쓰고 지나간 주장이다.
+Reynolds 가 자유 변수 방정식에 대해 *"they define the functions ... uniquely"* 라고 쓰고,
+§1.2에서 의미 방정식에도 같은 구문 지향성 논증을 적용한 내용을 정수 식 평가에 적은 것이다.
 
 증명에 귀납법이 없다. 가설 넷을 모으면 그대로 `IsHom (evalAlg V) f` 가 되고,
 나머지는 이 파일 §5 의 유일성이 처리한다.
@@ -238,13 +246,15 @@ theorem eval_unique {V : Type u} (f : IntExp V → State V → Int)
 /-! ## 8. 다중 정렬
 
 Reynolds 의 각주는 "초기 대수"가 아니라 "다중 정렬(many-sorted) 초기 대수"다.
-정렬(sort)은 반송자의 종류를 말한다. 책의 문법 전체에는 ⟨var⟩, ⟨intexp⟩,
-⟨assert⟩의 세 정렬이 있다. 아래 형식화는 `V`를 외부 매개변수로 고정하므로 대수마다
-달라지는 반송자는 `E`와 `A` 둘뿐이다.
+정렬(sort)은 문법에서 서로 다른 종류의 구가 사는 반송자를 뜻한다. 책의 문법 전체에는
+미리 주어진 ⟨var⟩와 새로 생성하는 ⟨intexp⟩, ⟨assert⟩가 있다. 아래 형식화는 `V`를 외부
+매개변수로 고정하므로 대수마다 달라지는 반송자는 `E`와 `A` 둘뿐이다.
 
-일반적인 다중 정렬 시그니처 프레임워크는 만들지 않는다. 구현 비용이 크고, 여기서 필요한
-것은 변수 정렬 `V`를 고정했을 때 `E`와 `A`가 함께 재귀하는 모습이다. 아래에는 이 두
-반송자를 구체적으로 적어 둔다. -/
+일반적인 다중 정렬 시그니처 프레임워크와 그 범주를 만들지는 않는다. 아래 `LogicAlg`와
+두 접기는 다중 정렬의 연산 모양을 보여 주지만, 이 파일에서 `LogicAlg` 전체의 `∃!` 초기성
+정리까지 증명한 것은 아니다. 또한 `quant : Quant → V → A → A`는 결합 변수의 이름을
+구문 자료로 보존하는 원시 이름 구문(raw named syntax)의 연산이다. α-동치로 나눈 구문의
+초기성은 별도의 모델 범주가 필요한 다른 진술이다. -/
 
 /-- 두 정렬 대수. 반송자가 `E`(정수 식)와 `A`(단언) 둘이다. -/
 structure LogicAlg (V : Type u) where
@@ -284,7 +294,7 @@ def LogicAlg.foldE {V : Type u} (L : LogicAlg.{u, v} V) : IntExp V → L.E
 ⟨assert⟩ 정렬의 접기.
 
 `cmp` 절만 다른 정렬의 접기(`L.foldE`)를 부른다.
-반송자가 여럿이고 연산이 그 사이를 넘나드는 것, 그게 다중 정렬이 뜻하는 전부다.
+`cmp : E × E → A`처럼 연산이 정렬 사이를 건너간다는 점이 단일 정렬 대수와 다르다.
 -/
 def LogicAlg.foldA {V : Type u} (L : LogicAlg.{u, v} V) : Assert V → L.A
   | .tru           => L.tru

@@ -7,9 +7,9 @@
 
 ---
 
-## 0. 왜 이게 억지가 아닌가
+## 0. Reynolds 본문과 연결되는 지점
 
-Reynolds는 세 곳에서 **직접 손가락으로 가리킨다.**
+심화 트랙은 Reynolds가 직접 언급한 다음 세 문장에서 출발한다.
 
 | 책 | 그가 쓴 문장 | 그가 말하지 않은 이름 |
 |---|---|---|
@@ -22,29 +22,28 @@ Reynolds는 세 곳에서 **직접 손가락으로 가리킨다.**
 > *"they are (as the reader may verify) syntax-directed, and thus they **define the functions
 > FV uniquely**."*
 
-**왜 유일한가?** Reynolds는 답하지 않는다. 심화 트랙이 답하는 첫 질문이 이것이다.
+본문은 이 유일성의 증명을 생략한다. 심화 트랙의 첫 정리는 구문 지향 방정식을 만족하는
+함수가 왜 하나뿐인지 `fold`의 보편 성질로 보인다.
 
 ---
 
 ## 1. 세 가지 설계 원칙
 
-### 원칙 1 — Reynolds가 가리킨 곳에만 붙인다
+### 원칙 1 — Reynolds의 특정 문장에 연결한다
 
 심화 파일은 반드시 **책의 특정 문장에 앵커**된다. 파일 상단 배너에 그 문장을 인용한다.
-그러면 "범주론을 갖다 붙였다"가 아니라 **"그가 가리킨 방향으로 한 걸음 더 갔다"** 가 된다.
+연결할 본문이 없는 수학적 확장은 `Extra/`의 별도 주제로 두고, 이 트랙에는 넣지 않는다.
 
-임의로 좋아 보이는 수학은 넣지 않는다. 가리키는 문장이 없으면 그 주제는 심화 트랙에 없다.
-
-### 원칙 2 — 추상은 집세를 내야 한다
+### 원칙 2 — 추상화마다 본문 정리를 하나 되돌려준다
 
 각 심화 파일은 **본문에서 이미 신경 쓰던 것**을 되돌려줘야 한다. 추상 자체가 목적이면 뺀다.
 
-| 심화 | 집세 |
+| 심화 | 본문에 되돌려주는 결과 |
 |---|---|
 | 대수와 초기성 | Reynolds의 *"define the functions uniquely"* 주장을 **증명**한다 |
 | 항 모나드 | Prop 1.2(b) + 연습 1.7이 모나드 법칙과 같은 모양임을 보인다 |
 | 시그니처 함자 | 구문의 초기 대수, Lambek 동형, 최소 고정점 구성을 구분하고 연결한다 |
-| 리프팅 모나드 | 명제 2.4 (a)~(e) 전부 + `;`의 결합성이 **공짜로** 따라온다 |
+| 리프팅 모나드 | 명제 2.4 (a)~(e)와 `;`의 결합성을 `Option`의 법칙에서 유도한다 |
 | CPO 범주 | 명제 2.2·2.3이 "이 범주에 곱과 지수가 있다"의 사례임을 보인다 |
 
 ### 원칙 3 — 구체 → 패턴 → 이름
@@ -106,7 +105,7 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 
 ## 무엇이 되돌아오나
 §1.4에서 Reynolds는 FV 방정식이 *"define the functions FV uniquely"* 라고 쓰지만
-왜 유일한지는 말하지 않는다. 이 파일이 그 답이다.
+본문에서 생략한 유일성 논증을 이 파일의 `IntExp.initial`과 `eval_unique`가 채운다.
 
 ## 사전 지식
 없음. §1.1–1.2 만 읽었으면 된다.
@@ -159,7 +158,7 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
      neg : ∀ e, h (.neg e) = A.neg (h e)
      bin : ∀ op e₀ e₁, h (.bin op e₀ e₁) = A.bin op (h e₀) (h e₁)
    ```
-   **`IsHom` 의 각 절이 곧 "의미 방정식" 한 줄이다.** 이 대응이 이 파일의 핵심.
+   `IsHom`의 각 필드는 생성자 하나를 보존한다는 등식이고, 의미 방정식의 해당 절과 대응한다.
 
 5. **★ 초기성(initiality).**
    ```lean
@@ -173,8 +172,8 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
    theorem eval_eq_fold : ∀ e : IntExp V, ⟦e⟧ₑ = evalAlg.fold e
    theorem fv_eq_fold   : ∀ e : IntExp V, e.fv = fvAlg.fold e
    ```
-   `eval` 의 반송자가 `State V → Int` 라는 점이 중요하다 — **뜻은 값이 아니라 함수**라는
-   §1.2의 논점이 여기서 "어떤 대수를 골랐는가"로 다시 나타난다.
+   `eval`의 목표 대수 반송자는 `State V → Int`다. §1.2에서 구의 뜻을 상태 함수로 둔
+   선택이 여기서는 목표 대수의 반송자 선택으로 나타난다.
 
 7. **★ 집세 2 — Reynolds의 "uniquely"를 증명한다.**
    ```lean
@@ -207,7 +206,7 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 
 ### 4.2 `Depth/TermMonad.lean` (A) — 치환과 bind
 
-**이 파일이 심화 트랙 전체의 하이라이트다.**
+이 파일은 치환 법칙과 모나드 법칙의 대응 범위를 확인한다.
 
 **관찰.** Reynolds는 Prop 1.2(b)를 이렇게 주석한다:
 
@@ -232,7 +231,7 @@ Reynolds §1.1, 추상 구문 조건을 나열한 직후:
 `eval`은 그 치환 작용을 상태 재색인으로 보내는 호환 사상으로 읽는다. 현재 파일은 이 호환성을
 명제 1.3으로 증명할 뿐, 가군 구조 자체를 Lean 클래스로 만들지는 않는다.
 
-**★ 여기서 진짜 깊은 것이 나온다 — 연습 1.7은 "같다"가 아니라 "이름 바꾸기다"**
+**연습 1.7은 "같다"가 아니라 "이름 바꾸기다"**
 
 Reynolds의 진술을 다시 보라: *"`p/δ''` **is a renaming of** `(p/δ)/δ'`"*. **등호가 아니다.**
 
@@ -287,7 +286,7 @@ theorem IntExp.lambek : Function.Bijective (IntExp.roll (V := V))
 -- 또는 `IntExp V ≃ Sig V (IntExp V)`
 ```
 
-**이것이 2장으로 가는 다리다.** Lambek 보조정리는 초기 대수의 구조 사상이 동형임을 말한다.
+Lambek 보조정리는 초기 대수의 구조 사상이 동형임을 말한다.
 Reynolds가 §2.4 끝에서 주는 `𝒫(P)ⁿ` 위 최소 고정점 구성은 같은 구문 반송자를 만드는 다른
 설명이다. 명령 의미의 함수 도메인에서 `Y`가 고르는 최소 고정점과는 구분해야 한다.
 
@@ -426,7 +425,7 @@ example : (P →𝒄 P') 이 ωCPO 임   -- Mathlib 에 있다
 def curry   : (X × Y →𝒄 Z) ≃ (X →𝒄 (Y →𝒄 Z))
 ```
 
-**왜 CCC가 중요한가 (산문).**
+**CCC와 λ-계산법의 연결 (산문).**
 데카르트 닫힌 범주(cartesian closed category)는 **단순 타입 λ-계산법의 모델**이다
 (Lambek–Scott). 즉 §2.3에서 Reynolds가 "연속 함수 공간도 프리도메인(predomain)이다"를
 증명하는 것은,
@@ -497,10 +496,10 @@ Scott의 해법은 사영 쌍(embedding–projection pair)의 사슬을 따라 *
 
 | 위치 | 훅 |
 |---|---|
-| `Ch01/Syntax.lean` 의 `추상구문조건` 절 끝 | `> Reynolds는 이 조건들이 "다중 정렬 초기 대수"를 이룬다고 각주에 적는다.`<br>`> 그게 무슨 말이고 왜 중요한지는 `Depth/Algebra.lean`. (선택)` |
+| `Ch01/Syntax.lean` 의 `추상구문조건` 절 끝 | `> Reynolds는 이 조건들이 "다중 정렬 초기 대수"를 이룬다고 각주에 적는다.`<br>`> 유일한 준동형이라는 내용은 `Depth/Algebra.lean`에서 증명한다. (선택)` |
 | `Ch01/Semantics.lean` `eval` docstring 끝 | `> 이 의미 방정식들이 함수를 **유일하게** 정한다는 사실의 증명: `Depth/Algebra.lean`.` |
 | `Ch01/Substitution.lean` Prop 1.2(b) 근처 | `> Reynolds는 `c_var` 가 "항등 치환으로 작동한다"고 쓴다.`<br>`> 이것이 모나드 단위 법칙이다: `Depth/TermMonad.lean`.` |
-| `Ch02/Semantics.lean` `;` 의미 방정식 | `> `f⊥⊥` 는 `Option` 모나드의 bind 다. `;` 의 결합성이 공짜로 나온다: `Depth/LiftingMonad.lean`.` |
+| `Ch02/Semantics.lean` `;` 의미 방정식 | `> `f⊥⊥` 는 이 `Option` 표현에서 bind와 같다. `;`의 결합성은 `Depth/LiftingMonad.lean`에서 그 법칙으로 유도한다.` |
 | `Ch02/Domain.lean` 명제 2.2 | `> 이것은 ωCPO 범주의 **지수 대상**이다. 그래서 λ-계산법의 모델이 된다: `Depth/CpoCategory.lean`.` |
 | `Ch02/Fixpoint.lean` 끝 | `> 1장의 구문 구성과 이 최소 고정점의 공통점과 차이는 `Depth/FixpointAlgebraically.lean`에서 비교한다.` |
 
@@ -508,7 +507,7 @@ Scott의 해법은 사영 쌍(embedding–projection pair)의 사슬을 따라 *
 
 ## 7. Verso 문서 구성
 
-심화 트랙은 **산문이 특히 중요하다** — 코드만으로는 "왜"가 전달되지 않는다.
+심화 트랙의 산문은 각 추상 구조가 본문의 어느 정의와 정리에 대응하는지를 설명해야 한다.
 
 ```
 manual/Manual/
@@ -543,7 +542,8 @@ manual/Manual/
 | **D4** | `Ch02/Depth/LiftingMonad.lean` (A) | 2장 §2.2 (M2) |
 | **D5** | `Ch02/Depth/CpoCategory.lean` · `FixpointAlgebraically.lean` (B) | 2장 §2.3–2.4 (M2) |
 
-**D1은 지금 바로 가능하다.** D2는 §1.4 치환이 들어온 뒤. D4·D5는 2장 본문과 함께.
+D1은 현재 1장 정의만으로 구현할 수 있다. D2는 §1.4 치환 뒤에, D4·D5는 2장 본문과
+함께 진행한다.
 
 ### 위험과 완화
 
