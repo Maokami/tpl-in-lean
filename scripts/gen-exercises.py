@@ -588,6 +588,47 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.4 최소 고정점 정리
+    (
+        "Ch02/Fixpoint.lean",
+        "theorem fix_eq",
+        "-- ANCHOR_END: fixEq",
+        """theorem fix_eq {F : α → α} (hF : Continuous F) :
+    F (fix F hF.monotone) = fix F hF.monotone := by
+  -- 먼저 볼 것: 바로 위의 `isLUB_shifted`. 밀린 사슬의 극한도 `fix` 라는 사실이 완성되어 있다.
+  -- 힌트 1: `hF (iterChain hF.monotone)` 이 `F(fix)` 를 "F 를 입힌 상" 의 극한으로 만든다.
+  -- 힌트 2: 그 상이 밀린 사슬의 값들과 같음을 `ext` 로 보여라.
+  --         양방향 모두 `Function.iterate_succ_apply'` 하나로 잇는다.
+  -- 힌트 3: 극한은 유일하다 — `IsLUB.unique`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Fixpoint.lean",
+        "theorem fix_least",
+        "-- ANCHOR_END: fixLeast",
+        """theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
+    fix F hF ≤ x := by
+  -- 힌트 1: `lub_le` 로 "각 단계가 x 아래" 로 줄인 뒤 `n` 에 대한 귀납.
+  -- 힌트 2: 걸음은 `Fⁿ⁺¹(⊥) = F(Fⁿ(⊥)) ⊑ F(x) ⊑ x`. `calc` 로 쓰면 그대로 읽힌다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Fixpoint.lean",
+        "theorem scott_induction",
+        "-- ANCHOR_END: scott",
+        """theorem scott_induction {F : α → α} (hF : Monotone F) {P : α → Prop}
+    (hadm : ∀ c : Chain α, (∀ n, P (c.seq n)) → P c.lub)
+    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF) := by
+  -- 힌트: 허용 가능성을 반복의 사슬에 적용하고, 각 단계는 `n` 에 대한 귀납으로.
+  --       걸음에서 `Function.iterate_succ_apply'` 로 모양을 맞춘다.
+  sorry
+
+""",
+    ),
 ]
 
 
