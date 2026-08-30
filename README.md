@@ -174,7 +174,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.2 표시적 의미론 | [`Semantics.lean`](./Reynolds/Answers/Ch02/Semantics.lean) | [#5](../../pull/5) | [`ch02-s02`](../../tree/ch02-s02) |
 | §2.3 도메인과 연속 함수 | [`Domain.lean`](./Reynolds/Answers/Ch02/Domain.lean) | [#12](../../pull/12) | [`ch02-s03a`](../../tree/ch02-s03a) |
 | §2.3 리프팅과 함수 공간 | [`Domain/Lifting.lean`](./Reynolds/Answers/Ch02/Domain/Lifting.lean) · [`Domain/FunctionSpace.lean`](./Reynolds/Answers/Ch02/Domain/FunctionSpace.lean) | [#15](../../pull/15) | [`ch02-s03b`](../../tree/ch02-s03b) |
-| §2.4 최소 고정점 정리 | [`Fixpoint.lean`](./Reynolds/Answers/Ch02/Fixpoint.lean) | [#16](../../pull/16) | [`ch02-s04a`](../../tree/ch02-s04a) |
+| §2.4 최소 고정점 정리와 `while` 의 뜻 | [`Fixpoint.lean`](./Reynolds/Answers/Ch02/Fixpoint.lean) · [`Eval.lean`](./Reynolds/Answers/Ch02/Eval.lean) | [#16](../../pull/16) | [`ch02-s04a`](../../tree/ch02-s04a) |
 
 2장은 절 단위로 PR 을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
