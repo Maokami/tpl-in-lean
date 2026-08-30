@@ -9,6 +9,8 @@ public import Reynolds.Answers.Ch02.Syntax
 public import Reynolds.Answers.Ch02.Notation
 public import Reynolds.Answers.Ch02.Semantics
 public import Reynolds.Answers.Ch02.Domain
+public import Reynolds.Answers.Ch02.Domain.Lifting
+public import Reynolds.Answers.Ch02.Domain.FunctionSpace
 
 /-!
 # 2장 «단순 명령형 언어» — 완성본 (Answers)

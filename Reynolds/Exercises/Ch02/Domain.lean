@@ -338,8 +338,8 @@ theorem exists_monotone_not_continuous :
 - **리프팅** `P⊥` — `Σ⊥` 를 도메인으로 만드는 구성. `Option` 에 순서를 얹는 일이다.
 - **함수 공간** `P → P'` — `Σ → Σ⊥` 가 도메인이어야 `while` 의 뜻을 그 안에서 찾는다.
 
-다음 파일은 이 두 구성이 사슬의 최소 상계와 연속성을 보존함을 증명한다. 그러면
-`State V → SigmaBot V` 위에서 `while`의 함수자를 만들고 §2.4의 최소 고정점 정리를
-적용할 수 있다. -/
+`Domain/Lifting.lean` 이 앞의 것을, `Domain/FunctionSpace.lean` 이 뒤의 것을 만든다.
+그러면 `State V → SigmaBot V` 위에서 `while`의 함수자를 만들고 §2.4의 최소 고정점
+정리를 적용할 수 있다. -/
 
 end Reynolds.Exercises.Ch02
