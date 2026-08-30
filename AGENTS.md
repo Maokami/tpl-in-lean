@@ -568,6 +568,7 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 | 매크로가 뱉은 이름이 엉뚱한 이름공간으로 붙음 | Lean 매크로는 hygienic 이라 이름을 **정의 자리**에서 해석한다 | `Lean.mkIdent` 로 만들면 **쓰는 자리**에서 해석된다 (`Notation.lean`) |
 | `environment already contains 'Lean.Parser.Category.…'` | `declare_syntax_cat` 은 전역이라 두 트리에 복제할 수 없다 | 생성기의 `SHARED` 에 넣어 Answers 쪽을 공유한다 |
 | 연습 트리의 simp 보조정리가 `simp can prove this` 로 걸림 | 루트 타입(`Option` 등) 위의 인스턴스·simp 는 복제되면 같은 타입에 두 벌 등록된다 | 루트 타입 층만 별도 파일로 떼어 `SHARED` 에 넣는다 (`Ch02/Domain/Flat.lean`) |
+| 귀납 분기 `| skip =>` 가 `unexpected token` | DSL 의 `syntax "skip"` 이 전역 토큰을 만들어 생성자 이름과 충돌한다 (`newvar` 도 같다) | 분기 이름을 `«skip»` 처럼 길러멧으로 감싼다 |
 
 ---
 
