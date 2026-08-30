@@ -567,6 +567,7 @@ AI 도구로 작성했으면 PR 설명에 **어떤 도구를 어떻게 썼는지
 | `failed to compile definition … depends on 'Int.instConditionallyCompleteLinearOrder'` | Mathlib 과 CSlib 을 함께 열면 `Preorder ℤ` 가 계산 불가능한 경로로 잡힌다. `Finset.Icc` 를 쓰는 정의가 통째로 계산 불가능해진다 | 파일 안에서 `attribute [-instance] Int.instConditionallyCompleteLinearOrder`. 순서 자체는 같으므로 보조정리는 그대로 쓰인다 |
 | 매크로가 뱉은 이름이 엉뚱한 이름공간으로 붙음 | Lean 매크로는 hygienic 이라 이름을 **정의 자리**에서 해석한다 | `Lean.mkIdent` 로 만들면 **쓰는 자리**에서 해석된다 (`Notation.lean`) |
 | `environment already contains 'Lean.Parser.Category.…'` | `declare_syntax_cat` 은 전역이라 두 트리에 복제할 수 없다 | 생성기의 `SHARED` 에 넣어 Answers 쪽을 공유한다 |
+| 연습 트리의 simp 보조정리가 `simp can prove this` 로 걸림 | 루트 타입(`Option` 등) 위의 인스턴스·simp 는 복제되면 같은 타입에 두 벌 등록된다 | 루트 타입 층만 별도 파일로 떼어 `SHARED` 에 넣는다 (`Ch02/Domain/Flat.lean`) |
 
 ---
 
