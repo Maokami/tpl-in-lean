@@ -25,7 +25,7 @@ shortTitle := "tpl-in-lean"
 %%%
 
 John C. Reynolds, *Theories of Programming Languages* (Cambridge University Press, 1998)를
-Lean 4 로 따라 읽는 스터디 자료다.
+Lean 4로 따라 읽는 스터디 자료다.
 
 이 문서는 *책을 대신하지 않는다.* 책 옆에 두고 읽는 안내서다.
 저장소의 Lean 코드를 직접 인용하므로, 코드가 바뀌면 이 문서의 빌드가 깨진다.
