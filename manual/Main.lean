@@ -8,10 +8,14 @@ import Manual
 
 open Verso.Genre Manual
 
-/-- 좁은 화면에서 코드와 제목이 본문 폭을 밀어내지 않게 하는 보정 스타일. -/
+/-- 본문의 한국어 줄바꿈과 좁은 화면의 코드·제목 폭을 보정한다. -/
 def responsiveCodeStyle : Verso.Output.Html := open Verso.Output.Html in
   {{<style>{{Verso.Output.Html.text false "
     main section { min-width: 0; }
+    main p, main li {
+      word-break: keep-all;
+      text-wrap: pretty;
+    }
     main h1, main h2 {
       word-break: keep-all;
       text-wrap: balance;
