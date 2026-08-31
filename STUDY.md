@@ -27,12 +27,15 @@
 
 | 주 | 책 | 파일 | 상태 |
 |---|---|---|---|
-| 1 | 오리엔테이션 + §1.1 추상 구문 | `Ch01/Syntax.lean` | 스캐폴딩 완료 |
-| 2 | §1.2 표시적 의미론 | `Ch01/Semantics.lean` | 스캐폴딩 완료 |
-| 3 | §1.3 타당성과 추론 | `Ch01/Validity.lean` | 예정 |
-| 4 | §1.4 결합과 치환 | `Ch01/FreeVars.lean`, `Substitution.lean` | 일부 |
-| 5 | 1장 연습문제 | `Ch01/Ex.lean` | 예정 |
-| 6~ | 2장 | `Ch02/*` | 예정 |
+| 1 | 오리엔테이션 + §1.1 추상 구문 | `Ch01/Syntax.lean` | 완료 |
+| 2 | §1.2 표시적 의미론 | `Ch01/Semantics.lean` | 완료 |
+| 3 | §1.3 타당성과 추론 | `Ch01/Validity.lean` | 완료 |
+| 4 | §1.4 결합과 치환 | `Ch01/FreeVars.lean`, `Substitution.lean` | 완료 |
+| 5 | 1장 연습문제 | `Ch01/Ex.lean`, `Ex/Summation.lean` | 완료 |
+| 6 | §2.1~§2.2 구문과 의미 방정식 | `Ch02/Syntax.lean`, `Semantics.lean` | 구현·문서 완료 |
+| 7 | §2.3 도메인과 연속 함수 | `Ch02/Domain.lean`, `Domain/*` | 구현·문서 완료 |
+| 8 | §2.4 최소 고정점과 연료 해석기 | `Ch02/Fixpoint.lean`, `Eval.lean`, `Interpreter.lean` | 구현·문서 완료 |
+| 9~ | §2.5~§2.8 | `Ch02/FreeVars.lean` 이후 | 예정 |
 
 > 1장은 5주, 2장은 6주 정도로 잡는다. 2장(도메인 이론·최소 고정점)이 훨씬 무겁다.
 
