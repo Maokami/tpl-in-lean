@@ -64,7 +64,7 @@ Reynolds 의 정의를 그대로 옮긴다.
 더 일반적인 유향 집합(directed set)으로 정의하는 방식도 있고, Reynolds 도 §2.3 에서
 언급하지만 쓰지는 않는다. -/
 
--- ANCHOR: chain
+-- ANCHOR: Chain
 /--
 사슬(chain) — 증가하는 가산 열.
 
@@ -77,7 +77,7 @@ structure Chain (α : Type u) [Preorder α] where
   seq : ℕ → α
   /-- 증가한다. -/
   mono : Monotone seq
--- ANCHOR_END: chain
+-- ANCHOR_END: Chain
 
 variable {α : Type u} {β : Type v}
 
@@ -129,7 +129,7 @@ Reynolds 는 용어가 저자마다 다르다는 것을 §2.3 에서 직접 경�
 Gunter 와 Winskel 은 앞의 것을 complete partial order 라 부르고, Tennent 는 뒤의 것을
 domain 이라 부른다. 이름이 겹치므로 논문을 읽을 때는 정의를 확인해야 한다. -/
 
--- ANCHOR: predomain
+-- ANCHOR: Predomain
 /--
 프리도메인 — 모든 사슬이 최소 상계를 갖는 부분 순서 집합.
 
@@ -142,7 +142,7 @@ class Predomain (α : Type u) [PartialOrder α] where
   lub : Chain α → α
   /-- 그 값이 실제로 최소 상계다. -/
   lub_isLUB (c : Chain α) : IsLUB (Set.range c.seq) (lub c)
--- ANCHOR_END: predomain
+-- ANCHOR_END: Predomain
 
 /--
 도메인(domain) — 최소원(least element)을 가진 프리도메인. Reynolds §2.3.
@@ -194,7 +194,7 @@ f (⨆ᵢ xᵢ) = ⨆ᵢ f(xᵢ)
 Lean 에서는 오른쪽이 존재한다고 가정하지 않고 **`f (⨆ xᵢ)` 가 상의 최소 상계다** 라고
 쓴다. 그러면 공역이 프리도메인인지와 무관하게 진술이 서고, 극한의 유일성에서 위 등식이 따라온다. -/
 
--- ANCHOR: continuous
+-- ANCHOR: Continuous
 /--
 연속(continuous) — 사슬의 극한을 함수상의 극한으로 보낸다.
 
@@ -205,7 +205,7 @@ Reynolds의 두 조건과 같은 함수 부류를 표현한다. 다만 이 정�
 -/
 def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β) : Prop :=
   ∀ c : Chain α, IsLUB (f '' Set.range c.seq) (f c.lub)
--- ANCHOR_END: continuous
+-- ANCHOR_END: Continuous
 
 section ContinuousBasic
 variable [PartialOrder α] [PartialOrder β] [Predomain α]
@@ -271,7 +271,7 @@ Reynolds의 명제 2.1은 극한을 사슬의 항으로 포함하지 않는 "흥
 
 따라서 반대 부등식만 보이면 두 값이 같아지고 극한 보존이 성립한다. -/
 
--- ANCHOR: prop21
+-- ANCHOR: continuous_iff_le
 /--
 **명제 2.1** — 단조 함수가 연속일 필요충분조건.
 
@@ -304,7 +304,7 @@ theorem continuous_iff_le [PartialOrder α] [PartialOrder β] [Predomain α] [Pr
     · -- 최소. 가정한 부등식을 옮긴 사슬의 극한과 이어 붙인다.
       intro b hb
       exact le_trans (hle c) (Chain.lub_le fun n => hb ⟨n, rfl⟩)
--- ANCHOR_END: prop21
+-- ANCHOR_END: continuous_iff_le
 
 /-! ## 5. 단조인데 연속이 아닌 함수
 
@@ -335,7 +335,7 @@ theorem initSegs_lub : initSegs.lub = Set.univ := by
   intro k _
   exact initSegs.le_lub (k + 1) (by simp [initSegs])
 
--- ANCHOR: notContinuous
+-- ANCHOR: exists_monotone_not_continuous
 /--
 단조인데 연속이 아닌 함수가 있다.
 
@@ -368,7 +368,7 @@ theorem exists_monotone_not_continuous :
       have : n ∈ initSegs.seq n := hs ▸ Set.mem_univ n
       simp [initSegs] at this
     exact (h.2 hub) htrue
--- ANCHOR_END: notContinuous
+-- ANCHOR_END: exists_monotone_not_continuous
 
 /-! ## 6. 다음에 필요한 두 구성
 
@@ -378,7 +378,7 @@ theorem exists_monotone_not_continuous :
 - **함수 공간** `P → P'` — `Σ → Σ⊥` 가 도메인이어야 `while` 의 뜻을 그 안에서 찾는다.
 
 `Domain/Lifting.lean` 이 앞의 것을, `Domain/FunctionSpace.lean` 이 뒤의 것을 만든다.
-그러면 `State V → SigmaBot V` 위에서 `while`의 함수자를 만들고 §2.4의 최소 고정점
+그러면 `State V → SigmaBot V` 위에서 `while`의 함수 연산자를 만들고 §2.4의 최소 고정점
 정리를 적용할 수 있다. -/
 
 end Reynolds.Answers.Ch02

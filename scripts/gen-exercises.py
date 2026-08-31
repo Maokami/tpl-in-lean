@@ -392,7 +392,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Semantics.lean",
         "theorem boolExp_eval_iff",
-        "-- ANCHOR_END: boolAgree",
+        "-- ANCHOR_END: boolExp_eval_iff",
         """theorem boolExp_eval_iff {V : Type u} [DecidableEq V] (b : BoolExp V) (σ : State V) :
     ⟦b.toAssert⟧ₐ σ ↔ ⟦b⟧ᵇ σ = true := by
   -- 먼저 볼 것: `Cmp.denoteBool_iff` 와 `LogOp.denoteBool_iff`. 둘 다 이 파일 앞쪽에 있다.
@@ -416,7 +416,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Semantics.lean",
         "theorem unwinding_not_unique",
-        "-- ANCHOR_END: unwindingNotUnique",
+        "-- ANCHOR_END: unwinding_not_unique",
         """theorem unwinding_not_unique :
     ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g := by
   -- 먼저 볼 것: 바로 위의 `unwindsDecr_true` 와 `unwindsDecr_fake`. 둘 다 완성되어 있다.
@@ -504,7 +504,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain.lean",
         "theorem continuous_iff_le",
-        "-- ANCHOR_END: prop21",
+        "-- ANCHOR_END: continuous_iff_le",
         """theorem continuous_iff_le [PartialOrder α] [PartialOrder β] [Predomain α] [Predomain β]
     {f : α → β} (hf : Monotone f) :
     Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub := by
@@ -518,7 +518,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain.lean",
         "theorem exists_monotone_not_continuous",
-        "-- ANCHOR_END: notContinuous",
+        "-- ANCHOR_END: exists_monotone_not_continuous",
         """theorem exists_monotone_not_continuous :
     ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f := by
   -- 먼저 볼 것: 바로 위의 `initSegs` 와 `initSegs_lub`. 둘 다 완성되어 있다.
@@ -534,7 +534,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain/Lifting.lean",
         "theorem Monotone.continuous_of_lub_mem",
-        "-- ANCHOR_END: monotoneContinuous",
+        "-- ANCHOR_END: Monotone.continuous_of_lub_mem",
         """theorem Monotone.continuous_of_lub_mem [PartialOrder α] [PartialOrder β] [Predomain α]
     {f : α → β} (hf : Monotone f)
     (hmem : ∀ c : Chain α, c.lub ∈ Set.range c.seq) : Continuous f := by
@@ -548,7 +548,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain/Lifting.lean",
         "theorem liftBot_unique",
-        "-- ANCHOR_END: prop24",
+        "-- ANCHOR_END: liftBot_unique",
         """theorem liftBot_unique {V : Type u} {f : State V → SigmaBot V} {g : SigmaBot V → SigmaBot V}
     (hstrict : g none = none) (hext : ∀ σ, g (some σ) = f σ) : g = liftBot f := by
   -- 힌트: `funext x` 뒤 `cases x`. `Σ⊥` 에는 `⊥` 와 값밖에 없다.
@@ -559,7 +559,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain/FunctionSpace.lean",
         "theorem Continuous.comp",
-        "-- ANCHOR_END: prop23",
+        "-- ANCHOR_END: Continuous.comp",
         """theorem Continuous.comp [Predomain α] [Predomain β]
     {g : β → γ} {f : α → β} (hg : Continuous g) (hf : Continuous f) :
     Continuous (g ∘ f) := by
@@ -574,7 +574,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Domain/FunctionSpace.lean",
         "theorem lub_continuous",
-        "-- ANCHOR_END: prop22",
+        "-- ANCHOR_END: lub_continuous",
         """theorem lub_continuous (c : Chain (Cont α β)) :
     Continuous ((Chain.toFuns c).lub) := by
   -- Reynolds 명제 2.2 의 극한 바꾸기다. `⨆ₙ⨆ᵢ = ⨆ᵢ⨆ₙ` 를 등식 없이
@@ -592,12 +592,12 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Fixpoint.lean",
         "theorem fix_eq",
-        "-- ANCHOR_END: fixEq",
+        "-- ANCHOR_END: fix_eq",
         """theorem fix_eq {F : α → α} (hF : Continuous F) :
     F (fix F hF.monotone) = fix F hF.monotone := by
   -- 먼저 볼 것: 바로 위의 `isLUB_shifted`. 밀린 사슬의 극한도 `fix` 라는 사실이 완성되어 있다.
-  -- 힌트 1: `hF (iterChain hF.monotone)` 이 `F(fix)` 를 "F 를 입힌 상" 의 극한으로 만든다.
-  -- 힌트 2: 그 상이 밀린 사슬의 값들과 같음을 `ext` 로 보여라.
+  -- 힌트 1: `hF (iterChain hF.monotone)`이 `F(fix)`를 "F를 입힌 상"의 극한으로 만든다.
+  -- 힌트 2: 그 상이 밀린 사슬의 값들과 같음을 `ext`로 보여라.
   --         양방향 모두 `Function.iterate_succ_apply'` 하나로 잇는다.
   -- 힌트 3: 극한은 유일하다 — `IsLUB.unique`.
   sorry
@@ -607,11 +607,11 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Fixpoint.lean",
         "theorem fix_least",
-        "-- ANCHOR_END: fixLeast",
+        "-- ANCHOR_END: fix_least",
         """theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
     fix F hF ≤ x := by
-  -- 힌트 1: `lub_le` 로 "각 단계가 x 아래" 로 줄인 뒤 `n` 에 대한 귀납.
-  -- 힌트 2: 걸음은 `Fⁿ⁺¹(⊥) = F(Fⁿ(⊥)) ⊑ F(x) ⊑ x`. `calc` 로 쓰면 그대로 읽힌다.
+  -- 힌트 1: `lub_le`로 "각 단계가 x 아래"로 줄인 뒤 `n`에 대한 귀납.
+  -- 힌트 2: 걸음은 `Fⁿ⁺¹(⊥) = F(Fⁿ(⊥)) ⊑ F(x) ⊑ x`. `calc`로 쓰면 그대로 읽힌다.
   sorry
 
 """,
@@ -619,7 +619,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Fixpoint.lean",
         "theorem scott_induction",
-        "-- ANCHOR_END: scott",
+        "-- ANCHOR_END: scott_induction",
         """theorem scott_induction {F : α → α} (hF : Monotone F) {P : α → Prop}
     (hadm : ∀ c : Chain α, (∀ n, P (c.seq n)) → P c.lub)
     (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF) := by
@@ -629,11 +629,26 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    (
+        "Ch02/Eval.lean",
+        "theorem whileF_continuous",
+        "-- ANCHOR_END: whileF_continuous",
+        """theorem whileF_continuous (b : BoolExp V) (s : State V → SigmaBot V) :
+    Continuous (whileF b s) := by
+  -- 먼저 볼 것: `Continuous`, `IsLUB`, `whileF_monotone`, `Chain.lub_apply`의 정의와 정리.
+  -- 이 연습은 앞의 다른 연습 결과를 사용하지 않고 `Continuous` 정의에서 직접 증명한다.
+  -- 힌트 1: 상계는 `c.le_lub`; 최소성은 상태 `σ`를 고정한 뒤 조건과 `s σ`로 나눈다.
+  -- 힌트 2: `s σ = some τ`이면 `Chain.lub_le`로 각 `c.seq n τ`가 상계 아래임을 보인다.
+  -- 힌트 3: 조건이 거짓이면 함수상의 0번째 항을 상계 가정에 넣는다.
+  sorry
+
+""",
+    ),
     # ── §2.4 연료 해석기
     (
         "Ch02/Interpreter.lean",
         "theorem Comm.run_le_succ",
-        "-- ANCHOR_END: runMono",
+        "-- ANCHOR_END: Comm.run_le_succ",
         """theorem Comm.run_le_succ : ∀ (c : Comm V) (n : ℕ) (σ : State V),
     c.run n σ ≤ c.run (n + 1) σ := by
   -- 먼저 볼 것: 바로 위의 `Option.bind_le_bind`. `seq` 와 `wh` 절이 그것으로 돈다.

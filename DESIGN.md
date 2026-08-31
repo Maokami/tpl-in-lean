@@ -338,9 +338,13 @@ tpl-in-lean/
 │   │   └── Ch02/
 │   │       ├── Syntax.lean       # §2.1
 │   │       ├── Notation.lean
-│   │       ├── Domain.lean       # §2.3 도메인·연속함수 (자체 구축)
+│   │       ├── Semantics.lean    # §2.2 의미 방정식과 비유일성
+│   │       ├── Domain.lean       # §2.3 사슬·프리도메인·연속성
+│   │       ├── Domain/
+│   │       │   ├── Lifting.lean       # §2.3 평평한 리프팅
+│   │       │   └── FunctionSpace.lean # §2.3 함수 공간
 │   │       ├── Fixpoint.lean     # §2.4 최소 고정점 정리 · Scott 귀납법
-│   │       ├── Semantics.lean    # §2.2 + §2.4 while
+│   │       ├── Eval.lean         # §2.4 while의 표시적 의미
 │   │       ├── Interpreter.lean  # 실행 가능한 연료 기반 해석기 + 적합성
 │   │       ├── FreeVars.lean     # §2.5 FV, FA, 일치 정리
 │   │       ├── Substitution.lean # §2.5 치환·별칭(aliasing)·이름 바꾸기
@@ -359,7 +363,6 @@ tpl-in-lean/
 ├── ReynoldsTests.lean            # lake test 진입점
 ├── ReynoldsTests/
 │   ├── Ch01.lean                 # #guard / #guard_msgs 골든 테스트
-│   ├── Ch02.lean
 │   └── Ch02.lean
 ├── Grade.lean                    # lake exe grade 진입점
 │
