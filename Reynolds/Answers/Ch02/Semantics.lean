@@ -108,7 +108,7 @@ universe u
 불 식에는 양화사가 없고 모든 생성자 연산이 결정 가능하므로 구문을 유한하게 순회하는
 `Bool` 평가기를 정의할 수 있다. 비교와 논리 연산의 뜻만 `Bool` 판으로 다시 쓰면 된다. -/
 
--- ANCHOR: boolEval
+-- ANCHOR: BoolExp.eval
 /--
 `⟦b⟧ᵇ σ` — 불 식의 뜻. Reynolds §2.2 의 `⟦-⟧boolexp ∈ ⟨boolexp⟩ → Σ → 𝔹`.
 
@@ -121,7 +121,7 @@ def BoolExp.eval {V : Type u} : BoolExp V → State V → Bool
   | .cmp c e₀ e₁, σ => c.denoteBool (⟦e₀⟧ₑ σ) (⟦e₁⟧ₑ σ)
   | .not b,       σ => !b.eval σ
   | .bin op b₀ b₁, σ => op.denoteBool (b₀.eval σ) (b₁.eval σ)
--- ANCHOR_END: boolEval
+-- ANCHOR_END: BoolExp.eval
 
 @[inherit_doc BoolExp.eval]
 scoped notation:max "⟦" b "⟧ᵇ" => BoolExp.eval b
@@ -143,7 +143,7 @@ def BoolExp.toAssert {V : Type u} : BoolExp V → Assert V
   | .not b        => .not b.toAssert
   | .bin op b₀ b₁ => .bin op b₀.toAssert b₁.toAssert
 
--- ANCHOR: boolAgree
+-- ANCHOR: boolExp_eval_iff
 /--
 **불 식은 양화사 없는 단언이다** — 두 의미 함수가 일치한다.
 
@@ -162,7 +162,7 @@ theorem boolExp_eval_iff {V : Type u} [DecidableEq V] (b : BoolExp V) (σ : Stat
   | bin op b₀ b₁ ih₀ ih₁ =>
       simp only [BoolExp.toAssert, Assert.eval, BoolExp.eval]
       exact (LogOp.denoteBool_iff op ih₀.symm ih₁.symm).symm
--- ANCHOR_END: boolAgree
+-- ANCHOR_END: boolExp_eval_iff
 
 /-! ## 2. `Σ⊥` — 상태 또는 비종료
 
@@ -173,7 +173,7 @@ theorem boolExp_eval_iff {V : Type u} [DecidableEq V] (b : BoolExp V) (σ : Stat
 Reynolds 는 부분 함수 대신 `Σ → Σ⊥` 를 쓰는 쪽을 고른다. 뒤에 나올 더 풍부한 언어로의
 일반화가 그쪽에서 명확해지기 때문이다. -/
 
--- ANCHOR: sigmaBot
+-- ANCHOR: SigmaBot
 /--
 `Σ⊥` — 상태 하나 또는 비종료. `none` 이 `⊥` 다.
 
@@ -190,7 +190,7 @@ f⊥⊥ x = if x = ⊥ then ⊥ else f x
 이 정확히 `Option.bind` 다. 아래 `liftBot_eq_bind` 가 그것을 확인한다.
 -/
 abbrev SigmaBot (V : Type u) := Option (State V)
--- ANCHOR_END: sigmaBot
+-- ANCHOR_END: SigmaBot
 
 /--
 Reynolds 의 `f⊥⊥` — 상태를 받는 함수를 `Σ⊥` 를 받도록 늘린 것.
@@ -253,7 +253,7 @@ Lean의 구조적 재귀 검사에 맞지 않는다는 컴파일 오류만 피�
 def restore {V : Type u} [DecidableEq V] (v : V) (σ : State V) : SigmaBot V → SigmaBot V :=
   Option.map fun σ' => σ'[v := σ v]
 
--- ANCHOR: isSemantics
+-- ANCHOR: IsSemantics
 /--
 명령의 의미 함수가 만족해야 할 조건. Reynolds §2.2 의 의미 방정식 여섯 개를 그대로 적었다.
 
@@ -270,7 +270,7 @@ def IsSemantics {V : Type u} [DecidableEq V] (m : Comm V → State V → SigmaBo
   ∧ (∀ b c₀ c₁ σ, m (.ite b c₀ c₁) σ = if ⟦b⟧ᵇ σ then m c₀ σ else m c₁ σ)
   ∧ (∀ b c σ, m (.wh b c) σ = if ⟦b⟧ᵇ σ then Option.bind (m c σ) (m (.wh b c)) else some σ)
   ∧ (∀ v e c σ, m (.newvar v e c) σ = restore v σ (m c (σ[v := ⟦e⟧ₑ σ])))
--- ANCHOR_END: isSemantics
+-- ANCHOR_END: IsSemantics
 
 /-! ## 4. 풀기 방정식은 뜻을 유일하게 정하지 못한다
 
@@ -348,7 +348,7 @@ theorem State.subst_eq_self {V : Type u} [DecidableEq V] (σ : State V) (v : V) 
     (h : σ v = n) : σ[v := n] = σ := by
   subst h; simp [State.subst_def]
 
--- ANCHOR: unwindingNotUnique
+-- ANCHOR: unwinding_not_unique
 /-- 한 걸음 간 상태. 네 갈래 계산에서 계속 쓴다. -/
 theorem decr_step (f : State String → SigmaBot String) (σ : State String) :
     Option.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
@@ -418,7 +418,7 @@ theorem unwinding_not_unique :
   simp only [decrTrue, decrFake, if_neg hne] at this
   -- `⊥ = some …` 은 성립할 수 없다.
   simp at this
--- ANCHOR_END: unwindingNotUnique
+-- ANCHOR_END: unwinding_not_unique
 
 /--
 `while tt do skip` 의 풀기 방정식은 `f σ = f σ` 로 줄어든다.

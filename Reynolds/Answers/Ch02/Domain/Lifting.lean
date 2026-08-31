@@ -12,38 +12,38 @@ public import Reynolds.Answers.Ch02.Domain.Flat
 /-!
 # §2.3 도메인과 연속 함수 (2) — 리프팅
 
-Reynolds §2.3 의 리프팅 `P⊥` 에 대응한다. `Semantics.lean` 의 `Σ⊥ = Option (State V)` 에
+Reynolds §2.3의 리프팅 `P⊥`에 대응한다. `Semantics.lean`의 `Σ⊥ = Option (State V)`에
 순서를 얹어 도메인으로 만드는 것이 목표다.
 
 ## 어떤 순서인가
 
-Reynolds 가 §2.3 끝에서 `Σ → Σ⊥` 의 순서를 이렇게 설명한다.
+Reynolds가 §2.3 끝에서 `Σ → Σ⊥`의 순서를 이렇게 설명한다.
 
-> `f ⊑ g` ⟺ 모든 `σ` 에 대해 `f σ = ⊥` 이거나 `f σ = g σ`.
+> `f ⊑ g` ⟺ 모든 `σ`에 대해 `f σ = ⊥`이거나 `f σ = g σ`.
 
-정보가 늘어나는 순서다. `g` 는 `f` 와 같은 결과를 주되 더 많은 초기 상태에서 종료할 수 있다.
-이 문장을 원소 하나 수준으로 내리면 `Σ⊥` 의 순서가 나온다.
+정보가 늘어나는 순서다. `g`는 `f`와 같은 결과를 주되 더 많은 초기 상태에서 종료할 수 있다.
+이 문장을 원소 하나 수준으로 내리면 `Σ⊥`의 순서가 나온다.
 
 ```
 x ⊑ y  ⟺  x = ⊥ 이거나 x = y
 ```
 
-`⊥` 만 모든 것 아래에 있고, 나머지는 서로 비교되지 않는다. 이런 도메인을
-**평평한 도메인(flat domain)** 이라고 부른다.
+`⊥`만 모든 것 아래에 있고, 나머지는 서로 비교되지 않는다. 이런 도메인을
+**평평한 도메인(flat domain)**이라고 부른다.
 
 ## 책과의 차이
 
-Reynolds 의 리프팅은 임의의 예비도메인 `P` 에 `⊥` 를 더하는 일반 구성이다. 여기서는
-`P` 의 순서를 쓰지 않는 판 — 집합을 이산(discrete)으로 보고 `⊥` 를 더하는 것 — 만 만든다.
-2장에서 실제로 쓰는 것이 `Σ⊥` 하나이고, `Σ` 에는 애초에 순서가 없기 때문이다.
+Reynolds의 리프팅은 임의의 프리도메인 `P`에 `⊥`를 더하는 일반 구성이다. 여기서는
+`P`의 순서를 쓰지 않는 판 — 집합을 이산(discrete)으로 보고 `⊥`를 더하는 것 — 만 만든다.
+2장에서 실제로 쓰는 것이 `Σ⊥` 하나이고, `Σ`에는 애초에 순서가 없기 때문이다.
 
-이 선택에는 이유가 하나 더 있다. `State V = V → Int` 에는 Mathlib 이 이미 점별 순서를
+이 선택에는 이유가 하나 더 있다. `State V = V → Int`에는 Mathlib이 이미 점별 순서를
 붙여 놓았다. 일반 리프팅을 `Option` 위의 인스턴스로 만들면 그 순서가 딸려 들어와서,
-`some σ₁ ⊑ some σ₂` 가 "상태끼리 점별로 비교" 라는 **엉뚱한 뜻**이 된다. 상태는 정보의
+`some σ₁ ⊑ some σ₂`가 "상태끼리 점별로 비교"라는 엉뚱한 뜻이 된다. 상태는 정보의
 조각이 아니라 결과 전체이므로 서로 비교되면 안 된다. 순서를 아예 받지 않는 평평한 정의가
 그 사고를 원천에서 막는다.
 
-Mathlib 의 `WithBot α` 도 같은 표현(`Option α`)에 순서를 얹지만, 안쪽 순서를 이어받는
+Mathlib의 `WithBot α`도 같은 표현(`Option α`)에 순서를 얹지만, 안쪽 순서를 이어받는
 쪽이라 여기서는 맞지 않는다.
 
 ## 읽는 순서
@@ -62,7 +62,7 @@ variable {α : Type u} {β : Type v}
 
 /-! ## 1. 평평한 순서 — 어디에 있나
 
-순서 인스턴스 자체는 `Domain/Flat.lean` 에 있다. `Option` 이 두 트리가 공유하는
+순서 인스턴스 자체는 `Domain/Flat.lean`에 있다. `Option`이 두 트리가 공유하는
 루트 타입이라, 인스턴스를 이 파일에 두면 연습 트리에 복제되면서 두 벌이 되기 때문이다
 (그쪽 파일 첫머리에 사정을 적어 두었다).
 
@@ -70,18 +70,18 @@ variable {α : Type u} {β : Type v}
 x ⊑ y  ⟺  x = ⊥ 이거나 x = y
 ```
 
-이 파일은 그 순서 위의 이야기 — 사슬이 멈춘다는 것과 리프팅이 예비도메인이라는 것 — 만 다룬다.
+이 파일은 그 순서 위의 이야기 — 사슬이 멈춘다는 것과 리프팅이 프리도메인이라는 것 — 만 다룬다.
 -/
 
 
 /-! ## 2. 평평한 사슬은 멈춘다
 
-평평한 순서에서 사슬이 할 수 있는 일이 별로 없다. `⊥` 에 머물다가, 한 번 값을 내면
+평평한 순서에서 사슬이 할 수 있는 일이 별로 없다. `⊥`에 머물다가, 한 번 값을 내면
 그 값에서 영원히 멈춘다. 값을 바꾸는 것은 순서가 허락하지 않는다.
 
 이 관찰이 리프팅의 모든 증명을 짧게 만든다. -/
 
-/-- 사슬이 한 번 `some a` 가 되면 그 뒤로는 계속 `some a` 다. -/
+/-- 사슬이 한 번 `some a`가 되면 그 뒤로는 계속 `some a`다. -/
 theorem Chain.flat_stabilizes {c : Chain (Option α)} {n : ℕ} {a : α}
     (h : c.seq n = some a) : ∀ m, n ≤ m → c.seq m = some a := by
   intro m hnm
@@ -92,16 +92,16 @@ theorem Chain.flat_stabilizes {c : Chain (Option α)} {n : ℕ} {a : α}
 -- ANCHOR: flatPredomain
 open Classical in
 /--
-`Σ⊥` 는 예비도메인이다 — 리프팅 구성의 본체.
+`Σ⊥`는 프리도메인이다 — 리프팅 구성의 본체.
 
-사슬의 극한은 둘 중 하나다. 끝까지 `⊥` 면 `⊥`, 어디선가 `some a` 가 나왔으면 그 `a` 다
-(뒤로는 값이 바뀔 수 없으므로 `a` 는 하나뿐이다).
+사슬의 극한은 둘 중 하나다. 끝까지 `⊥`면 `⊥`, 어디선가 `some a`가 나왔으면 그 `a`다
+(뒤로는 값이 바뀔 수 없으므로 `a`는 하나뿐이다).
 
-"어디선가 값이 나왔는가" 는 판정할 수 없는 물음이라 `Classical.choice` 로 고른다.
+"어디선가 값이 나왔는가"는 판정할 수 없는 물음이라 `Classical.choice`로 고른다.
 극한이 계산되지 않는 것은 결함이 아니라 주제 그 자체다 — 극한을 계산할 수 있다면
 정지 문제가 풀린다.
 
-(문서 주석이 선언에 직접 붙어야 해서 `open Classical in` 이 이 주석 앞에 있다.)
+(문서 주석이 선언에 직접 붙어야 해서 `open Classical in`이 이 주석 앞에 있다.)
 -/
 noncomputable instance flatPredomain : Predomain (Option α) where
   lub c :=
@@ -168,7 +168,7 @@ theorem Chain.flat_lub_mem_range (c : Chain (Option α)) : c.lub ∈ Set.range c
     rw [hl] at this
     simp at this
 
--- ANCHOR: monotoneContinuous
+-- ANCHOR: Monotone.continuous_of_lub_mem
 /--
 극한이 사슬 안에 있으면 단조 함수는 연속이다.
 
@@ -190,7 +190,7 @@ theorem Monotone.continuous_of_lub_mem [PartialOrder α] [PartialOrder β] [Pred
   · intro b hb
     obtain ⟨N, hN⟩ := hmem c
     exact hb ⟨c.seq N, ⟨N, rfl⟩, by rw [hN]⟩
--- ANCHOR_END: monotoneContinuous
+-- ANCHOR_END: Monotone.continuous_of_lub_mem
 
 /-- 평평한 도메인 판. `Σ⊥` 를 정의역으로 갖는 단조 함수는 전부 연속이다. -/
 theorem Monotone.flat_continuous [PartialOrder β] {f : Option α → β} (hf : Monotone f) :
@@ -217,7 +217,7 @@ theorem liftBot_none {V : Type u} (f : State V → SigmaBot V) : liftBot f none 
 theorem liftBot_some {V : Type u} (f : State V → SigmaBot V) (σ : State V) :
     liftBot f (some σ) = f σ := rfl
 
--- ANCHOR: prop24
+-- ANCHOR: liftBot_unique
 /--
 **명제 2.4 — `f⊥⊥` 는 `f` 의 유일한 순 확장이다.**
 
@@ -231,7 +231,7 @@ theorem liftBot_unique {V : Type u} {f : State V → SigmaBot V} {g : SigmaBot V
   cases x with
   | none => rw [hstrict]; rfl
   | some σ => rw [hext]; rfl
--- ANCHOR_END: prop24
+-- ANCHOR_END: liftBot_unique
 
 /-- `f⊥⊥` 는 단조다. 순이므로 자동이다 — `⊥ ⊑ x` 는 `⊥ = g ⊥ ⊑ g x` 로 넘어간다. -/
 theorem liftBot_monotone {V : Type u} (f : State V → SigmaBot V) : Monotone (liftBot f) := by
@@ -249,7 +249,7 @@ theorem liftBot_continuous {V : Type u} (f : State V → SigmaBot V) :
 `Σ⊥` 가 도메인이 되었다. 남은 것은 `Σ → Σ⊥` — 명령의 뜻이 실제로 사는 곳 — 이
 도메인이라는 사실이다. 점별 순서와 함수 공간을 `Domain/FunctionSpace.lean` 에서 만든다.
 
-그것까지 있으면 §2.4 에서 `while` 의 함수자
+그것까지 있으면 §2.4에서 `while`의 함수 연산자
 
 ```
 F(w) = fun σ => if ⟦b⟧ σ then ⟦c⟧ σ >>= w else some σ
