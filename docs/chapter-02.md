@@ -7,13 +7,16 @@
 
 ## 이 장의 위치
 
-1장에는 비종료가 없었다. 2장에서 `while`이 들어오는 순간 **의미 함수가 전함수(total function)로
-정의되지 않는다**. 이걸 해결하려고 Scott이 만든 것이 도메인 이론(domain theory)이고,
-Reynolds는 그 최소한만 §2.3–2.4에서 직접 만든다.
+1장에는 비종료가 없었다. 2장에서 `while`이 들어오면 모든 명령이 결과 상태를 내는 것은
+아니다. 의미 함수 자체는 `State V → SigmaBot V`인 전함수(total function)로 두고,
+`SigmaBot V = Option (State V)`의 `none`으로 결과가 없는 계산을 나타낸다. Reynolds는 이
+부분함수의 정보 순서와 극한을 다루기 위해 §2.3–2.4에서 도메인 이론(domain theory)을
+도입한다.
 
-이 장은 이 프로젝트에서 **가장 어렵고 가장 보람 있는 장**이다. 이유:
+Lean 형식화에서 따로 설명해야 할 지점은 다음 세 가지다.
 
-- Lean에서 `while`의 의미는 **계산 불가능**하다. `def`로 그냥 쓸 수 없다. 왜 그런지가 곧 §2.2의 논점이다.
+- Lean에서 `while`의 의미는 계산 가능한 `def`로 둘 수 없어 `noncomputable def`로 정의한다.
+  그 이유가 §2.2~2.4의 논점이다.
 - 최소 고정점 정리는 Lean에서 정말로 증명해야 한다. Reynolds의 세 단계 증명(사슬 → 고정점 → 최소)이
   그대로 세 개의 보조 정리가 된다.
 - §2.5의 별칭(aliasing) 반례는 Lean에서 **실행해서 확인**할 수 있다.
@@ -35,9 +38,12 @@ Reynolds는 그 최소한만 §2.3–2.4에서 직접 만든다.
 |---|---|---|
 | `Ch02/Syntax.lean` | §2.1 | `BoolExp`, `Comm` |
 | `Ch02/Notation.lean` | §2.1 | 명령 DSL `⟪ x := x - 1; y := y + x ⟫` |
-| `Ch02/Domain.lean` | §2.3 | `Chain`, `Predomain`, `Domain`, `Continuous`, 함수 공간, 리프팅 |
-| `Ch02/Fixpoint.lean` | §2.4 | 최소 고정점 정리, `Y`, Scott 귀납법 |
-| `Ch02/Semantics.lean` | §2.2, §2.4 | `BoolExp.eval`, `Comm.eval`, `while` |
+| `Ch02/Semantics.lean` | §2.2 | `BoolExp.eval`, 의미 방정식의 명세와 비유일성 |
+| `Ch02/Domain.lean` | §2.3 | `Chain`, `Predomain`, `Domain`, `Continuous` |
+| `Ch02/Domain/Lifting.lean` | §2.3 | 평평한 리프팅 `SigmaBot`의 도메인 구조 |
+| `Ch02/Domain/FunctionSpace.lean` | §2.3 | 전체 함수 공간과 연속 함수 공간 |
+| `Ch02/Fixpoint.lean` | §2.4 | 반복 사슬, 최소 고정점 정리, Scott 귀납법 |
+| `Ch02/Eval.lean` | §2.4 | `Comm.eval`과 `while`의 최소 고정점 의미 |
 | `Ch02/Interpreter.lean` | §2.4 | 연료 기반 해석기 `Comm.run` + 적합성(adequacy) |
 | `Ch02/FreeVars.lean` | §2.5 | `FV_comm`, `FA`, 명제 2.6 |
 | `Ch02/Substitution.lean` | §2.5 | 명령 치환, 별칭, 명제 2.7 · 2.8 |
@@ -169,30 +175,23 @@ Reynolds가 §2.2 전체를 들여 설명하는 논점. 반드시 Lean으로 재
 Reynolds의 두 반례를 Lean 정리로 만든다:
 
 ```lean
--- ANCHOR: unwindingNotUnique
+-- ANCHOR: unwinding_not_unique
 /--
-**풀기 방정식은 해를 유일하게 결정하지 않는다** — 반례 1.
+풀기 방정식은 해를 유일하게 결정하지 않는다.
 
-`while x ≠ 0 do x := x - 2` 의 풀기 방정식은
-`σx`가 짝수이고 음수일 때, 그리고 `σx`가 홀수일 때
-**아무 상태나 ⊥를 넣어도** 만족된다. Reynolds가 `σ'`, `σ''`라고 부른 것들이다.
-
-실제 뜻은 `σ' = σ'' = ⊥`인 해지만, **풀기 방정식만으로는 그걸 골라낼 수 없다.**
+`decrTrue`와 `decrFake`가 모두 해라는 두 보조정리와 둘이 다르다는 증거를 묶은 정리다.
+`x`가 1인 상태에서 하나는 `⊥`를, 다른 하나는 상태를 낸다.
 -/
+@[exercise "§2.2 unwinding-not-unique" 3]
 theorem unwinding_not_unique :
-    ∃ f g : State V → SigmaBot V, f ≠ g ∧ Unwinds f ∧ Unwinds g
-
-/--
-**반례 2 (더 극단적)** — `while true do skip` 의 풀기 방정식은
-`⟦while true do skip⟧ σ = ⟦while true do skip⟧ σ` 로 줄어들어
-**Σ → Σ⊥ 의 모든 함수**가 해가 된다.
--/
-theorem unwinding_trivial (f : State V → SigmaBot V) : Unwinds_true_skip f
--- ANCHOR_END: unwindingNotUnique
+    ∃ f g : State String → SigmaBot String,
+      UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g
+-- ANCHOR_END: unwinding_not_unique
 ```
 
-> **교육적으로 매우 중요**: 이 두 정리를 학습자가 직접 증명하면
-> "왜 도메인 이론이 필요한가"가 몸으로 이해된다. 별점 ★★ 로 배정한다.
+이 정리와 뒤의 `unwinding_trivial`은 풀기 방정식만으로 비종료 입력의 결과를 고를 수
+없음을 확인한다. 이 비유일성이 §2.3의 정보 순서와 §2.4의 최소 고정점을 도입하는 동기가
+된다.
 
 ---
 
@@ -288,78 +287,67 @@ theorem exists_monotone_not_continuous …
 
 ## §2.4 최소 고정점 정리
 
-### Reynolds의 세 단계를 그대로 세 보조 정리로
+### 반복 사슬과 최소 고정점
 
 ```lean
--- ANCHOR: lfp
-/-- 근사 열 `⊥, f⊥, f²⊥, …`. Reynolds §2.4의 `fⁿ⊥`. -/
-def approx [Domain D] (f : D → D) : ℕ → D
-  | 0     => ⊥
-  | n + 1 => f (approx f n)
+/-- 반복 사슬 `⊥ ⊑ F(⊥) ⊑ F²(⊥) ⊑ ⋯`. -/
+def iterChain {F : α → α} (hF : Monotone F) : Chain α :=
+  ⟨fun n => F^[n] ⊥, …⟩
 
-/-- **1단계** — `⊥ ⊑ f⊥ ⊑ f²⊥ ⊑ ⋯` 는 사슬이다.
-    `⊥ ⊑ f⊥` 는 자명하고, 나머지는 `f`의 단조성과 `n`에 대한 귀납법. -/
-@[exercise "Prop 2.5-1" 1]
-theorem approx_mono [Domain D] {f : D → D} (hf : Continuous f) : Monotone (approx f)
+/-- 반복 사슬의 극한. 단조성만으로는 아직 고정점이라고 할 수 없다. -/
+noncomputable def fix (F : α → α) (hF : Monotone F) : α :=
+  (iterChain hF).lub
 
-/-- **2단계** — `x = ⨆ₙ fⁿ⊥` 는 `f`의 고정점이다.
-    `f`의 연속성으로 `f(⨆ fⁿ⊥) = ⨆ fⁿ⁺¹⊥` 이고, 사슬 앞에 ⊥를 붙여도 상한이 안 변한다. -/
-@[exercise "Prop 2.5-2" 2]
-theorem lfp_isFixed …
+/-- 연속인 `F`에서는 반복 사슬의 극한이 고정점이다. -/
+@[exercise "§2.4 fix-eq" 3]
+theorem fix_eq {F : α → α} (hF : Continuous F) :
+    F (fix F hF.monotone) = fix F hF.monotone
 
-/-- **3단계** — `x`는 **최소** 고정점이다.
-    `f y = y` 라 하자. `⊥ ⊑ y` 이고 `fⁿ⊥ ⊑ y → fⁿ⁺¹⊥ ⊑ f y = y`. 귀납법으로 `y`는 상계.
+/-- 반복 사슬의 극한은 모든 전고정점 아래에 있다. -/
+@[exercise "§2.4 fix-least" 2]
+theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
+    fix F hF ≤ x
 
-    Reynolds의 주석: 사실 `f y ⊑ y` 만으로 충분하다. 즉 `x`는
-    **최소 전(pre)고정점**이기도 하다. 이 강한 형태를 증명해 둔다 —
-    §2.5·§2.8의 증명에서 쓰인다. -/
-@[exercise "Prop 2.5-3" 2]
-theorem lfp_le_of_le …
-
-/-- **명제 2.5 (최소 고정점 정리)** — 위 셋을 합친 것. -/
-theorem lfp_isLeast [Domain D] {f : D → D} (hf : Continuous f) :
-    IsLeast {x | f x = x} (Predomain.lub ⟨approx f, approx_mono hf⟩)
-
-/-- `Y_D` — 연속 함수를 그 최소 고정점으로 보내는 함수. -/
-noncomputable def Y [Domain D] (f : D →𝒸 D) : D := …
-
-/-- `Y_D` 자체가 연속이다. Reynolds: *"It can also be shown that Y_D itself is a
-    continuous function."* — 책은 증명하지 않는다. 우리는 한다. -/
-@[exercise "§2.4 Y-연속" 3]
-theorem Y_continuous …
--- ANCHOR_END: lfp
+/-- 연속인 `F`에 대해 위 두 결과를 합친 형태. -/
+theorem fix_isLeast {F : α → α} (hF : Continuous F) {x : α} (hx : F x = x) :
+    F (fix F hF.monotone) = fix F hF.monotone ∧ fix F hF.monotone ≤ x
 ```
 
-### Scott 귀납법 (핵심 인프라 — 학습자에게 제공)
+`fix`는 단조 함수에도 정의된다. 그 값이 고정점이라는 결론에는 `fix_eq`의 연속성 가정이
+필요하다. `fix_least`는 더 강하게 `F x ≤ x`인 모든 전고정점(pre-fixed point) 아래에
+`fix F hF`가 있음을 보인다. 두 정리를 합쳐야 Reynolds의 최소 고정점 `Y_D F`에 해당한다.
 
-Reynolds는 명시하지 않지만, §2.5의 명제 2.6·2.7과 §2.8의 완전 추상성을 Lean에서 증명하려면
-**고정점에 대한 귀납 원리**가 반드시 필요하다. 이걸 완전 증명된 채로 제공한다.
+### Scott 귀납법
+
+Reynolds는 이 절에서 이름 붙이지 않지만, 뒤의 `while` 관련 성질을 반복 근사에서 극한으로
+옮길 때 고정점에 대한 귀납 원리를 사용할 수 있다. 이 파일은 그 원리를 정리로 제공한다.
 
 ```lean
 /--
-**Scott 귀납법(fixed-point induction)**.
+**Scott 귀납법(Scott induction).**
 
-`P`가 **허용 가능(admissible)** 하면 — 즉 `P ⊥` 이고 `P`가 사슬 극한에서 닫혀 있으면 —
-`(∀x, P x → P (f x))` 로부터 `P (Y f)` 를 얻는다.
+여기서 **허용 가능(admissible)** 하다는 말은 `P`가 사슬 극한에서 닫혀 있다는 뜻이다.
+`P ⊥`는 허용 가능성의 일부가 아니라 별도로 필요한 시작 가정이다. 이 둘과
+`∀ x, P x → P (F x)`를 합치면 `P (fix F hF)`를 얻는다.
 
 책에는 없다. 하지만 Reynolds가 §2.5에서 `while`이 든 명령에 대해 하는
 비형식적 논증("근사 명령 wₙ에 대해 성립하므로 극한에서도 성립한다")은 정확히 이 원리다.
 Lean에서는 그 논증을 이렇게 명시적으로 만들어야 한다.
 -/
-theorem scott_induction [Domain D] {f : D → D} (hf : Continuous f)
-    {P : D → Prop} (hbot : P ⊥)
-    (hlub : ∀ c : Chain D, (∀ n, P (c.seq n)) → P (Predomain.lub c))
-    (hstep : ∀ x, P x → P (f x)) : P (Y ⟨f, hf⟩)
+@[exercise "§2.4 scott" 2]
+theorem scott_induction {F : α → α} (hF : Monotone F) {P : α → Prop}
+    (hadm : ∀ c : Chain α, (∀ n, P (c.seq n)) → P c.lub)
+    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF)
 ```
 
 ### `while`의 의미
 
 ```lean
--- ANCHOR: whileSem
+-- ANCHOR: Comm.eval
 /--
 `⟦while b do c⟧` — Reynolds §2.4의 의미 방정식 (2.4).
 
-    ⟦while b do c⟧ = Y (F)   where  F f σ = if ⟦b⟧ σ then f⊥⊥(⟦c⟧ σ) else σ
+    ⟦while b do c⟧ = fix F   where  F w σ = if ⟦b⟧ σ then ⟦c⟧ σ >>= w else some σ
 
 **"믿음의 도약(leap of faith)"**: 왜 하필 **최소** 해인가?
 Reynolds는 증명할 수 없다고 인정한다 — `while`의 다른 엄밀한 정의가 없기 때문이다.
@@ -368,16 +356,18 @@ Reynolds는 증명할 수 없다고 인정한다 — `while`의 다른 엄밀한
     w₀     = while true do skip          (절대 종료하지 않음, 즉 ⊥)
     wₙ₊₁   = if b then (c ; wₙ) else skip
 
-이면 `⟦wₙ⟧ = Fⁿ⊥` 이고, `while b do c`가 `b`를 정확히 n번 검사한 뒤 종료한다면
-`i > n`인 모든 `wᵢ`가 같은 결과를 낸다. 따라서 `⟦while b do c⟧ = ⨆ₙ ⟦wₙ⟧ = ⨆ₙ Fⁿ⊥ = Y F`.
+이면 `⟦wₙ⟧ = Fⁿ(⊥)`이다. 본체를 `k`번 실행하고 다음 조건 검사에서 종료하는 계산은
+`wₖ₊₁`에서 처음 포착되며, 모든 `i ≥ k + 1`에서 같은 결과를 낸다. 따라서
+`⟦while b do c⟧ = ⨆ₙ ⟦wₙ⟧ = ⨆ₙ Fⁿ(⊥) = fix F`로 둔다.
 
-**이 프로젝트의 핵심 설계**: `wₙ`은 우리의 **연료 기반 해석기**(`Interpreter.lean`)와
-정확히 같은 것이다. 즉 연료 해석기는 편법이 아니라 Reynolds의 논증 그 자체다.
+`Comm.run n`도 유한 근사에서 착안하지만, 모든 중첩 `while`의 풀기 깊이를 같은 `n`으로
+제한한다. 따라서 중첩 반복이 있는 일반 명령에서는 바깥 반복의 `Fⁿ(⊥)`와 단계마다 같은
+함수가 아니다. 아래 적합성 정리는 단계별 등식 대신 종료 결과 전체의 일치를 보인다.
 -/
 noncomputable def Comm.eval : Comm V → State V → SigmaBot V
-  | .wh b c, σ => Y ⟨whileF b (Comm.eval c), whileF_continuous …⟩ σ
+  | .wh b c => fix (whileF b c.eval) (whileF_monotone b c.eval)
   | …
--- ANCHOR_END: whileSem
+-- ANCHOR_END: Comm.eval
 
 /-- Reynolds 연습문제 2.4 — `F`가 연속임을 증명하라. **의미 정의가 성립하려면 필수**이므로
     Answers에서는 제공하고, Exercises에서 다시 풀게 한다. -/
@@ -385,40 +375,42 @@ noncomputable def Comm.eval : Comm V → State V → SigmaBot V
 theorem whileF_continuous …
 ```
 
-### 실행 가능한 해석기 — 이 프로젝트를 "돌아가는 것"으로 만드는 부분
+### 실행 가능한 해석기
 
 ```lean
--- ANCHOR: run
+-- ANCHOR: Comm.run
 /--
-연료(fuel) 기반 해석기. Reynolds §2.4의 근사 명령 `wₙ` 을 그대로 구현한 것이다.
+연료(fuel) 기반 해석기. 모든 `while`의 재귀적인 풀기 깊이에 유한한 상한을 준다.
 
-`c.run n σ = none` 은 두 가지를 뜻할 수 있다: 정말 발산하거나, 연료가 모자라거나.
-그 둘은 `Comm.run_mono` 와 `Comm.eval_eq_run` 으로 구분된다.
+`c.run n σ = none`은 두 가지를 뜻할 수 있다. 실제로 발산하거나, 연료가 모자랄 수 있다.
+`Comm.run_le_succ`는 연료를 늘려 얻은 결과가 사라지지 않음을 보이고,
+`Comm.eval_eq_run`은 어떤 유한 연료에서 결과가 나오는 경우를 표시적 의미와 연결한다.
 
-**이게 있어야 `#eval`이 된다.** 표시적 의미는 계산 불가능하지만,
-학습자는 프로그램을 실제로 돌려보고 싶다.
+표시적 의미는 직접 계산할 수 없지만 `Comm.run`은 `#eval`과 `#guard`에서 실행할 수 있다.
 
-    #eval (⟪ y := 1; while x > 0 do (y := y × x; x := x - 1) ⟫).run 100 (fun _ => 5)
+    #eval (⟪ y := 1; while x > 0 do (y := y × x; x := x - 1) ⟫ᶜ).run 100 (fun _ => 5)
     -- some (…)   x ↦ 0, y ↦ 120
 -/
 def Comm.run : Comm V → ℕ → State V → Option (State V)
-  | _,       0,     _ => none                     -- w₀ = while true do skip
-  | .wh b c, n + 1, σ => if b.eval σ then (c.run n σ) >>= (Comm.wh b c).run n else some σ
+  | .assign v e,   _, σ => some (σ[v := ⟦e⟧ₑ σ])
   | …
--- ANCHOR_END: run
+  | .wh _ _,       0, _ => none
+  | .wh b c,   n + 1, σ =>
+      if ⟦b⟧ᵇ σ then Option.bind (c.run (n + 1) σ) ((Comm.wh b c).run n) else some σ
+-- ANCHOR_END: Comm.run
 
-/-- 연료를 늘리면 결과가 나빠지지 않는다. `Σ → Σ⊥` 의 순서로 말하면 `run n ⊑ run (n+1)`. -/
-theorem Comm.run_mono : Monotone (fun n => c.run n)
+/-- 연료를 늘리면 결과가 나빠지지 않는다. `Σ → Σ⊥`의 순서로 말하면 `run n ⊑ run (n+1)`. -/
+theorem Comm.run_le_succ : ∀ (c : Comm V) (n : ℕ) (σ : State V),
+    c.run n σ ≤ c.run (n + 1) σ
 
 /--
 **적합성(adequacy)** — 표시적 의미와 해석기가 일치한다.
 
     ⟦c⟧ σ = some σ'  ↔  ∃ n, c.run n σ = some σ'
 
-이 정리가 이 장의 **가장 중요한 다리**다. 왼쪽은 증명용, 오른쪽은 실행용이고,
-둘이 같다는 것을 커널이 보증한다. 증명은 `while` 케이스에서 Scott 귀납법을 쓴다.
+왼쪽은 증명용, 오른쪽은 실행용이다. 증명의 완전성 방향은 `while` 케이스에서 Scott
+귀납법을 사용한다.
 -/
-@[exercise "§2.4 적합성" 3]
 theorem Comm.eval_eq_run : c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ'
 ```
 
@@ -428,10 +420,10 @@ theorem Comm.eval_eq_run : c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ'
 /--
 Reynolds §2.4의 비자명한 예:
 
-    Fⁿ⊥ σ = if 0 ≤ σx ≤ n then σ[x := 0][y := σy + σx×(σx-1)÷2] else ⊥
+    Fⁿ⊥ σ = if 0 ≤ σx < n then σ[x := 0][y := σy + σx×(σx-1)÷2] else ⊥
 
 `n`에 대한 귀납법. 책의 계산을 그대로 옮기면 되고, 산술은 `omega`가 처리한다.
-그 다음 극한을 취해 `⟦while x ≠ 0 do (x := x-1; y := y+x)⟧` 를 닫힌 꼴로 얻는다.
+그다음 극한을 취해 `⟦while x ≠ 0 do (x := x-1; y := y+x)⟧`를 닫힌 꼴로 얻는다.
 -/
 @[exercise "§2.4 예제" 3]
 theorem approx_example …
