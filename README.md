@@ -183,6 +183,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.4 연료 해석기와 적합성 | [`Interpreter.lean`](./Reynolds/Answers/Ch02/Interpreter.lean) | [#17](../../pull/17) | [`ch02-s04b`](../../tree/ch02-s04b) |
 | §2.5 자유 변수와 명제 2.6 | [`FreeVars.lean`](./Reynolds/Answers/Ch02/FreeVars.lean) | [#21](../../pull/21) | [`ch02-s05a`](../../tree/ch02-s05a) |
 | §2.5 치환 · 별칭 · 지역 변수 이름 바꾸기 | [`Substitution.lean`](./Reynolds/Answers/Ch02/Substitution.lean) | [#22](../../pull/22) | [`ch02-s05b`](../../tree/ch02-s05b) |
+| §2.6 `for` 명령과 세 가지 결함 | [`Sugar.lean`](./Reynolds/Answers/Ch02/Sugar.lean) | [#23](../../pull/23) | [`ch02-s06a`](../../tree/ch02-s06a) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
