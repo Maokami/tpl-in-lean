@@ -691,6 +691,49 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.5 치환과 별칭
+    (
+        "Ch02/Substitution.lean",
+        "theorem substitution_boolExp :",
+        "-- ANCHOR_END: boolSubst",
+        """theorem substitution_boolExp :
+    ∀ (b : BoolExp V) (δ : Subst V) (σ σ' : State V),
+      (∀ w ∈ b.fv, σ w = ⟦δ w⟧ₑ σ') → ⟦b /ᵇ δ⟧ᵇ σ' = ⟦b⟧ᵇ σ := by
+  -- 먼저 볼 것: 1장 `substitution_intExp` 의 완성 증명. 절마다 그것을 이어 붙인다.
+  -- 힌트: `cmp` 케이스에서 두 식에 각각 `substitution_intExp` 를 쓴다.
+  --       나머지는 `not`/`bin` 의 귀납 가설이다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Substitution.lean",
+        "theorem Comm.subst_id",
+        "-- ANCHOR_END: substId",
+        """theorem Comm.subst_id [HasFresh V] : ∀ c : Comm V, c /ᶜ id = c := by
+  -- 힌트 1: 구조적 귀납. `skip`, `newvar` 분기는 `«skip»`, `«newvar»` 로 쓴다.
+  -- 힌트 2: `Ren.toSubst_id` 로 `id.toSubst = IntExp.var` 를 얻고,
+  --         `subst_var_intExp` · `BoolExp.subst_var` 로 식·불 식을 처리한다.
+  -- 힌트 3: `newvar` 케이스 — 피해야 할 집합이 `Finset.image_id` 로 `FV(c) \\ {v}` 가
+  --         되어 `v` 가 안전하다. 새 결합자가 `v` 그대로임을 보이고,
+  --         `Function.update id v v = id` 를 함수 외연성으로 확인한 뒤 귀납 가설을 쓴다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Substitution.lean",
+        "theorem swap_ok",
+        "-- ANCHOR_END: swap",
+        """theorem swap_ok (σ : State String) :
+    ∃ τ, swap.eval σ = some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
+  -- 힌트: `while` 이 없으므로 `swap.eval σ` 는 정의 등식만으로 `some _` 까지 계산된다.
+  --       첫 성분은 `rfl` 로 두고, 남는 두 등식을
+  --       `simp [IntExp.eval, State.subst_def, Function.update]` 로 닫는다.
+  sorry
+
+""",
+    ),
 ]
 
 
