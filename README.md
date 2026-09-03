@@ -137,9 +137,10 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 완전성과 괴델, 이름을 다루는 세 가지 방식(de Bruijn · locally nameless), 동적 결합이
 이름 바꾸기를 깨뜨리는 이야기.
 
-2장 문서는 현재 구현된 §2.1~§2.4를 다룬다. `while`의 의미 방정식에서 시작해 도메인과
-연속성, 최소 고정점, 연료 해석기와 적합성까지 한 흐름으로 이어진다. §2.5~§2.8은 설계만
-있고 아직 구현되지 않았으므로 문서에서도 완료된 내용처럼 다루지 않는다.
+2장 Verso 문서는 §2.1~§2.4를 다룬다. `while`의 의미 방정식에서 시작해 도메인과
+연속성, 최소 고정점, 연료 해석기와 적합성까지 한 흐름으로 이어진다. 코드는 §2.5(자유
+변수·치환·별칭)까지 나가 있고, 문서 확장은 뒤따라간다. §2.6~§2.8은 아직 설계만 있으므로
+문서에서도 완료된 내용처럼 다루지 않는다.
 
 ---
 
@@ -181,6 +182,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.4 최소 고정점 정리와 `while`의 뜻 | [`Fixpoint.lean`](./Reynolds/Answers/Ch02/Fixpoint.lean) · [`Eval.lean`](./Reynolds/Answers/Ch02/Eval.lean) | [#16](../../pull/16) | [`ch02-s04a`](../../tree/ch02-s04a) |
 | §2.4 연료 해석기와 적합성 | [`Interpreter.lean`](./Reynolds/Answers/Ch02/Interpreter.lean) | [#17](../../pull/17) | [`ch02-s04b`](../../tree/ch02-s04b) |
 | §2.5 자유 변수와 명제 2.6 | [`FreeVars.lean`](./Reynolds/Answers/Ch02/FreeVars.lean) | [#21](../../pull/21) | [`ch02-s05a`](../../tree/ch02-s05a) |
+| §2.5 치환 · 별칭 · 지역 변수 이름 바꾸기 | [`Substitution.lean`](./Reynolds/Answers/Ch02/Substitution.lean) | [#22](../../pull/22) | [`ch02-s05b`](../../tree/ch02-s05b) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 

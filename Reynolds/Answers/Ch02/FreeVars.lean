@@ -43,7 +43,7 @@ Reynolds §2.5 전반부에 대응한다. 치환과 별칭(aliasing)은 다음 �
   어느 단계에서 이미 결정되어 있으므로, 극한끼리의 주장이 한 단계끼리의 주장으로 내려온다.
 
 ## 읽는 순서
-`Interpreter.lean` → 이 파일 → `Substitution2.lean` (다음 PR, 치환과 별칭)
+`Interpreter.lean` → 이 파일 → `Substitution.lean` (치환과 별칭)
 -/
 
 @[expose] public section
