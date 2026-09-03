@@ -315,9 +315,10 @@ theorem Comm.run_complete {c : Comm V} :
 `⟦-⟧ᶜ`의 결과가 된다. 반대로 표시적 의미에서 증명한 종료 결과는 충분한 연료의 `run`에서
 재현된다. 이 정리는 `none`에 관한 임의의 성질까지 옮긴다고 주장하지 않는다.
 
-채점 연습이 아니다 — 증명이 Scott 귀납법과 `fix_eq` 위에 서 있어서, 비우면 비운 것끼리
-의존한다 (연습 독립성 원칙). 완전성 방향의 Scott 귀납법 적용을 완성본으로 읽는 것이
-이 파일의 목적이다.
+채점 연습이 아니다 — 이 정리의 증명은 `Comm.run_sound`와 `Comm.run_complete`에
+의존한다. 두 보조 정리까지 함께 비우면 한 연습이 다른 미완성 증명에 의존하게 된다
+(연습 독립성 원칙). 완전성 방향의 Scott 귀납법 적용을 완성본으로 읽는 것이 이 파일의
+목적이다.
 -/
 theorem Comm.eval_eq_run {c : Comm V} {σ σ' : State V} :
     c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ' := by
