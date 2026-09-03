@@ -661,6 +661,36 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.5 자유 변수
+    (
+        "Ch02/FreeVars.lean",
+        "theorem Comm.fa_subset_fv",
+        "-- ANCHOR_END: faSubset",
+        """theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
+  -- 힌트 1: 구조적 귀납. `skip` 과 `newvar` 분기는 `«skip»`, `«newvar»` 로 쓴다.
+  -- 힌트 2: `Finset.union_subset`, `Finset.subset_union_left/right`,
+  --         `Finset.erase_subset_erase` 를 `le_trans` 로 잇는다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FreeVars.lean",
+        "theorem AgreeOn.admissible",
+        "-- ANCHOR_END: agreeAdmissible",
+        """theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
+    {σ σ' : State V} (h : ∀ n, AgreeOn S (d.seq n σ) (d.seq n σ')) :
+    AgreeOn S (d.lub σ) (d.lub σ') := by
+  -- 먼저 볼 것: `Chain.flat_lub_mem_range` 와 `Chain.flat_stabilizes`. 둘 다 완성되어 있다.
+  -- 힌트 1: `Chain.lub_apply` 로 점별 극한으로 바꾸고, 왼쪽 극한을 `rcases` 로 나눈다.
+  -- 힌트 2: `⊥` 갈래 — 모든 단계가 `⊥` 였다는 것을 `le_lub` + `le_none_iff` 로 끌어내고,
+  --         단계별 일치로 오른쪽도 전부 `⊥` 임을 보인다.
+  -- 힌트 3: 상태 갈래 — 두 극한의 결정 시점 `k`, `k'` 를 얻고, `max k k'` 단계에서
+  --         `flat_stabilizes` 로 두 극한값을 함께 읽는다.
+  sorry
+
+""",
+    ),
 ]
 
 

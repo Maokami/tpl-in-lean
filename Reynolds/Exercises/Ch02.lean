@@ -14,6 +14,7 @@ public import Reynolds.Exercises.Ch02.Domain.FunctionSpace
 public import Reynolds.Exercises.Ch02.Fixpoint
 public import Reynolds.Exercises.Ch02.Eval
 public import Reynolds.Exercises.Ch02.Interpreter
+public import Reynolds.Exercises.Ch02.FreeVars
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -35,6 +36,7 @@ public import Reynolds.Exercises.Ch02.Interpreter
 7. `Fixpoint.lean` — §2.4 반복 사슬과 최소 고정점 정리
 8. `Eval.lean` — §2.4 `while`의 표시적 의미
 9. `Interpreter.lean` — §2.4 연료 해석기와 적합성
+10. `FreeVars.lean` — §2.5 자유 변수 두 종류와 명제 2.6
 
 ## 책과의 차이
 
