@@ -859,6 +859,48 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.8 문맥과 완전 추상성
+    (
+        "Ch02/FullAbstraction.lean",
+        "theorem Ctx.fill_congr",
+        "-- ANCHOR_END: fillCongr",
+        """theorem Ctx.fill_congr (C : Ctx V) {c c' : Comm V} (h : c.eval = c'.eval) :
+    (C.fill c).eval = (C.fill c').eval := by
+  -- 먼저 볼 것: 바로 위 `Comm.eval_wh_congr` (완성되어 있다). `wh` 절이 그것을 쓴다.
+  -- 힌트 1: 문맥에 대한 구조적 귀납. `newvar` 분기는 `«newvar»` 로 쓴다.
+  -- 힌트 2: `wh` 를 뺀 각 절은 `funext σ` 뒤에 `change` 로 그 생성자의 의미 방정식을
+  --         펼치고 귀납 가설을 `rw` 하면 끝난다 (`Option.bind`, `if`, `restore`).
+  -- 힌트 3: `wh` 절만 `fix` 를 지나므로 `Comm.eval_wh_congr` 가 필요하다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FullAbstraction.lean",
+        "theorem eval_diverge",
+        "-- ANCHOR_END: diverge",
+        """theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
+  -- 힌트 1: 이 반복의 함수 연산자는 항등 함수다 — `whileF tru ⟦skip⟧ w = w` 가 `rfl` 로 된다.
+  -- 힌트 2: 그러면 `⊥` 가 전고정점이므로 `fix_least` 가 `⟦diverge⟧ ≤ ⊥` 를 준다.
+  --         사슬을 펼칠 필요가 없다.
+  -- 힌트 3: 함수 공간의 `≤` 는 점별이므로 그 부등식을 `σ` 에 적용한 뒤 `simpa`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FullAbstraction.lean",
+        "theorem obsEq_imp_eval_eq",
+        "-- ANCHOR_END: obsComplete",
+        """theorem obsEq_imp_eval_eq [Inhabited V] {c c' : Comm V} (h : ObsEq c c') : c.eval = c'.eval := by
+  -- 힌트 1: 빈 문맥(`Ctx.hole`) 하나면 충분하다. `funext σ` 로 상태를 고정한다.
+  -- 힌트 2: 두 결과를 `rcases h1 : c.eval σ with _ | τ` 로 네 갈래로 나눈다.
+  -- 힌트 3: 한쪽만 발산하는 갈래는 아무 변수(`default`)에서 `none` 과 `some _` 로 갈린다.
+  --         둘 다 종료하는 갈래는 모든 변수에서 값이 같으므로 `funext` 로 상태가 같다.
+  sorry
+
+""",
+    ),
 ]
 
 

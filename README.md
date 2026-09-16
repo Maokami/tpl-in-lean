@@ -186,6 +186,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.6 `for` 명령과 세 가지 결함 | [`Sugar.lean`](./Reynolds/Answers/Ch02/Sugar.lean) | [#23](../../pull/23) | [`ch02-s06a`](../../tree/ch02-s06a) |
 | §2.6 판본 3 의 정확 반복 정리 | [`Sugar2.lean`](./Reynolds/Answers/Ch02/Sugar2.lean) | [#24](../../pull/24) | [`ch02-s06b`](../../tree/ch02-s06b) |
 | §2.7 산술 오류와 0 으로 나누기 | [`ArithErrors.lean`](./Reynolds/Answers/Ch02/ArithErrors.lean) | [#25](../../pull/25) | [`ch02-s07`](../../tree/ch02-s07) |
+| §2.8 문맥 · 관찰 · 완전 추상성 | [`FullAbstraction.lean`](./Reynolds/Answers/Ch02/FullAbstraction.lean) | [#26](../../pull/26) | [`ch02-s08a`](../../tree/ch02-s08a) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
