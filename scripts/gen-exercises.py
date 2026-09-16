@@ -812,6 +812,53 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.7 산술 오류
+    (
+        "Ch02/ArithErrors.lean",
+        "theorem AComm.eval_assign_overwrite",
+        "-- ANCHOR_END: deadAssign",
+        """theorem AComm.eval_assign_overwrite (A : ZeroDivision) (v : V) (d e : AExp V)
+    (h : v ∉ e.fv) (σ : State V) :
+    (AComm.seq (.assign v d) (.assign v e)).eval A σ = (AComm.assign v e).eval A σ := by
+  -- 먼저 볼 것: 바로 위 `AExp.coincidence` (완성되어 있다).
+  -- 힌트 1: `change` 로 양변을 상태 갱신까지 펼친다. `while` 이 없어 전함수라 `Option` 이 없다.
+  -- 힌트 2: `e` 의 값이 `v` 를 덮어쓴 상태에서도 같음을 일치 정리로 보인다.
+  --         `u ∈ e.fv` 이면 `u ≠ v` (가정 `h` 때문) 이므로 `State.subst_of_ne`.
+  -- 힌트 3: 같은 자리에 두 번 대입한 것은 한 번 대입한 것과 같다.
+  --         `simp [State.subst_def, Function.update_idem]`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/ArithErrors.lean",
+        "theorem AExp.not_indep_div_zero",
+        "-- ANCHOR_END: notIndep",
+        """theorem AExp.not_indep_div_zero (v : V) : ¬ (AExp.div (.var v) (.num 0) : AExp V).Indep := by
+  -- 힌트: `Indep` 은 "어떤 두 선택에서도 같다" 이므로, 다른 값을 내는 선택 둘을 들이대면 된다.
+  --       `⟨fun _ => 0, fun _ => 0⟩` 과 `⟨fun _ => 1, fun _ => 0⟩`, 상태는 `State.const 0`.
+  --       `simp [AExp.eval] at` 으로 `0 = 1` 을 끌어내면 끝난다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/ArithErrors.lean",
+        "theorem AExp.eval_leanChoice",
+        "-- ANCHOR_END: leanChoice",
+        """theorem AExp.eval_leanChoice (e₀ e₁ : AExp V) (σ : State V) :
+    (AExp.div e₀ e₁).eval .leanChoice σ
+        = e₀.eval .leanChoice σ / e₁.eval .leanChoice σ
+      ∧ (AExp.rem e₀ e₁).eval .leanChoice σ
+        = e₀.eval .leanChoice σ % e₁.eval .leanChoice σ := by
+  -- 힌트 1: 제수가 0 인지로 나눈다 (`by_cases h : e₁.eval (V := V) .leanChoice σ = 0`).
+  -- 힌트 2: 0 이 아니면 선택이 아예 안 쓰인다 — `simp only [AExp.eval, if_neg h]`.
+  -- 힌트 3: 0 이면 Lean 의 규약이 드러난다. `Int.ediv_zero` (`a / 0 = 0`) 와
+  --         `Int.emod_zero` (`a % 0 = a`) 가 `ZeroDivision.leanChoice` 의 선택과 맞물린다.
+  sorry
+
+""",
+    ),
 ]
 
 

@@ -185,6 +185,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.5 치환 · 별칭 · 지역 변수 이름 바꾸기 | [`Substitution.lean`](./Reynolds/Answers/Ch02/Substitution.lean) | [#22](../../pull/22) | [`ch02-s05b`](../../tree/ch02-s05b) |
 | §2.6 `for` 명령과 세 가지 결함 | [`Sugar.lean`](./Reynolds/Answers/Ch02/Sugar.lean) | [#23](../../pull/23) | [`ch02-s06a`](../../tree/ch02-s06a) |
 | §2.6 판본 3 의 정확 반복 정리 | [`Sugar2.lean`](./Reynolds/Answers/Ch02/Sugar2.lean) | [#24](../../pull/24) | [`ch02-s06b`](../../tree/ch02-s06b) |
+| §2.7 산술 오류와 0 으로 나누기 | [`ArithErrors.lean`](./Reynolds/Answers/Ch02/ArithErrors.lean) | [#25](../../pull/25) | [`ch02-s07`](../../tree/ch02-s07) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
