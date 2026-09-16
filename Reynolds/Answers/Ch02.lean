@@ -16,6 +16,7 @@ public import Reynolds.Answers.Ch02.Eval
 public import Reynolds.Answers.Ch02.Interpreter
 public import Reynolds.Answers.Ch02.FreeVars
 public import Reynolds.Answers.Ch02.Substitution
+public import Reynolds.Answers.Ch02.Sugar
 
 /-!
 # 2장 «단순 명령형 언어» — 완성본 (Answers)
@@ -39,6 +40,7 @@ public import Reynolds.Answers.Ch02.Substitution
 9. `Interpreter.lean` — §2.4 연료 해석기와 적합성
 10. `FreeVars.lean` — §2.5 자유 변수 두 종류와 명제 2.6
 11. `Substitution.lean` — §2.5 명령의 치환, 별칭, 지역 변수 이름 바꾸기
+12. `Sugar.lean` — §2.6 `for` 명령과 세 가지 결함
 
 ## 책과의 차이
 

@@ -734,6 +734,42 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.6 for 명령과 결함
+    (
+        "Ch02/Sugar.lean",
+        "theorem forV1_leaks :",
+        "-- ANCHOR_END: forV1Leaks",
+        """theorem forV1_leaks :
+    ∃ (σ τ : State String),
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = some τ ∧ τ "i" ≠ σ "i" := by
+  -- 먼저 볼 것: `Comm.run_sound` (연료 실행이 표시적 의미와 일치).
+  -- 힌트 1: 증인은 `σ := State.const 0`. `for i := 1 to 1 do skip` 은 한 바퀴 돌고
+  --         i 를 2 로 남긴다.
+  -- 힌트 2: `run 2 (State.const 0) = some _` 를 `simp [forV1, forWhile, forBody, incr,
+  --         Comm.run, BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool]` 로 계산하고,
+  --         `Comm.run_sound` 로 옮긴 뒤 `τ "i" ≠ σ "i"` 를 `decide` 로 닫는다.
+  --         (`run` 은 정의 등식으로만 풀린다 — `rfl` 로는 안 된다.)
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Sugar.lean",
+        "theorem forV2_diverges",
+        "-- ANCHOR_END: forV2Diverges",
+        """theorem forV2_diverges (v : V) (σ : State V) :
+    (forV2 v (.num 1) (.var v) .skip).eval σ = none := by
+  -- 먼저 볼 것: `Comm.run_complete` (표시적으로 종료하면 어떤 연료로 실행된다).
+  -- 힌트 1: 안쪽 while 이 어떤 연료·상태에서도 `none` 임을 연료 귀납으로 보인다.
+  --         조건 `v ≤ v` 는 언제나 참(`by_cases` 후 항상 참 쪽만 남는다).
+  -- 힌트 2: 한 바퀴는 본체가 `some (σ'[v := σ' v + 1])` 을 내고 남은 루프로 넘어간다.
+  --         `rw [forWhile, Comm.run]` 로 한 스텝 풀고 귀납 가설을 쓴다.
+  -- 힌트 3: 표시적 의미가 `none` 임을 `Comm.run_complete` 의 대우로 얻고,
+  --         `newvar` 의 복원이 `none` 을 통과시킨다 (`change` 로 펼친 뒤 `simp [restore]`).
+  sorry
+
+""",
+    ),
 ]
 
 
