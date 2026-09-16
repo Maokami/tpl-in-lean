@@ -770,6 +770,48 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.6 정확 반복
+    (
+        "Ch02/Sugar2.lean",
+        "theorem forWhile_eq_fold",
+        "-- ANCHOR_END: forWhileEqFold",
+        """theorem forWhile_eq_fold (v w : V) (c : Comm V)
+    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) :
+    ∀ (m : Nat) (σ : State V), (σ w - σ v + 1).toNat = m →
+      (forWhile v (.var w) c).eval σ = forFold v c m σ := by
+  -- 먼저 볼 것: `Comm.eval_isSemantics` 의 `wh` 절과 `Comm.eval_agree_outside_fa` (명제 2.6(b)).
+  -- 힌트 1: 보조 등식 셋을 `have` 로 깔아 두면 본 증명이 짧아진다. 셋 다 `rfl` 로 된다.
+  --         (a) while 한 바퀴 펼치기 — `Comm.eval_isSemantics.2.2.2.2.1 _ _ σ`
+  --         (b) 조건의 값 — `⟦cmp le (var v) (var w)⟧ᵇ σ = decide (σ v ≤ σ w)`
+  --         (c) 본체 — `⟦forBody v c⟧ᶜ σ = Option.bind (⟦c⟧ᶜ σ) fun σ'' => some σ''[v := σ'' v + 1]`
+  -- 힌트 2: `m` 에 대한 귀납. `σ` 는 `intro m` 뒤에 남겨 두어야 귀납 가설이 다음 상태에 쓰인다.
+  -- 힌트 3: `if` 는 `if_pos`/`if_neg` 로 가른다. 조건이 `decide _ = true` 꼴이라
+  --         `(by simp [hle])` / `(by simp [hgt])` 로 증거를 만든다. 두 부등식은 `omega`.
+  -- 힌트 4: 한 바퀴 뒤 `σ'' v = σ v` 와 `σ'' w = σ w` 를 `eval_agree_outside_fa` 로 얻고,
+  --         다음 상태의 측도가 `n` 임을 `State.subst_self` · `State.subst_of_ne` · `omega` 로 보인다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Sugar2.lean",
+        "theorem forV3_broken_by_assigning_control",
+        "-- ANCHOR_END: broken",
+        """theorem forV3_broken_by_assigning_control :
+    "i" ∈ doublingBody.fa ∧
+      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = some τ
+        ∧ τ "s" = 2 := by
+  -- 힌트 1: 첫 성분은 `simp [doublingBody, Comm.fa]`.
+  -- 힌트 2: 둘째 성분은 연료 8 로 실행한 뒤 `Comm.run_sound` 로 옮긴다.
+  --         결과 상태를 손으로 적지 않으려면 `Option.map` 으로 `s` 만 뽑아
+  --         `(run 8 _).map (fun σ => σ "s") = some 2` 를 `simp [...]` 로 계산하고,
+  --         `Option.map_eq_some_iff` 로 상태를 되찾는다.
+  -- 힌트 3: simp 인자에 `forV3, forWhile, forBody, incr, doublingBody, Comm.run, restore,`
+  --         `BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, State.const` 를 준다.
+  sorry
+
+""",
+    ),
 ]
 
 
