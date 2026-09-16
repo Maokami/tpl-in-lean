@@ -18,6 +18,7 @@ public import Reynolds.Exercises.Ch02.FreeVars
 public import Reynolds.Exercises.Ch02.Substitution
 public import Reynolds.Exercises.Ch02.Sugar
 public import Reynolds.Exercises.Ch02.Sugar2
+public import Reynolds.Exercises.Ch02.ArithErrors
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -43,6 +44,7 @@ public import Reynolds.Exercises.Ch02.Sugar2
 11. `Substitution.lean` — §2.5 명령의 치환, 별칭, 지역 변수 이름 바꾸기
 12. `Sugar.lean` — §2.6 `for` 명령과 세 가지 결함
 13. `Sugar2.lean` — §2.6 판본 3 의 정확 반복 정리
+14. `ArithErrors.lean` — §2.7 산술 오류와 0 으로 나누기
 
 ## 책과의 차이
 
