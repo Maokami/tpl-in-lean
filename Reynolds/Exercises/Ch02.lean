@@ -25,6 +25,7 @@ public import Reynolds.Exercises.Ch02.Ex
 public import Reynolds.Exercises.Ch02.Ex.Decr
 public import Reynolds.Exercises.Ch02.Ex.Unwind
 public import Reynolds.Exercises.Ch02.Ex.Aliasing
+public import Reynolds.Exercises.Ch02.Ex.SubstWeak
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -57,6 +58,7 @@ public import Reynolds.Exercises.Ch02.Ex.Aliasing
 18. `Ex/Decr.lean` — 책 연습 2.3 (`while x ≠ 0 do x := x-2` 의 닫힌 꼴)
 19. `Ex/Unwind.lean` — 책 연습 2.5 (본체를 두 배로 늘려도 같다)
 20. `Ex/Aliasing.lean` — 책 연습 2.6 · 2.7 (순서 교환, 별칭에 안전한 계승)
+21. `Ex/SubstWeak.lean` — 책 연습 2.8 (명제 2.7 의 조건 약화)
 
 ## 책과의 차이
 

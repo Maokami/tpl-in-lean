@@ -1101,6 +1101,32 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.8
+    (
+        "Ch02/Ex/SubstWeak.lean",
+        "theorem Comm.substitution_weak",
+        "-- ANCHOR_END: substWeak",
+        """theorem Comm.substitution_weak [HasFresh V] :
+    ∀ (c : Comm V) (δ : Ren V) (S : Finset V), c.fv ⊆ S →
+      (∀ u ∈ c.fa, ∀ w ∈ S, δ u = δ w → u = w) →
+      ∀ σ σ' : State V, (∀ w ∈ S, σ w = σ' (δ w)) →
+      AgreeVia δ S (c.eval σ) ((c /ᶜ δ).eval σ') := by
+  -- 먼저 볼 것: §2.5 의 `Comm.substitution_general` 을 곁에 두고 비교하며 쓴다.
+  --            뼈대가 같고 **두 자리만** 다르다. 그리고 바로 위 `Comm.fa_subst_subset`.
+  -- 힌트 1: `assign` 절 — 대입되는 `v` 가 `FA` 에 있으므로 약한 조건이 그대로 쓰인다.
+  --         `hinj v (by simp [Comm.fa]) w hw` 의 방향에 주의한다 (`.symm` 이 두 번 필요하다).
+  -- 힌트 2: `seq`·`ite`·`wh` 절은 조건을 부분 명령으로 좁혀 넘기기만 하면 된다.
+  --         `FA(c₀) ⊆ FA(c₀; c₁)` 이고 `FA(while b c) = FA(c)` 다.
+  -- 힌트 3: `newvar` 절의 `hinj'` — 결합자 `v` 쪽은 새 결합자 `vn` 의 신선함
+  --         (`Comm.newBinder_ne`) 이 지켜 주고, 나머지는 바깥 조건을 `erase v` 로 좁혀 쓴다.
+  -- 힌트 4: `newvar` 절의 `hfa'` 가 **이 연습의 핵심**이다. §2.5 의 증명은 여기서
+  --         `(c /ᶜ δ).fa ⊆ (c /ᶜ δ).fv ⊆ (FV c).image δ` 로 올라가 버려 `FV` 위의
+  --         단사성을 요구했다. 그 어림이 너무 거칠다 — `Comm.fa_subst_subset` 을 쓰면
+  --         `FA` 위의 단사성만 있으면 된다.
+  sorry
+
+""",
+    ),
 ]
 
 
