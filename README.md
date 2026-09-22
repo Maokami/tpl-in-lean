@@ -138,9 +138,10 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 이름 바꾸기를 깨뜨리는 이야기.
 
 2장 Verso 문서는 §2.1~§2.4를 다룬다. `while`의 의미 방정식에서 시작해 도메인과
-연속성, 최소 고정점, 연료 해석기와 적합성까지 한 흐름으로 이어진다. 코드는 §2.5(자유
-변수·치환·별칭)까지 나가 있고, 문서 확장은 뒤따라간다. §2.6~§2.8은 아직 설계만 있으므로
-문서에서도 완료된 내용처럼 다루지 않는다.
+연속성, 최소 고정점, 연료 해석기와 적합성까지 한 흐름으로 이어진다. **코드는 2장 본문
+전체(§2.1~§2.8)가 끝나 있고**, 문서 확장이 뒤따라간다 — §2.5(자유 변수·치환·별칭),
+§2.6(`for`와 구문 설탕), §2.7(산술 오류), §2.8(완전 추상성)은 아직 코드와 docstring 으로
+읽어야 한다.
 
 ---
 
@@ -187,6 +188,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.6 판본 3 의 정확 반복 정리 | [`Sugar2.lean`](./Reynolds/Answers/Ch02/Sugar2.lean) | [#24](../../pull/24) | [`ch02-s06b`](../../tree/ch02-s06b) |
 | §2.7 산술 오류와 0 으로 나누기 | [`ArithErrors.lean`](./Reynolds/Answers/Ch02/ArithErrors.lean) | [#25](../../pull/25) | [`ch02-s07`](../../tree/ch02-s07) |
 | §2.8 문맥 · 관찰 · 완전 추상성 | [`FullAbstraction.lean`](./Reynolds/Answers/Ch02/FullAbstraction.lean) | [#26](../../pull/26) | [`ch02-s08a`](../../tree/ch02-s08a) |
+| §2.8 관찰의 선택과 세 등식 | [`FullAbstraction2.lean`](./Reynolds/Answers/Ch02/FullAbstraction2.lean) | [#27](../../pull/27) | [`ch02-s08b`](../../tree/ch02-s08b) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
