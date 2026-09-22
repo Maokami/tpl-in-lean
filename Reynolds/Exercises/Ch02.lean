@@ -23,6 +23,7 @@ public import Reynolds.Exercises.Ch02.FullAbstraction
 public import Reynolds.Exercises.Ch02.FullAbstraction2
 public import Reynolds.Exercises.Ch02.Ex
 public import Reynolds.Exercises.Ch02.Ex.Decr
+public import Reynolds.Exercises.Ch02.Ex.Unwind
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -53,6 +54,7 @@ public import Reynolds.Exercises.Ch02.Ex.Decr
 16. `FullAbstraction2.lean` — §2.8 관찰의 선택과 세 등식
 17. `Ex.lean` — 책 연습 2.1 · 2.2
 18. `Ex/Decr.lean` — 책 연습 2.3 (`while x ≠ 0 do x := x-2` 의 닫힌 꼴)
+19. `Ex/Unwind.lean` — 책 연습 2.5 (본체를 두 배로 늘려도 같다)
 
 ## 책과의 차이
 

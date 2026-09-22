@@ -1023,6 +1023,45 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.5
+    (
+        "Ch02/Ex/Unwind.lean",
+        "theorem while_eq_dblBody",
+        "-- ANCHOR_END: unwindTwice",
+        """theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
+    (Comm.wh b c).eval = (Comm.wh b (dblBody b c)).eval := by
+  -- 이 장에서 가장 어려운 연습이다. 두 방향의 성격이 전혀 다르다.
+  -- 먼저 볼 것: 연습 2.2(c) (`repeatEval_eq_repeatSugar`) — 쉬운 쪽이 그것과 같은 모양이다.
+  --
+  -- 준비: `set s := c.eval`, `set W := (Comm.wh b c).eval`,
+  --       `set W2 := (Comm.wh b (dblBody b c)).eval` 로 이름을 줄이고,
+  --       두 반복의 한 바퀴 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ σ` 로 꺼낸다.
+  --       늘린 본체의 뒷부분 `h σ' = if ⟦b⟧ᵇ σ' then s σ' else some σ'` 도 이름을 준다
+  --       (`(dblBody b c).eval σ = Option.bind (s σ) h` 는 `rfl` 이다).
+  --
+  -- 힌트 1 (`⊒`, 쉬운 쪽): `W` 가 **늘린** 반복의 풀기 방정식을 만족함을 보이면
+  --         `fix_least` 가 끝낸다. `Option.bind_assoc` 로 두 번 훑는 것을 펴고,
+  --         조건이 참인 갈래에서 `hW` 를 한 번 더 쓴다.
+  --
+  -- 힌트 2 (`⊑`, 어려운 쪽): 같은 수를 쓰면 **순환에 빠진다.** `fix_least` 로 환원하면
+  --         증명하려던 것이 다시 나온다. 근사열을 직접 따라가야 한다.
+  -- 힌트 3: 상계를 하나 만든다.
+  --           `U σ = if ⟦b⟧ᵇ σ then Option.bind (s σ) W2 else W2 σ`
+  --         "조건이 참이면 본체를 한 번만 돌고 나머지는 `W2` 에 맡긴다" 는 함수다.
+  -- 힌트 4: 보조 등식 둘을 먼저 세운다.
+  --           (C) `Option.bind ((dblBody b c).eval σ) W2 = Option.bind (s σ) U`
+  --           (D) `Option.bind (h σ) U = W2 σ`
+  --         둘 다 조건으로 갈래를 나누는 계산이고, (D) 가 귀납을 굴리는 연료다.
+  -- 힌트 5: `∀ n, (whileF b ((dblBody b c).eval))^[n] ⊥ ≤ U` 를 `n` 에 대해 귀납한다.
+  --         `Function.iterate_succ_apply'` 로 한 겹 벗기고, 귀납 가설을
+  --         `Option.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
+  --         **귀납 가설을 다른 상태에서 쓴다**는 것이 요점이다.
+  -- 힌트 6: 극한은 `Chain.lub_le` 로 올린다. 그러면 `W2 ≤ U` 이고,
+  --         거기서 `W2` 가 원래 반복의 전고정점임이 나와 `fix_least` 가 끝낸다.
+  sorry
+
+""",
+    ),
 ]
 
 

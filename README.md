@@ -191,6 +191,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.8 관찰의 선택과 세 등식 | [`FullAbstraction2.lean`](./Reynolds/Answers/Ch02/FullAbstraction2.lean) | [#27](../../pull/27) | [`ch02-s08b`](../../tree/ch02-s08b) |
 | 연습 2.1 · 2.2 | [`Ex.lean`](./Reynolds/Answers/Ch02/Ex.lean) | [#28](../../pull/28) | [`ch02-ex01-ex02`](../../tree/ch02-ex01-ex02) |
 | 연습 2.3 | [`Ex/Decr.lean`](./Reynolds/Answers/Ch02/Ex/Decr.lean) | [#29](../../pull/29) | [`ch02-ex03`](../../tree/ch02-ex03) |
+| 연습 2.5 | [`Ex/Unwind.lean`](./Reynolds/Answers/Ch02/Ex/Unwind.lean) | [#30](../../pull/30) | [`ch02-ex05`](../../tree/ch02-ex05) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
