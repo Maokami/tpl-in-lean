@@ -7,6 +7,8 @@ import VersoManual
 import Manual.Ch02.SyntaxSemantics
 import Manual.Ch02.Domain
 import Manual.Ch02.Fixpoint
+import Manual.Ch02.FreeVarsSubst
+import Manual.Ch02.Sugar
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -64,7 +66,7 @@ file := "ch02-order"
 number := false
 %%%
 
-현재 구현된 §2.1~§2.4는 다음 순서로 읽는다.
+2장 본문은 다음 순서로 읽는다.
 
 1. `Syntax.lean` — §2.1 불 식과 명령의 추상 구문
 2. `Notation.lean` — §2.1 명령을 Lean 안에서 쓰는 DSL
@@ -75,10 +77,19 @@ number := false
 7. `Fixpoint.lean` — §2.4 반복 사슬과 최소 고정점 정리
 8. `Eval.lean` — §2.4 최소 고정점으로 정의한 `Comm.eval`
 9. `Interpreter.lean` — §2.4 연료 해석기와 적합성
+10. `FreeVars.lean` — §2.5 자유 변수 두 종류와 명제 2.6
+11. `Substitution.lean` — §2.5 명령의 치환, 별칭, 지역 변수 이름 바꾸기
+12. `Sugar.lean` — §2.6 `for` 명령과 세 가지 결함
+13. `Sugar2.lean` — §2.6 판본 3의 정확 반복 정리
+14. `ArithErrors.lean` — §2.7 산술 오류와 0으로 나누기
+15. `FullAbstraction.lean` — §2.8 문맥, 관찰, 완전 추상성
+16. `FullAbstraction2.lean` — §2.8 관찰의 선택과 세 등식
+
+그 뒤로 `Ex.lean`과 `Ex/` 아래에 책 연습 2.1~2.10이 있다.
 
 전부 `Reynolds/Answers/Ch02/` 아래에 있고, `Reynolds/Exercises/Ch02/`에는 같은 선언
-순서에서 채울 자리만 `sorry`로 비어 있다. §2.5~§2.8의 파일은 설계 문서에는 있지만 아직
-구현되지 않았다. 이 문서는 현재 코드가 있는 §2.4까지만 다룬다.
+순서에서 채울 자리만 `sorry`로 비어 있다. 이 문서는 §2.1~§2.6까지 다룬다. §2.7과 §2.8은
+코드와 docstring으로 읽는다.
 
 # 1장에서 2장으로 넘어가는 한 줄
 %%%
@@ -105,3 +116,7 @@ number := false
 {include 1 Manual.Ch02.Domain}
 
 {include 1 Manual.Ch02.Fixpoint}
+
+{include 1 Manual.Ch02.FreeVarsSubst}
+
+{include 1 Manual.Ch02.Sugar}
