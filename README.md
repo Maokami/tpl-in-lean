@@ -194,6 +194,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | 연습 2.5 | [`Ex/Unwind.lean`](./Reynolds/Answers/Ch02/Ex/Unwind.lean) | [#30](../../pull/30) | [`ch02-ex05`](../../tree/ch02-ex05) |
 | 연습 2.6 · 2.7 | [`Ex/Aliasing.lean`](./Reynolds/Answers/Ch02/Ex/Aliasing.lean) | [#31](../../pull/31) | [`ch02-ex06-ex07`](../../tree/ch02-ex06-ex07) |
 | 연습 2.8 | [`Ex/SubstWeak.lean`](./Reynolds/Answers/Ch02/Ex/SubstWeak.lean) | [#32](../../pull/32) | [`ch02-ex08`](../../tree/ch02-ex08) |
+| 연습 2.9 · 2.10 | [`Ex/ForRange.lean`](./Reynolds/Answers/Ch02/Ex/ForRange.lean) · [`Ex/DoTwice.lean`](./Reynolds/Answers/Ch02/Ex/DoTwice.lean) | [#33](../../pull/33) | [`ch02-ex09-ex10`](../../tree/ch02-ex09-ex10) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 

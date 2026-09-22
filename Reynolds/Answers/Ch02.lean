@@ -26,6 +26,8 @@ public import Reynolds.Answers.Ch02.Ex.Decr
 public import Reynolds.Answers.Ch02.Ex.Unwind
 public import Reynolds.Answers.Ch02.Ex.Aliasing
 public import Reynolds.Answers.Ch02.Ex.SubstWeak
+public import Reynolds.Answers.Ch02.Ex.ForRange
+public import Reynolds.Answers.Ch02.Ex.DoTwice
 
 /-!
 # 2장 «단순 명령형 언어» — 완성본 (Answers)
@@ -59,6 +61,8 @@ public import Reynolds.Answers.Ch02.Ex.SubstWeak
 19. `Ex/Unwind.lean` — 책 연습 2.5 (본체를 두 배로 늘려도 같다)
 20. `Ex/Aliasing.lean` — 책 연습 2.6 · 2.7 (순서 교환, 별칭에 안전한 계승)
 21. `Ex/SubstWeak.lean` — 책 연습 2.8 (명제 2.7 의 조건 약화)
+22. `Ex/ForRange.lean` — 책 연습 2.9 (구간 밖으로 안 나가는 `for`)
+23. `Ex/DoTwice.lean` — 책 연습 2.10 (`dotwice` 디슈가링의 유효성)
 
 ## 책과의 차이
 
