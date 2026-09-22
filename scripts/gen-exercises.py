@@ -1127,6 +1127,45 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.9 · 2.10
+    (
+        "Ch02/Ex/ForRange.lean",
+        "theorem forV4_eval_eq_forV3",
+        "-- ANCHOR_END: forV4Eq",
+        """theorem forV4_eval_eq_forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
+    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) (hwe₀ : w ∉ e₀.fv) (σ : State V) :
+    (forV4 v w e₀ e₁ c).eval σ = (forV3 v w e₀ e₁ c).eval σ := by
+  -- 먼저 볼 것: 바로 위 보조정리 셋(`forWhileLt_eq_fold`, `forFold_succ_back`,
+  --            `restore_bind_incr`)과 §2.6 의 `forV3_eq_fold`.
+  -- 힌트 1: 오른쪽은 `forV3_eq_fold` 가 이미 푼다. 왼쪽의 `newvar` 두 겹을
+  --         `Comm.eval_isSemantics.2.2.2.2.2` 로 펴고 `w ∉ FV(e₀)` 로 초기값을 맞춘다.
+  -- 힌트 2: 안쪽 상태에서 `v` 는 `⟦e₀⟧σ`, `w` 는 `⟦e₁⟧σ` 다
+  --         (`State.subst_self`, `State.subst_of_ne`). 조건이 `⟦e₀⟧σ ≤ ⟦e₁⟧σ` 로 읽힌다.
+  -- 힌트 3: 구간이 차 있으면 보조정리 A 가 루프를 `(b-a).toNat` 번으로 세고,
+  --         보조정리 B 가 판본 3 의 마지막 바퀴를 떼어 내어 모양을 맞춘다.
+  --         `(b-a).toNat + 1 = (b-a+1).toNat` 은 `omega` 다.
+  -- 힌트 4: 남는 차이는 **마지막 증가 하나**뿐이고 `restore_bind_incr` 이 그것을 지운다.
+  -- 힌트 5: 구간이 비면 `(b-a+1).toNat = 0` 이라 양쪽 다 본문을 안 돈다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Ex/DoTwice.lean",
+        "theorem SComm.desugar_eval",
+        "-- ANCHOR_END: desugarEval",
+        """theorem SComm.desugar_eval : ∀ s : SComm V, s.desugar.eval = s.eval := by
+  -- 힌트 1: 구문에 대한 구조적 귀납. `skip`·`newvar` 분기는 `«skip»`, `«newvar»` 로 쓴다.
+  -- 힌트 2: 각 절은 `funext σ` 뒤 `change` 로 그 생성자의 의미 방정식을 펴고
+  --         귀납 가설을 `rw` 하면 끝난다.
+  -- 힌트 3: `wh` 절만 `fix` 를 지난다. 본체의 뜻을 바꿔 끼우는 것이고,
+  --         §2.8 의 `Comm.eval_wh_congr` 와 같은 자리다 — `change` 뒤 `rw [ih]`.
+  -- 힌트 4: `dotwice` 절이 요점이다. 복제된 두 자리가 **같은 부분항**에서 왔으므로
+  --         귀납 가설 하나를 두 번 쓴다.
+  sorry
+
+""",
+    ),
 ]
 
 
