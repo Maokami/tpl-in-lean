@@ -21,6 +21,7 @@ public import Reynolds.Exercises.Ch02.Sugar2
 public import Reynolds.Exercises.Ch02.ArithErrors
 public import Reynolds.Exercises.Ch02.FullAbstraction
 public import Reynolds.Exercises.Ch02.FullAbstraction2
+public import Reynolds.Exercises.Ch02.Ex
 
 /-!
 # 2장 «단순 명령형 언어» — 연습 (Exercises)
@@ -49,6 +50,7 @@ public import Reynolds.Exercises.Ch02.FullAbstraction2
 14. `ArithErrors.lean` — §2.7 산술 오류와 0 으로 나누기
 15. `FullAbstraction.lean` — §2.8 문맥·관찰·완전 추상성
 16. `FullAbstraction2.lean` — §2.8 관찰의 선택과 세 등식
+17. `Ex.lean` — 책 연습 2.1 · 2.2
 
 ## 책과의 차이
 

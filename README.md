@@ -189,6 +189,7 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 | §2.7 산술 오류와 0 으로 나누기 | [`ArithErrors.lean`](./Reynolds/Answers/Ch02/ArithErrors.lean) | [#25](../../pull/25) | [`ch02-s07`](../../tree/ch02-s07) |
 | §2.8 문맥 · 관찰 · 완전 추상성 | [`FullAbstraction.lean`](./Reynolds/Answers/Ch02/FullAbstraction.lean) | [#26](../../pull/26) | [`ch02-s08a`](../../tree/ch02-s08a) |
 | §2.8 관찰의 선택과 세 등식 | [`FullAbstraction2.lean`](./Reynolds/Answers/Ch02/FullAbstraction2.lean) | [#27](../../pull/27) | [`ch02-s08b`](../../tree/ch02-s08b) |
+| 연습 2.1 · 2.2 | [`Ex.lean`](./Reynolds/Answers/Ch02/Ex.lean) | [#28](../../pull/28) | [`ch02-ex01-ex02`](../../tree/ch02-ex01-ex02) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
 
