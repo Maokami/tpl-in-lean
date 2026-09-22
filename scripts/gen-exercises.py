@@ -1062,6 +1062,45 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.6 · 2.7
+    (
+        "Ch02/Ex/Aliasing.lean",
+        "theorem seq_comm",
+        "-- ANCHOR_END: seqComm",
+        """theorem seq_comm (c₀ c₁ : Comm V)
+    (h₀ : ∀ w ∈ c₀.fv, w ∉ c₁.fa) (h₁ : ∀ w ∈ c₀.fa, w ∉ c₁.fv) :
+    (Comm.seq c₀ c₁).eval = (Comm.seq c₁ c₀).eval := by
+  -- 먼저 볼 것: §2.5 의 명제 2.6 **두 부분 모두** —
+  --            `Comm.coincidence_general` (a) 와 `Comm.eval_agree_outside_fa` (b).
+  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 `Option.bind` 로 펴고, 두 결과를 네 갈래로 나눈다.
+  -- 힌트 2: 한쪽만 발산하는 갈래가 핵심이다. (b) 로 "다른 쪽을 지나도 내 자유 변수는
+  --         그대로" 를 얻고, (a) 로 "그러므로 결과가 같다" 를 얻는다. `AgreeOn` 이
+  --         `none` 과 `some` 을 가르므로 모순이 나온다.
+  -- 힌트 3: 둘 다 끝나는 갈래는 `funext w` 로 변수마다 따진다. 세 경우다 —
+  --         `w ∈ FA(c₀)`, `w ∈ FA(c₁)`, 둘 다 아님. 첫 둘은 `Comm.fa_subset_fv` 로
+  --         `FV` 로 올린 뒤 (a) 를 쓰고, 마지막은 (b) 를 양쪽에 쓴다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Ex/Aliasing.lean",
+        "theorem fact_alias_safe_vs_naive",
+        "-- ANCHOR_END: fact",
+        """theorem fact_alias_safe_vs_naive :
+    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 6)
+      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 0) := by
+  -- 먼저 볼 것: 바로 위 `factNaive_alias_eq` 와 `factSafe_alias_eq` (둘 다 `rfl` 로 완성되어 있다).
+  -- 힌트 1: 그 둘로 치환을 손으로 쓴 프로그램으로 바꾼 뒤 계산한다.
+  -- 힌트 2: `while` 이 있으므로 `run` 으로 계산하고 `Comm.run_sound` 로 옮긴다.
+  --         안전한 판은 연료 4, 순진한 판은 연료 2 면 끝난다.
+  -- 힌트 3: 결과 상태를 손으로 적지 않으려면 `Option.map` 으로 `z` 만 뽑아
+  --         `(run n _).map (fun σ => σ "z") = some k` 를 `simp` 로 계산하고,
+  --         `Option.map_eq_some_iff` 로 상태를 되찾는다.
+  sorry
+
+""",
+    ),
 ]
 
 
