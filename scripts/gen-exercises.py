@@ -963,6 +963,45 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.1 · 2.2
+    (
+        "Ch02/Ex.lean",
+        "theorem simulAssign_eval",
+        "-- ANCHOR_END: simulAssign",
+        """theorem simulAssign_eval (v\u2080 v\u2081 t : V) (e\u2080 e\u2081 : IntExp V)
+    (ht : t \u2209 e\u2080.fv) (htv\u2080 : t \u2260 v\u2080) (htv\u2081 : t \u2260 v\u2081) (\u03c3 : State V) :
+    (simulAssign v\u2080 v\u2081 t e\u2080 e\u2081).eval \u03c3
+      = some ((\u03c3[v\u2080 := \u27e6e\u2080\u27e7\u2091 \u03c3])[v\u2081 := \u27e6e\u2081\u27e7\u2091 \u03c3]) := by
+  -- \ud78c\ud2b8 1: `t` \ub97c \uae54\uc544\ub3c4 `e\u2080` \uc758 \uac12\uc740 \uadf8\ub300\ub85c\ub2e4 \u2014 1\uc7a5 `coincidence_intExp` \uacfc `t \u2209 FV(e\u2080)`.
+  -- \ud78c\ud2b8 2: \ub2f4\uc544 \ub454 \uac12\uc740 `t \u2260 v\u2080` \ub355\ubd84\uc5d0 `v\u2080` \ub300\uc785\uc744 \uc9c0\ub098\ub3c4 \uadf8\ub300\ub85c\ub2e4
+  --         (`State.subst_of_ne`, `State.subst_self`).
+  -- \ud78c\ud2b8 3: `newvar` \uc640 `seq` \uc640 `assign` \uc758 \uc758\ubbf8 \ubc29\uc815\uc2dd\uc744 `Comm.eval_isSemantics` \uc5d0\uc11c \uafbc\ub0b8\ub2e4.
+  -- \ud78c\ud2b8 4: \ub9c8\uc9c0\ub9c9\uc740 \ubcf5\uc6d0\uc774\ub2e4. `t` \uc5d0 \ub300\ud55c \uac31\uc2e0\uc744 `Function.update_comm` \uc73c\ub85c \uc55e\uc73c\ub85c
+  --         \uc62e\uae34 \ub4a4 `Function.update_idem` \uacfc `Function.update_eq_self` \ub85c \uc0c1\uc1c4\ud55c\ub2e4.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/Ex.lean",
+        "theorem repeatEval_eq_repeatSugar",
+        "-- ANCHOR_END: repeatEquiv",
+        """theorem repeatEval_eq_repeatSugar (b : BoolExp V) (c : Comm V) :
+    repeatEval b c = (repeatSugar b c).eval := by
+  -- \uc774 \uc7a5\uc5d0\uc11c \uac00\uc7a5 \ubcfc \ub9cc\ud55c \uc5f0\uc2b5\uc774\ub2e4. \ucd5c\uc18c\uc131\uc744 \uc591\ucabd\uc5d0\uc11c \ud55c \ubc88\uc529 \uc4f4\ub2e4.
+  -- \uba3c\uc800 \ubcfc \uac83: `fix_least` \uc640 `fix_eq`, \uadf8\ub9ac\uace0 \ubc14\ub85c \uc704 `repeatEval_unwind`.
+  -- \ud78c\ud2b8 1: `le_antisymm` \uc73c\ub85c \ub450 \ubc29\ud5a5\uc744 \ub098\ub208\ub2e4.
+  -- \ud78c\ud2b8 2: `\u2291` \u2014 \uc124\ud0d5 \ucabd \ud568\uc218\uac00 **`repeat` \uc758** \ud480\uae30 \ubc29\uc815\uc2dd\uc744 \ub9cc\uc871\ud568\uc744 \ubcf4\uc774\uba74
+  --         `repeatF` \uc5d0 \ub300\ud55c `fix_least` \uac00 \uacf1\ubc14\ub85c \uc900\ub2e4.
+  -- \ud78c\ud2b8 3: `\u2292` \u2014 \uc774\ubc88\uc5d0\ub294 `while` \ucabd \ucd5c\uc18c\uc131\uc744 \uc4f4\ub2e4. \ud6c4\ubcf4\ub294
+  --         `fun \u03c3' => if \u27e6b\u27e7\u1d47 \u03c3' then some \u03c3' else repeatEval b c \u03c3'` \uc774\uace0,
+  --         \uadf8\uac83\uc774 `whileF (\u00acb) \u27e6c\u27e7` \uc758 \uace0\uc815\uc810\uc784\uc744 \ubcf4\uc774\uba74 \ub41c\ub2e4.
+  -- \ud78c\ud2b8 4: \uc591\ucabd \ubaa8\ub450 \uc870\uac74\uc774 \ucc38\uc778 \uac08\ub798\uc640 \uac70\uc9c3\uc778 \uac08\ub798\uc5d0\uc11c \ub450 \ubc29\uc815\uc2dd\uc774 \uc11c\ub85c\ub97c \uba54\uc6b4\ub2e4.
+  --         `⟦¬b⟧ᵇ σ = !(⟦b⟧ᵇ σ)` \ub294 `rfl` \uc774\ub2e4.
+  sorry
+
+""",
+    ),
 ]
 
 
