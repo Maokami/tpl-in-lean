@@ -24,6 +24,7 @@ public import Reynolds.Answers.Ch02.FullAbstraction2
 public import Reynolds.Answers.Ch02.Ex
 public import Reynolds.Answers.Ch02.Ex.Decr
 public import Reynolds.Answers.Ch02.Ex.Unwind
+public import Reynolds.Answers.Ch02.Ex.Aliasing
 
 /-!
 # 2장 «단순 명령형 언어» — 완성본 (Answers)
@@ -55,6 +56,7 @@ public import Reynolds.Answers.Ch02.Ex.Unwind
 17. `Ex.lean` — 책 연습 2.1 · 2.2
 18. `Ex/Decr.lean` — 책 연습 2.3 (`while x ≠ 0 do x := x-2` 의 닫힌 꼴)
 19. `Ex/Unwind.lean` — 책 연습 2.5 (본체를 두 배로 늘려도 같다)
+20. `Ex/Aliasing.lean` — 책 연습 2.6 · 2.7 (순서 교환, 별칭에 안전한 계승)
 
 ## 책과의 차이
 
