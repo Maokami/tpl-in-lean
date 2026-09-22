@@ -1002,6 +1002,27 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책 연습 2.3
+    (
+        "Ch02/Ex/Decr.lean",
+        "theorem decrLoop_eval_of_halts",
+        "-- ANCHOR_END: decrHalting",
+        """theorem decrLoop_eval_of_halts :
+    ∀ (σ : State String), decrHalts σ → decrLoop.eval σ = some (σ["x" := (0 : Int)]) := by
+  -- 먼저 볼 것: 바로 위 `unwindsDecr_eval` (완성본) 과 §2.2 의 `decrHalts_step`,
+  --            `decr_step`, `State.subst_subst`, `State.subst_eq_self`.
+  -- 힌트 1: 측도는 `(σ "x" / 2).toNat` — 남은 바퀴 수다. 한 바퀴마다 `x` 가 2 씩 줄므로
+  --         정확히 하나 준다. §2.8 의 `countLoop_eval` 과 같은 모양이다.
+  -- 힌트 2: 그 `Nat` 에 대한 보조 명제를 `have` 로 세우고 귀납한다.
+  --         `σ` 는 귀납 뒤에 `intro` 해야 가설이 다음 상태에 쓰인다.
+  -- 힌트 3: 0 이면 `decrHalts σ` 와 측도로부터 `σ "x" = 0` 이 나온다 (`omega`).
+  --         조건이 거짓이고 `State.subst_eq_self` 가 끝낸다.
+  -- 힌트 4: 아니면 `σ "x" ≠ 0` 이므로 한 걸음 간다. `decrHalts` 가 한 걸음을 견딘다는
+  --         `decrHalts_step` 이 귀납을 굴리는 연료다.
+  sorry
+
+""",
+    ),
 ]
 
 
