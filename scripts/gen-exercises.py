@@ -901,6 +901,68 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §2.8 관찰의 선택과 세 등식
+    (
+        "Ch02/FullAbstraction2.lean",
+        "theorem incTwice_eq_incByTwo",
+        "-- ANCHOR_END: obsEq1",
+        """theorem incTwice_eq_incByTwo : incTwice.eval = incByTwo.eval := by
+  -- 힌트 1: `while` 이 없으므로 `funext σ` 뒤에 `change` 로 양변을 상태 갱신까지 펼칠 수 있다.
+  --         두 번째 대입이 읽는 `x` 는 이미 한 번 올라간 값이다.
+  -- 힌트 2: `State.subst_self` 로 그 값을 읽고, 같은 자리 두 번 대입은
+  --         `Function.update_idem` 으로 하나로 줄인다.
+  -- 힌트 3: 남는 것은 `σ \"x\" + 1 + 1 = σ \"x\" + 2` 라는 산술이다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FullAbstraction2.lean",
+        "theorem countLoop_eval",
+        "-- ANCHOR_END: loopEval",
+        """theorem countLoop_eval (σ : State String) (h : σ \"x\" ≤ 100) :
+    countLoop.eval σ = some (σ[\"x\" := (100 : Int)]) := by
+  -- 먼저 볼 것: §2.6 의 `forWhile_eq_fold`. 측도에 대한 귀납이라는 뼈대가 같다.
+  -- 힌트 1: `while` 한 바퀴를 펼치는 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ τ` 로 꺼낸다.
+  --         조건의 값 `⟦cmp lt (var \"x\") (num 100)⟧ᵇ τ = decide (τ \"x\" < 100)` 은 `rfl` 이다.
+  -- 힌트 2: 남은 반복 횟수 `(100 - τ \"x\").toNat` 을 측도로 삼아 보조 명제를 세우고
+  --         그 `Nat` 에 대해 귀납한다. `σ` 는 귀납 뒤에 `intro` 해야 가설이 다음 상태에 쓰인다.
+  -- 힌트 3: 0 이면 `τ \"x\" = 100` (`omega`) 이라 조건이 거짓이고, `← heq` 로 되돌린 뒤
+  --         `Function.update_eq_self` 가 끝낸다.
+  -- 힌트 4: 아니면 한 바퀴 돌아 `x` 가 하나 늘고 측도가 하나 준다. 본체의 값은 `rfl` 로 얻고,
+  --         `change` 로 `bind` 를 풀어 귀납 가설을 쓴 뒤 `Function.update_idem` 으로 마무리한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FullAbstraction2.lean",
+        "theorem incThenDouble_eq_doubleThenInc",
+        "-- ANCHOR_END: obsEq3",
+        """theorem incThenDouble_eq_doubleThenInc : incThenDouble.eval = doubleThenInc.eval := by
+  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 두 번의 상태 갱신까지 펼친다.
+  -- 힌트 2: 한쪽이 읽는 변수를 다른 쪽이 쓰지 않으므로 `State.subst_of_ne` 로 읽기를 정리한다.
+  --         문자열 부등식은 `by decide` 로 만든다.
+  -- 힌트 3: 서로 다른 자리에 대한 갱신은 교환된다 — `Function.update_comm`.
+  sorry
+
+""",
+    ),
+    (
+        "Ch02/FullAbstraction2.lean",
+        "theorem alias_breaks_commutation",
+        "-- ANCHOR_END: aliasBreak",
+        """theorem alias_breaks_commutation :
+    (incThenDouble /ᶜ aliasXY).eval (State.const 0)
+      ≠ (doubleThenInc /ᶜ aliasXY).eval (State.const 0) := by
+  -- 힌트 1: 등식을 가정한 뒤 양변에서 `z` 만 뽑아 본다 —
+  --         `congrArg (fun o => o.map (fun τ => τ \"z\"))`.
+  -- 힌트 2: `z := z+1; z := z×2` 는 0 에서 2 를, `z := z×2; z := z+1` 은 1 을 낸다.
+  --         `simp` 인자에 `Comm.subst` 와 `Comm.eval` 을 함께 주어야 치환과 계산이 모두 풀린다.
+  sorry
+
+""",
+    ),
 ]
 
 
