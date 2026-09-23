@@ -9,6 +9,8 @@ import Manual.Ch02.Domain
 import Manual.Ch02.Fixpoint
 import Manual.Ch02.FreeVarsSubst
 import Manual.Ch02.Sugar
+import Manual.Ch02.ArithErrors
+import Manual.Ch02.FullAbstraction
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -88,8 +90,7 @@ number := false
 그 뒤로 `Ex.lean`과 `Ex/` 아래에 책 연습 2.1~2.10이 있다.
 
 전부 `Reynolds/Answers/Ch02/` 아래에 있고, `Reynolds/Exercises/Ch02/`에는 같은 선언
-순서에서 채울 자리만 `sorry`로 비어 있다. 이 문서는 §2.1~§2.6까지 다룬다. §2.7과 §2.8은
-코드와 docstring으로 읽는다.
+순서에서 채울 자리만 `sorry`로 비어 있다. 이 문서는 2장 본문 전체(§2.1~§2.8)를 다룬다.
 
 # 1장에서 2장으로 넘어가는 한 줄
 %%%
@@ -120,3 +121,7 @@ number := false
 {include 1 Manual.Ch02.FreeVarsSubst}
 
 {include 1 Manual.Ch02.Sugar}
+
+{include 1 Manual.Ch02.ArithErrors}
+
+{include 1 Manual.Ch02.FullAbstraction}
