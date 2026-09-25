@@ -1166,6 +1166,46 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.1 명세의 뜻
+    (
+        "Ch03/Spec.lean",
+        "theorem sat_admissible",
+        "-- ANCHOR_END: satAdmissible",
+        """theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
+    (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
+  -- 먼저 볼 것: §2.3 의 `Chain.flat_lub_mem_range` 와 `Chain.lub_apply`, 그리고 §2.5 의
+  --            `AgreeOn.admissible` — 같은 논증인데 관계가 아니라 술어라 더 짧다.
+  -- 힌트 1: `Chain.lub_apply` 로 `d.lub σ` 를 `Σ⊥` 사슬 `d.apply σ` 의 극한으로 바꾼다.
+  -- 힌트 2: 평평한 사슬의 극한은 어느 항과 같다. 그 항 `k` 에서 가정 `h k` 가 `Q` 를 준다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Spec.lean",
+        "theorem TotalCorrect.toPartial",
+        "-- ANCHOR_END: totalToPartial",
+        """theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
+    ｛p｝c｛q｝ := by
+  -- 힌트: 두 정의를 펼치면 (`intro σ hp τ hτ`) 전체 정확성이 준 `τ'` 와 가정의 `τ` 가
+  --       같은 `some` 의 안이다. `Option.some.inj` 로 둘을 같게 만든다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Spec.lean",
+        "theorem totalCorrect_iff_partial_halts",
+        "-- ANCHOR_END: haltsIff",
+        """theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
+    ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c := by
+  -- 힌트 1: `→` 는 전체 정확성이 준 종료 상태로 두 성분을 각각 만든다. 종료 쪽은
+  --         `simp [hτ]` 가 `isSome` 을 닫는다.
+  -- 힌트 2: `←` 는 `Option.isSome_iff_exists` 로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
+  sorry
+
+""",
+    ),
 ]
 
 
