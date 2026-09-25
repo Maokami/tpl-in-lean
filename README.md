@@ -207,6 +207,7 @@ docstring 으로 읽는다.
 | §3.2–3.3 추론 규칙 · 건전성 · 대입 공리의 방향 | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Soundness.lean`](./Reynolds/Answers/Ch03/Soundness.lean) · [`Assign.lean`](./Reynolds/Answers/Ch03/Assign.lean) | [#38](../../pull/38) | [`ch03-s02-s03`](../../tree/ch03-s02-s03) |
 | §3.4–3.5 주석 명세 · 검증 조건 · 전체 정확성 `while` | [`Annot.lean`](./Reynolds/Answers/Ch03/Annot.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) | [#39](../../pull/39) | [`ch03-s04-s05`](../../tree/ch03-s04-s05) |
 | §3.7 상수 · 연언 · ∃ · 치환 규칙 | [`Derived.lean`](./Reynolds/Answers/Ch03/Derived.lean) | [#40](../../pull/40) | [`ch03-s07`](../../tree/ch03-s07) |
+| §3.8–3.9 예제 — 피보나치 · 빠른 거듭제곱 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) · [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#41](../../pull/41) | [`ch03-s08-s09`](../../tree/ch03-s08-s09) |
 
 3장도 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-03.md`](./docs/chapter-03.md).
 
