@@ -1369,6 +1369,56 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.7 더 많은 규칙
+    (
+        "Ch03/Derived.lean",
+        "theorem constancy_sound",
+        "-- ANCHOR_END: constancy",
+        """theorem constancy_sound {p q r : Assert V} {c : Comm V} (hr : Disjoint c.fa r.fv)
+    (h : ｛p｝c｛q｝) : ｛p ⋀ r｝c｛q ⋀ r｝ := by
+  -- 먼저 볼 것: §2.5 의 `Comm.eval_agree_outside_fa` (명제 2.6(b)), §1.4 의 `coincidence_assert`,
+  --            Mathlib 의 `Finset.disjoint_right`.
+  -- 힌트 1: `Assert.eval_and` 로 사전조건을 `⟦p⟧ₐ σ` 와 `⟦r⟧ₐ σ` 로 가른다.
+  -- 힌트 2: `q` 쪽은 전제 그대로. `r` 쪽은 `r` 의 자유 변수가 `c.fa` 밖이라 `τ` 와 `σ` 에서
+  --         같은 값이다 — 그러니 `r` 의 진릿값도 같다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Derived.lean",
+        "theorem exists_sound",
+        "-- ANCHOR_END: ghostExists",
+        """theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq : v ∉ q.fv)
+    (h : ｛p｝c｛q｝) : ｛Assert.quant .ex v p｝c｛q｝ := by
+  -- 먼저 볼 것: §2.5 의 `Comm.coincidence_general` (명제 2.6(a)) 과 `AgreeOn`,
+  --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean` 의 `whT_sound` 끝부분이 같은 수법이다.
+  -- 힌트 1: 증인 `n` 을 꺼낸다. 전제는 `σ[v := n]` 에서 쓸 수 있다.
+  -- 힌트 2: `S := c.fv ∪ q.fv` 에 명제 2.6(a) 를 쓰면 `⟦c⟧ σ` 와 `⟦c⟧ (σ[v := n])` 가 `S` 에서
+  --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `none` 쪽은 모순으로 닫는다.
+  -- 힌트 3: `q` 는 `S` 만 보므로 두 결과에서 진릿값이 같다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Derived.lean",
+        "theorem subst_rule_sound",
+        "-- ANCHOR_END: substRule",
+        """theorem subst_rule_sound [HasFresh V] {p q : Assert V} {c : Comm V} (δ : Ren V)
+    (hinj : ∀ u ∈ c.fa, ∀ w ∈ c.fv ∪ p.fv ∪ q.fv, δ u = δ w → u = w)
+    (h : ｛p｝c｛q｝) : ｛p /ₛ δ.toSubst｝(c /ᶜ δ)｛q /ₛ δ.toSubst｝ := by
+  -- 먼저 볼 것: 연습 2.8 의 `Ex.Comm.substitution_weak` 와 `AgreeVia` (`AgreeVia.some_some`,
+  --            `AgreeVia.none_some`), §1.4 의 `substitution_assert` (명제 1.3).
+  -- 힌트 1: 원래 쪽 시작 상태를 `fun w => σ' (δ w)` 로 잡는다. 그러면 `substitution_weak` 와
+  --         `substitution_assert` 의 가설이 둘 다 `rfl` 이다.
+  -- 힌트 2: `substitution_weak` 를 `S := c.fv ∪ p.fv ∪ q.fv` 로 부르고, 원래 쪽 실행을
+  --         `rcases hc : c.eval (fun w => σ' (δ w))` 로 나눈다.
+  -- 힌트 3: 사전조건은 명제 1.3 으로 원래 쪽에 옮기고, 사후조건은 명제 1.3 으로 되돌린다.
+  sorry
+
+""",
+    ),
 ]
 
 

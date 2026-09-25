@@ -11,6 +11,7 @@ public import Reynolds.Exercises.Ch03.Soundness
 public import Reynolds.Exercises.Ch03.Assign
 public import Reynolds.Exercises.Ch03.Annot
 public import Reynolds.Exercises.Ch03.Total
+public import Reynolds.Exercises.Ch03.Derived
 
 /-!
 # 3장 «명세와 그 증명» — 연습 (Exercises)
@@ -31,6 +32,7 @@ public import Reynolds.Exercises.Ch03.Total
 4. `Assign.lean` — §3.3 대입 공리는 왜 거꾸로인가 — Floyd 의 앞으로 가는 판과 힘이 같다
 5. `Annot.lean` — §3.4 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
 6. `Total.lean` — §3.5 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
+7. `Derived.lean` — §3.7 상수 규칙, 연언·선언, ∃ 규칙, 치환 규칙 (연습 2.8 의 약한 조건)
 
 ## 책과의 차이
 
