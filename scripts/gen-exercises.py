@@ -1324,6 +1324,51 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.4 검증 조건 생성기
+    (
+        "Ch03/Annot.lean",
+        "theorem Annot.vcg_sound",
+        "-- ANCHOR_END: vcgSound",
+        """theorem Annot.vcg_sound [HasFresh V] (a : Annot V) (q : Assert V) (hf : a.NewvarFresh q)
+    (hvc : ∀ vc ∈ (a.vcg q).2, Stronger vc.1 vc.2) : Hoare (a.vcg q).1 a.erase q := by
+  -- 먼저 볼 것: `Hoare` 의 생성자들, `Hoare.strengthen` · `Hoare.weaken`, 이 파일 위의
+  --            `ite_pre_then` · `ite_pre_else` · `newvar_pre`.
+  -- 힌트 1: `induction a generalizing q` — 순차 합성과 반복은 사후조건이 바뀌어 내려간다.
+  -- 힌트 2: 검증 조건 목록은 `simp only [Annot.vcg, List.mem_cons, List.mem_append] at hvc` 로
+  --         풀어 `Or.inl rfl` / `Or.inr …` 로 하나씩 꺼낸다.
+  -- 힌트 3: 이음매(`seq`)와 불변식(`wh`)에서는 검증 조건이, 조건과 변수 선언에서는 위의 세
+  --         함의가 결과 규칙의 반쪽으로 들어간다. `newvar` 의 `v ∉ p.fv` 는 `∀ v` 가 가둔다.
+  sorry
+
+""",
+    ),
+    # ── §3.5 전체 정확성
+    (
+        "Ch03/Total.lean",
+        "theorem whT_sound",
+        "-- ANCHOR_END: whTSound",
+        """theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z : V}
+    (hzi : z ∉ i.fv) (hzb : z ∉ b.fv) (hzc : z ∉ c.fv) (hze : z ∉ e.fv)
+    (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e))
+    (hbody : ［i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)］c［i ⋀ .cmp .lt e (.var z)］) :
+    ［i］(Comm.wh b c)［i ⋀ .not b.toAssert］ := by
+  -- 먼저 볼 것: §2.8 `countLoop_eval` 의 측도 귀납, §2.5 의 `Comm.coincidence_general` (명제
+  --            2.6(a)) 와 `Comm.eval_agree_outside_fa` (명제 2.6(b)), `Comm.fa_subset_fv`,
+  --            `BoolExp.fv_coincidence`, 이 파일 위의 `BoolExp.fv_toAssert`.
+  -- 힌트 1: `Comm.eval_isSemantics.2.2.2.2.1` 로 풀기 방정식 `whileEq` 를 꺼낸다.
+  -- 힌트 2: "`⟦e⟧ σ < n` 인 모든 `σ` 에서 끝난다" 를 `n : Nat` 에 대한 귀납으로. 마지막에
+  --         `n := (⟦e⟧ σ).toNat + 1` 을 넣는다 (`omega`).
+  -- 힌트 3: `n = 0` — 조건이 참이면 `hnonneg` 와 모순, 거짓이면 그 자리에서 끝.
+  -- 힌트 4: `n + 1`, 조건 참 — 본체를 `σ[z := ⟦e⟧ₑ σ]` 에서 돌린다 (`hbody`). 사전조건 세 조각은
+  --         명제 1.1 (`coincidence_assert` · `coincidence_intExp` · `BoolExp.fv_coincidence`).
+  --         끝난 상태 `ρ` 에서 `ρ z = ⟦e⟧ σ` (명제 2.6(b)) 이므로 측도가 줄어 귀납 가설이 든다.
+  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
+  --         `S := (Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv` 에 적용하면 결과가 `S` 에서
+  --         일치하고, 사후조건은 `S` 만 본다 (`coincidence_assert`).
+  sorry
+
+""",
+    ),
 ]
 
 

@@ -114,10 +114,18 @@ theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V
 -- ANCHOR_END: satAdmissible
 
 omit [DecidableEq V] in
-/-- 삼중항 판. Scott 귀납법의 `hadm` 자리에 그대로 들어간다. -/
+/-- 삼중항 판. Scott 귀납법의 `hadm` 자리에 그대로 들어간다.
+
+`sat_admissible` 을 부르지 않고 같은 논증을 다시 적는다 — §3.5 의 `while` 규칙 건전성
+(그 자체가 연습) 이 이것에 기대므로, 연습이 연습에 기대지 않게 한다 (연습 독립성 원칙,
+`AGENTS.md` §1-9). -/
 theorem Sat.admissible (P Q : State V → Prop) (d : Chain (State V → SigmaBot V))
-    (h : ∀ n, Sat P (d.seq n) Q) : Sat P d.lub Q :=
-  fun σ hσ => sat_admissible Q σ d fun n => h n σ hσ
+    (h : ∀ n, Sat P (d.seq n) Q) : Sat P d.lub Q := by
+  intro σ hσ τ hτ
+  rw [Chain.lub_apply] at hτ
+  obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
+  rw [← hk] at hτ
+  exact h k σ hσ τ hτ
 
 /-! ## 3. 명령에 대한 명세 -/
 
