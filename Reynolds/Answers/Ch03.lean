@@ -6,6 +6,9 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Answers.Ch03.Spec
+public import Reynolds.Answers.Ch03.Hoare
+public import Reynolds.Answers.Ch03.Soundness
+public import Reynolds.Answers.Ch03.Assign
 
 /-!
 # 3장 «명세와 그 증명» — 완성본 (Answers)
@@ -21,6 +24,9 @@ public import Reynolds.Answers.Ch03.Spec
 ## 읽는 순서
 
 1. `Spec.lean` — §3.1 명세의 뜻, 부분과 전체, 극한을 통과함
+2. `Hoare.lean` — §3.2~3.6 부분 정확성의 추론 규칙, 결과 규칙의 두 반쪽, 첫 유도
+3. `Soundness.lean` — §3.2~3.6 건전성 — 규칙마다 1·2장의 정리 하나
+4. `Assign.lean` — §3.3 대입 공리는 왜 거꾸로인가 — Floyd 의 앞으로 가는 판과 힘이 같다
 
 ## 책과의 차이
 
