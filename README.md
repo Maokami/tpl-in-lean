@@ -214,6 +214,7 @@ docstring 으로 읽는다.
 | [`docs/depth-track.md`](./docs/depth-track.md) | 심화 트랙 설계 |
 | [`docs/chapter-01.md`](./docs/chapter-01.md) | 1장 형식화 상세 설계 |
 | [`docs/chapter-02.md`](./docs/chapter-02.md) | 2장 형식화 상세 설계 |
+| [`docs/chapter-03.md`](./docs/chapter-03.md) | 3장 형식화 상세 설계 — 코드에 앞서 이론을 정리한 것 |
 
 ## 의존성
 
