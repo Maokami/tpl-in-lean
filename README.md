@@ -205,6 +205,7 @@ docstring 으로 읽는다.
 | 설계 | [`docs/chapter-03.md`](./docs/chapter-03.md) | [#36](../../pull/36) | [`ch03-design`](../../tree/ch03-design) |
 | §3.1 명세의 뜻 | [`Spec.lean`](./Reynolds/Answers/Ch03/Spec.lean) | [#37](../../pull/37) | [`ch03-s01`](../../tree/ch03-s01) |
 | §3.2–3.3 추론 규칙 · 건전성 · 대입 공리의 방향 | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Soundness.lean`](./Reynolds/Answers/Ch03/Soundness.lean) · [`Assign.lean`](./Reynolds/Answers/Ch03/Assign.lean) | [#38](../../pull/38) | [`ch03-s02-s03`](../../tree/ch03-s02-s03) |
+| §3.4–3.5 주석 명세 · 검증 조건 · 전체 정확성 `while` | [`Annot.lean`](./Reynolds/Answers/Ch03/Annot.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) | [#39](../../pull/39) | [`ch03-s04-s05`](../../tree/ch03-s04-s05) |
 
 3장도 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-03.md`](./docs/chapter-03.md).
 

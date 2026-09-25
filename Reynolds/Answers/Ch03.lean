@@ -9,6 +9,8 @@ public import Reynolds.Answers.Ch03.Spec
 public import Reynolds.Answers.Ch03.Hoare
 public import Reynolds.Answers.Ch03.Soundness
 public import Reynolds.Answers.Ch03.Assign
+public import Reynolds.Answers.Ch03.Annot
+public import Reynolds.Answers.Ch03.Total
 
 /-!
 # 3장 «명세와 그 증명» — 완성본 (Answers)
@@ -27,6 +29,8 @@ public import Reynolds.Answers.Ch03.Assign
 2. `Hoare.lean` — §3.2~3.6 부분 정확성의 추론 규칙, 결과 규칙의 두 반쪽, 첫 유도
 3. `Soundness.lean` — §3.2~3.6 건전성 — 규칙마다 1·2장의 정리 하나
 4. `Assign.lean` — §3.3 대입 공리는 왜 거꾸로인가 — Floyd 의 앞으로 가는 판과 힘이 같다
+5. `Annot.lean` — §3.4 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
+6. `Total.lean` — §3.5 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
 
 ## 책과의 차이
 
