@@ -1206,6 +1206,124 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.2~3.6 건전성 — 규칙마다 하나
+    (
+        "Ch03/Soundness.lean",
+        "theorem assign_sound",
+        "-- ANCHOR_END: assignSound",
+        """theorem assign_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
+    ｛q /[v := e]｝(Comm.assign v e)｛q｝ := by
+  -- 먼저 볼 것: §1.4 의 `substitution_single` (명제 1.4). 이 정리가 전부다.
+  -- 힌트 1: `intro σ hp τ hτ` 뒤 `hτ` 는 정의상 `some (σ[v := ⟦e⟧ₑ σ]) = some τ` 다.
+  --         `change` 로 드러내고 `Option.some.inj` 로 `τ` 를 없앤다.
+  -- 힌트 2: 남는 목표가 `⟦q⟧ₐ (σ[v := ⟦e⟧ₑ σ])` 이고 가정이 `⟦q /[v := e]⟧ₐ σ` 다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Soundness.lean",
+        "theorem seq_sound",
+        "-- ANCHOR_END: seqSound",
+        """theorem seq_sound {p r q : Assert V} {c₀ c₁ : Comm V}
+    (h₀ : ｛p｝c₀｛r｝) (h₁ : ｛r｝c₁｛q｝) : ｛p｝(Comm.seq c₀ c₁)｛q｝ := by
+  -- 힌트 1: `⟦c₀ ; c₁⟧ᶜ σ` 는 정의상 `Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ` 다 (`change … at hτ`).
+  -- 힌트 2: `rcases h : ⟦c₀⟧ᶜ σ with _ | ρ` 로 나눈다. `none` 이면 `hτ` 가 모순이고,
+  --         `some ρ` 면 `h₀` 가 `⟦r⟧ₐ ρ` 를, `h₁` 이 `⟦q⟧ₐ τ` 를 준다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Soundness.lean",
+        "theorem ite_sound",
+        "-- ANCHOR_END: iteSound",
+        """theorem ite_sound {p q : Assert V} {b : BoolExp V} {c₀ c₁ : Comm V}
+    (h₀ : ｛p ⋀ b.toAssert｝c₀｛q｝) (h₁ : ｛p ⋀ .not b.toAssert｝c₁｛q｝) :
+    ｛p｝(Comm.ite b c₀ c₁)｛q｝ := by
+  -- 먼저 볼 것: §2.2 의 `boolExp_eval_iff`, 이 파일 위의 `Assert.eval_and` · `Assert.eval_not`.
+  -- 힌트 1: `⟦if b then c₀ else c₁⟧ᶜ σ` 는 정의상 `if ⟦b⟧ᵇ σ then … else …` 다.
+  -- 힌트 2: `by_cases hb : ⟦b⟧ᵇ σ = true` 로 나누고 `if_pos` / `if_neg` 로 가지를 고른다.
+  -- 힌트 3: 각 가지의 사전조건 `p ⋀ …` 은 `hp` 와 `hb` 를 `boolExp_eval_iff` 로 합친 것이다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Soundness.lean",
+        "theorem wh_sound",
+        "-- ANCHOR_END: whSound",
+        """theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
+    (hbody : ｛i ⋀ b.toAssert｝c｛i｝) : ｛i｝(Comm.wh b c)｛i ⋀ .not b.toAssert｝ := by
+  -- 먼저 볼 것: §2.4 의 `scott_induction`, §3.1 의 `Sat.admissible` · `Sat.bot`,
+  --            그리고 §2.5 의 `Comm.coincidence_general` — 같은 수법이다.
+  -- 힌트 1: `⟦while b do c⟧ᶜ` 는 정의상 `fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)` 다.
+  --         목표를 `Sat ⟦i⟧ₐ (fix …) ⟦i ⋀ .not b.toAssert⟧ₐ` 로 `change` 한다.
+  -- 힌트 2: `scott_induction (whileF_monotone b ⟦c⟧ᶜ) (P := fun w => Sat ⟦i⟧ₐ w ⟦…⟧ₐ)` 에
+  --         세 의무를 준다 — 허용 가능(`Sat.admissible`), `⊥`(`Sat.bot`), 한 바퀴.
+  -- 힌트 3: 한 바퀴에서 `whileF b ⟦c⟧ᶜ w σ` 를 `change` 로 펼치고, `⟦b⟧ᵇ σ = true` 로 나눈 뒤
+  --         참이면 `rcases hc : ⟦c⟧ᶜ σ` — 본체가 끝난 상태에서 `hbody` 와 귀납 가설 `hw` 를 잇는다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Soundness.lean",
+        "theorem newvar_sound",
+        "-- ANCHOR_END: newvarSound",
+        """theorem newvar_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+    (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
+    (h : ｛p ⋀ .cmp .eq (.var v) e｝c｛q｝) : ｛p｝(Comm.newvar v e c)｛q｝ := by
+  -- 먼저 볼 것: §1.4 의 `coincidence_assert` · `coincidence_intExp` (명제 1.1),
+  --            `State.subst_self` · `State.subst_of_ne`.
+  -- 힌트 1: `⟦newvar v := e in c⟧ᶜ σ` 는 정의상 `restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]))` 다.
+  --         `rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])` 로 나누고, `some ρ` 면
+  --         `simp only [restore, Option.map_some, Option.some.injEq] at hτ` 로 `τ = ρ[v := σ v]`.
+  -- 힌트 2: 안쪽 사전조건 두 조각 — `p` 는 `v` 를 안 보니 갱신해도 참(`hp`), `v = e` 는
+  --         `State.subst_self` 와 `e` 가 `v` 를 안 본다는 것(`he`)으로.
+  -- 힌트 3: 안쪽 결과 `⟦q⟧ₐ ρ` 에서 `v` 를 복원해도 `q` 는 `v` 를 안 본다(`hq`).
+  sorry
+
+""",
+    ),
+    # ── §3.3 대입 공리의 방향
+    (
+        "Ch03/Assign.lean",
+        "theorem assign_forward_sound",
+        "-- ANCHOR_END: assignForward",
+        """theorem assign_forward_sound [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V)
+    (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
+    ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
+  -- 먼저 볼 것: `substitution_single` (명제 1.4) 와 식 판 `substitution_intExp`,
+  --            `coincidence_assert` (명제 1.1), `Assert.eval_ex` · `Assert.eval_and` · `Assert.eval_eq`.
+  -- 힌트 1: 대입 뒤 상태는 `σ[v := ⟦e⟧ₑ σ]` 다. `∃ v₀` 의 증인은 옛 값 `σ v` 다.
+  -- 힌트 2: `p/v→v₀` 쪽 — `substitution_single` 로 뜻으로 옮기면 `p` 를 "`v` 에 옛 값을 도로
+  --         넣은 상태" 에서 묻는다. 그 상태는 `p` 가 보는 변수들에서 `σ` 와 같다 (`h₀`, `h₂`).
+  -- 힌트 3: `v = e/v→v₀` 쪽 — 왼쪽은 `State.subst_of_ne` · `State.subst_self` 로 `⟦e⟧ₑ σ`,
+  --         오른쪽은 `substitution_intExp` 를 `σ` 와 새 상태 사이에 적용한다 (`h₁`, `h₂`).
+  --         `w = v` 인지로 나눠 `Function.update_of_ne` · `IntExp.eval` 로 정리한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Assign.lean",
+        "theorem floydPost_stronger",
+        "-- ANCHOR_END: backwardOfForward",
+        """theorem floydPost_stronger [HasFresh V] (q : Assert V) (v v₀ : V) (e : IntExp V)
+    (h₀ : v₀ ∉ q.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
+    Stronger (floydPost (q /[v := e] ) v v₀ e) q := by
+  -- 먼저 볼 것: `assign_forward_sound` 의 힌트와 같은 도구들.
+  -- 힌트 1: `Assert.eval_ex` 로 증인 `n` 을, `Assert.eval_and` 로 두 조각을 꺼낸다.
+  -- 힌트 2: `v = e/v→v₀` 조각을 `IntExp.renameTo` 를 펼치고 `substitution_intExp` 로
+  --         `τ v = ⟦e⟧ₑ (τ[v₀ := n][v := n])` 으로 읽는다.
+  -- 힌트 3: `(q/v→e)/v→v₀` 조각에 `substitution_single` 을 두 번 쓰면 `q` 가
+  --         `τ[v₀ := n][v := n][v := ⟦e⟧ₑ …]` 에서 참이고, 힌트 2 로 그 마지막 값이 `τ v` 다.
+  -- 힌트 4: 그 상태는 `q` 가 보는 변수들에서 `τ` 와 같다 — `coincidence_assert` (`h₀`).
+  sorry
+
+""",
+    ),
 ]
 
 

@@ -196,14 +196,17 @@ docstring 으로 읽는다.
 | 연습 2.8 | [`Ex/SubstWeak.lean`](./Reynolds/Answers/Ch02/Ex/SubstWeak.lean) | [#32](../../pull/32) | [`ch02-ex08`](../../tree/ch02-ex08) |
 | 연습 2.9 · 2.10 | [`Ex/ForRange.lean`](./Reynolds/Answers/Ch02/Ex/ForRange.lean) · [`Ex/DoTwice.lean`](./Reynolds/Answers/Ch02/Ex/DoTwice.lean) | [#33](../../pull/33) | [`ch02-ex09-ex10`](../../tree/ch02-ex09-ex10) |
 
+2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
+
 ### 3장 명세와 그 증명 (Program Specifications and Their Proofs)
 
 | 절 | 파일 | PR | 태그 |
 |---|---|---|---|
 | 설계 | [`docs/chapter-03.md`](./docs/chapter-03.md) | [#36](../../pull/36) | [`ch03-design`](../../tree/ch03-design) |
 | §3.1 명세의 뜻 | [`Spec.lean`](./Reynolds/Answers/Ch03/Spec.lean) | [#37](../../pull/37) | [`ch03-s01`](../../tree/ch03-s01) |
+| §3.2–3.3 추론 규칙 · 건전성 · 대입 공리의 방향 | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Soundness.lean`](./Reynolds/Answers/Ch03/Soundness.lean) · [`Assign.lean`](./Reynolds/Answers/Ch03/Assign.lean) | [#38](../../pull/38) | [`ch03-s02-s03`](../../tree/ch03-s02-s03) |
 
-2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
+3장도 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-03.md`](./docs/chapter-03.md).
 
 > 링크는 저장소가 조직으로 이전되어도 안 깨지도록 **상대 경로**로 쓴다:
 > `[#12](../../pull/12)`, `[ch01-s04](../../tree/ch01-s04)`
