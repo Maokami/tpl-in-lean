@@ -151,30 +151,118 @@ theorem e12d_correct (σ : State String) :
 
 /-! ## 연습 1.4 — 치환 계산하기
 
-Reynolds 는 세 개의 치환을 손으로 계산하라고 한다. 여기서는 `#guard` 로 확인한다.
-불필요한 이름 바꾸기를 하지 말라는 단서가 붙어 있는데, `newBinder` 가 그 조건을
-그대로 구현한다 — 안전하면 원래 이름을 그대로 쓴다. -/
+Reynolds 연습 1.4(a)–(c) (p. 23). 각 문항의 동시 치환 결과를 구문으로 제시한다.
+`newBinder`는 포획 위험이 없으면 원래 결합 변수를 유지한다.
 
-/-- 1.4(b) `∀d. ((∃n. x = n × d) ⇒ (∃n. y = n × d))` 에서 `x ↦ n`, `y ↦ d`. -/
+**책과의 차이**: 책은 신선한 이름의 철자를 정하지 않는다. 여기서는 `hasFreshString`이
+정한 `x`, `xx`, `xxx`, … 순서로 고른 결과를 검사한다. 다른 안전한 이름도 책의 답이지만,
+이 실습의 구문 등식에는 그 순서가 필요하다.
+
+`{q : Assert String // 원래식 /ₛ 치환 = q}`는 결과 `q`와 계산이 맞다는 증명을 함께 담는다.
+학생은 `⟨⟪ … ⟫ₐ, 증명⟩`에서 생략된 단언을 직접 쓴다.
+아래 이름 선택 보조정리는 저장소의 계산 지원 자료이며 책의 추가 연습이 아니다. -/
+
+/-- 연습 1.4 (p. 23)의 계산 지원: 후보 번호와 그 이전 후보의 부적합성을 주면 이름을 확정한다. -/
+theorem freshString_eq (s : Finset String) (n : Nat) (hn : natToString n ∉ s)
+    (hprev : ∀ m < n, natToString m ∈ s) : Cslib.fresh s = natToString n := by
+  change natToString (Nat.find _) = natToString n
+  congr 1
+  exact (Nat.find_eq_iff _).mpr ⟨hn, fun m hm hmem ↦ hmem (hprev m hm)⟩
+
+/-- 연습 1.4 (p. 23)의 계산 지원: 첫 후보 `x`가 안전하면 선택된다. -/
+theorem freshString_zero (s : Finset String) (h : "x" ∉ s) :
+    Cslib.fresh s = "x" :=
+  freshString_eq s 0 h (by omega)
+
+/-- 연습 1.4 (p. 23)의 계산 지원: `x`가 금지되고 `xx`가 안전하면 선택된다. -/
+theorem freshString_one (s : Finset String) (h₀ : "x" ∈ s) (h₁ : "xx" ∉ s) :
+    Cslib.fresh s = "xx" := by
+  apply freshString_eq s 1 h₁
+  intro m hm
+  have : m = 0 := by omega
+  subst m
+  exact h₀
+
+/-- 연습 1.4 (p. 23)의 계산 지원: 앞의 두 후보가 금지되고 `xxx`가 안전하면 선택된다. -/
+theorem freshString_two (s : Finset String)
+    (h₀ : "x" ∈ s) (h₁ : "xx" ∈ s) (h₂ : "xxx" ∉ s) :
+    Cslib.fresh s = "xxx" := by
+  apply freshString_eq s 2 h₂
+  intro m hm
+  have : m = 0 ∨ m = 1 := by omega
+  rcases this with rfl | rfl
+  · exact h₀
+  · exact h₁
+
+/-- Reynolds 연습 1.4(a) (p. 23)의 입력 단언. `t`의 자유 발생에 합을 넣는다. -/
+def e14a : Assert String :=
+  ⟪ ∀ x, ∀ z, x < t ∧ t < z ⇒ (∃ y, x < y ∧ y < z) ⟫ₐ
+
+/-- Reynolds 연습 1.4(a) (p. 23)의 치환 사상. `t ↦ x + y + z`. -/
+def e14aSubst : Subst String := Function.update IntExp.var "t" ⟪ x + y + z ⟫ₑ
+
+/--
+Reynolds 연습 1.4(a) (p. 23). 결과 단언과 구문 등식의 증명을 함께 제시한다.
+먼저 각 양화사의 본문에서 실제로 치환되는 자유 발생을 찾는다.
+-/
+@[exercise "Ex 1.4a" 2]
+noncomputable def e14aResult : {q : Assert String // e14a /ₛ e14aSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14a, e14aSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
+
+/-- Reynolds 연습 1.4(b) (p. 23)의 입력 단언. 두 존재 양화사의 범위는 서로 다르다. -/
 def e14b : Assert String := ⟪ ∀ d, (∃ n, x = n × d) ⇒ (∃ n, y = n × d) ⟫ₐ
 
-/-- 1.4(b) 의 치환 사상. `x ↦ n`, `y ↦ d`, 나머지는 그대로. -/
+/-- Reynolds 연습 1.4(b) (p. 23)의 동시 치환. `x ↦ n`, `y ↦ d`, 나머지는 그대로다. -/
 def e14bSubst : Subst String :=
   Function.update (Function.update IntExp.var "x" ⟪ n ⟫ₑ) "y" ⟪ d ⟫ₑ
 
--- 치환 결과를 직접 본다. `x ↦ n`, `y ↦ d` 를 넣으면 `n` 과 `d` 가 자유 변수로 들어오는데,
--- 바깥에 `∀d`, 안쪽에 `∃n` 이 있어서 둘 다 잡힐 위험이 있다.
--- 결과의 자유 변수가 `{n, d}` 로 남는다는 것이 포획이 없었다는 증거다.
+-- 들어온 n과 d가 속박되지 않고 자유 변수로 남는지 확인한다.
 #guard (e14b /ₛ e14bSubst).fv == ({"n", "d"} : Finset String)
 
 /--
-치환한 단언의 뜻은 상태를 바꿔 평가한 것과 같다.
+Reynolds 연습 1.4(b) (p. 23). 결과 단언과 구문 등식의 증명을 함께 제시한다.
+같은 이름의 두 양화사도 각각 자기 본문의 자유 발생으로 포획 위험을 판단한다.
+-/
+@[exercise "Ex 1.4b" 2]
+noncomputable def e14bResult : {q : Assert String // e14b /ₛ e14bSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14b, e14bSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
 
-명제 1.3 을 이 구체적인 예에 적용한 것이다. `#guard` 는 구문이 어떻게 생겼는지 보여 주고,
-이 정리는 그 구문이 뜻하는 바를 말한다.
+/-- Reynolds 연습 1.4(c) (p. 23)의 입력 단언. `x`, `y`는 속박되고 `z`는 자유롭다. -/
+def e14c : Assert String := ⟪ ∀ x, ∃ y, x < z ⇒ x < y ∧ y < z ⟫ₐ
 
-연습으로 빼지 않았다. 명제 1.3 자체가 연습이라 그것을 쓰는 이 정리까지 비우면
-연습끼리 의존하게 된다 (`AGENTS.md` §1-9).
+/-- Reynolds 연습 1.4(c) (p. 23)의 동시 치환. `x ↦ y`, `y ↦ z`, `z ↦ x`. -/
+def e14cSubst : Subst String :=
+  Function.update (Function.update (Function.update IntExp.var "x" ⟪ y ⟫ₑ)
+    "y" ⟪ z ⟫ₑ) "z" ⟪ x ⟫ₑ
+
+/--
+Reynolds 연습 1.4(c) (p. 23). 결과 단언과 구문 등식의 증명을 함께 제시한다.
+동시 치환에서 들어온 식에는 치환을 다시 적용하지 않는다.
+-/
+@[exercise "Ex 1.4c" 2]
+noncomputable def e14cResult : {q : Assert String // e14c /ₛ e14cSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14c, e14cSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
+
+/--
+Reynolds 명제 1.3 (§1.4, p. 20)을 연습 1.4(b) (p. 23)에 적용한 의미 등식.
+
+위의 구문 계산과 달리 치환 정리에 의존한다. 연습 독립성을 지키려고
+완성 자료로 제공하며, 채점 대상으로 두지 않는다 (`AGENTS.md` §1-9).
 -/
 theorem e14b_meaning (σ : State String) :
     (⟦e14b /ₛ e14bSubst⟧ₐ σ ↔ ⟦e14b⟧ₐ (fun w => ⟦e14bSubst w⟧ₑ σ)) :=

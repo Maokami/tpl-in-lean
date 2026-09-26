@@ -310,6 +310,43 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 연습 1.4: 결과 구문과 증명을 함께 비운다. 세 문항은 서로 독립이다.
+    (
+        "Ch01/Ex.lean", "noncomputable def e14aResult", "/-- Reynolds 연습 1.4(b)",
+        """noncomputable def e14aResult : {q : Assert String // e14a /ₛ e14aSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14a, e14aSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "noncomputable def e14bResult", "/-- Reynolds 연습 1.4(c)",
+        """noncomputable def e14bResult : {q : Assert String // e14b /ₛ e14bSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14b, e14bSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Ex.lean", "noncomputable def e14cResult", "/--\nReynolds 명제 1.3",
+        """noncomputable def e14cResult : {q : Assert String // e14c /ₛ e14cSubst = q} := by
+  -- 먼저 손으로 결과를 쓴 뒤 `refine ⟨⟪ … ⟫ₐ, ?_⟩`로 그 구문을 제시한다.
+  -- 힌트: 각 결합자의 본문에서 자유롭게 나타나는 변수에만 치환이 들어간다.
+  -- 이름 선택 계산에는 위의 `freshString_zero/one/two`를 쓸 수 있다.
+  -- `simp [e14c, e14cSubst, Assert.subst, newBinder, captureSet, Assert.fv,
+  --   IntExp.fv, IntExp.subst, Finset.erase_insert_of_ne, Finset.erase_insert_eq_erase, …]`
+  sorry
+
+""",
+    ),
     # ── 연습 1.3 (접두사 자유성은 완성본으로 주고 단사성만 비운다)
     (
         "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective",
