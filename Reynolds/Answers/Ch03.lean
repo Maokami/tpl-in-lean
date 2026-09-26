@@ -15,6 +15,7 @@ public import Reynolds.Answers.Ch03.Derived
 public import Reynolds.Answers.Ch03.Semantic
 public import Reynolds.Answers.Ch03.Examples.Fib
 public import Reynolds.Answers.Ch03.Examples.FastExp
+public import Reynolds.Answers.Ch03.Wlp
 
 /-!
 # 3장 «명세와 그 증명» — 완성본 (Answers)
@@ -39,6 +40,7 @@ public import Reynolds.Answers.Ch03.Examples.FastExp
 8. `Semantic.lean` — §3.8 준비: 의미 단언 위의 규칙 (대입은 치환 대신 상태 갱신)
 9. `Examples/Fib.lean` — §3.8 피보나치 — 불변식에 `Nat.fib`
 10. `Examples/FastExp.lean` — §3.9 빠른 거듭제곱 — 불변식에 거듭제곱, `÷`·`rem`
+11. `Wlp.lean` — §3.10 wlp 는 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성
 
 ## 책과의 차이
 
