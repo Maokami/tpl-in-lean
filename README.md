@@ -166,6 +166,7 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | 심화 A · 두 정렬 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#48](../../pull/48) | `ch01-depth-logic-initiality` (병합 후) |
 | 심화 B · 시그니처 함자와 Lambek | [`Depth/SignatureFunctor.lean`](./Reynolds/Answers/Ch01/Depth/SignatureFunctor.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 치환과 bind | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
+| 심화 C · 대수 범주와 Mathlib 초기성 | [`Depth/CategoryBridge.lean`](./Reynolds/Answers/Ch01/Depth/CategoryBridge.lean) | [PR 비교](../../compare/main...feat/ch01-category-bridge) | `ch01-depth-category-bridge` (병합 후) |
 | §1.1 구체 구문 · DSL | [`Notation.lean`](./Reynolds/Answers/Ch01/Notation.lean) | [#2](../../pull/2) | [`ch01-ex01-ex04`](../../tree/ch01-ex01-ex04) |
 | §1.1 실현 · 연습 1.3 | [`Realizations.lean`](./Reynolds/Answers/Ch01/Realizations.lean) | [#2](../../pull/2) | 〃 |
 | 연습 1.1 · 1.2 · 1.4 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) | [#2](../../pull/2) | 〃 |

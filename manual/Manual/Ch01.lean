@@ -777,7 +777,7 @@ file := "ch01-exercise-list"
 number := false
 %%%
 
-1장에는 채점되는 연습이 34개 있다. 책 연습문제와 본문 명제가 섞여 있고,
+1장에는 채점되는 연습이 35개 있다. 책 연습문제와 본문 명제가 섞여 있고,
 아래는 [읽는 순서](--tag--ch01-order)와 같은 차례로 늘어놓은 것이다.
 
 * `Validity.lean` — §1.3 건전성과 규칙. *3개*
@@ -785,7 +785,7 @@ number := false
 * `Realizations.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.4. *12개*
 * `Ex/Summation.lean` — 책 연습 1.5 · 1.6. *6개*
 * `Design.lean` — 정의 선택과 정리의 성립. *3개*
-* `Depth/` — 심화 트랙. *5개*
+* `Depth/` — 심화 트랙. *6개*
 
 본문 명제를 건너뛰면 책 연습에서 쓸 재료가 없다.
 
@@ -860,6 +860,66 @@ theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
 양화사의 경우 `quant` 조건은 변수 이름까지 그대로 유지한다. 따라서 이 정리는
 `∀x. p`와 이름을 바꾼 구문을 동일시하는 α-동치나 치환 법칙을 말하지 않는다.
 범주론 용어를 배우지 않아도 열 조건과 `∃!`만으로 이 연습을 읽을 수 있다.
+
+# 선택 심화: 같은 초기성을 Mathlib으로 읽기
+%%%
+tag := "ch01-category-bridge"
+%%%
+
+앞 절의 `∃!`를 이해했다면, 범주론에서 말하는 초기 대상도 읽을 수 있다.
+범주(category)는 대상과 대상 사이의 사상, 그리고 사상을 이어 붙이는 합성을 갖춘다.
+여기서 대상은 `LogicAlg`, 사상은 연산을 보존하는 함수 쌍이다.
+앞 절에서는 사상의 출발점이 늘 구문이었지만, 이제 출발점도 임의의 대수로 둔다.
+
+예를 들어 `f : L ⟶ M`은 정수 식 반송자의 함수 `f.e`와 단언 반송자의 함수 `f.a`를
+갖는다. 비교 연산의 보존 조건은 `f.a (L.cmp c x y) = M.cmp c (f.e x) (f.e y)`다.
+입력 둘은 정수 식 성분으로, 결과는 단언 성분으로 옮긴다. 양화사에서는 종류와 변수
+이름을 그대로 두고 본문에만 `f.a`를 적용한다.
+
+항등 사상은 두 반송자의 항등 함수 쌍이다. `f ≫ g`는 먼저 `f`, 다음에 `g`를
+적용하므로 정수 식 성분은 `g.e ∘ f.e`, 단언 성분은 `g.a ∘ f.a`가 된다.
+함수 합성의 항등 법칙과 결합 법칙으로 아래 범주 법칙을 증명한다.
+
+```anchor LogicAlg.category (module := Reynolds.Answers.Ch01.Depth.CategoryBridge)
+/-- 고정된 우주의 대수와 준동형으로 이루어진 범주. 법칙은 함수 합성의 법칙이다. -/
+instance category : Category (LogicAlg.{u, u} V) where
+  Hom := Hom
+  id := Hom.id
+  comp := Hom.comp
+  id_comp _ := Hom.ext rfl rfl
+  comp_id _ := Hom.ext rfl rfl
+  assoc _ _ _ := Hom.ext rfl rfl
+```
+
+여기서는 변수 타입과 두 반송자를 모두 같은 `Type u`에 둔다. 따라서 앞 절에서
+서로 다른 우주의 목표 대수도 허용했던 `LogicAlg.initial`을 이 범주의 대상들에
+한정해서 사용한다. `syntaxAlg V`는 정수 식과 단언 자체를 반송자로 갖는 대수다.
+
+```anchor LogicAlg.syntaxIsInitial (module := Reynolds.Answers.Ch01.Depth.CategoryBridge)
+/-- 기존 `LogicAlg.initial`을 적용하면 구문 대수가 이 범주의 초기 대상이 된다. -/
+noncomputable def syntaxIsInitial (V : Type u) : IsInitial (syntaxAlg V) :=
+  isInitialOfUniqueHom (fun L ↦ L.initial)
+```
+
+`IsInitial (syntaxAlg V)`는 각 목표로 가는 사상을 고르는 자료와 그 유일성 증명을
+포함한다. 그 자료가 주어지면 `h.to L`로 사상을 얻고, `h.hom_ext`로 두 사상의
+등식을 얻는다. 다음 연습은 이 두 API를 앞 절의 함수 쌍 언어로 옮기는 문제다.
+초기성을 가설로 주므로 A1.3을 아직 풀지 않았어도 시작할 수 있다.
+
+```anchor LogicAlg.uniqueHom_of_isInitial (module := Reynolds.Answers.Ch01.Depth.CategoryBridge)
+@[exercise "심화 C1.1" 2]
+theorem uniqueHom_of_isInitial (h : IsInitial (syntaxAlg V)) (L : LogicAlg.{u, u} V) :
+    ∃! f : (IntExp V → L.E) × (Assert V → L.A), L.IsHom f := by
+```
+
+힌트: `Hom.pair`와 `Hom.isHom`으로 함수 쌍과 보존 조건을 꺼낸다. 유일성을 보일 때는
+다른 함수 쌍을 `Hom.ofIsHom`으로 사상에 묶은 다음 비교한다.
+`isInitial_iff_uniqueHom`은 두 방향을 한 명제로 모은다. 왼쪽의 `Nonempty`는
+`IsInitial` 자료가 있다는 것을 명제로 표현한다.
+
+이 선택 심화는 이름을 그대로 보존하는 원시 구문의 범주에 머문다. α-동치로 나눈
+구문의 초기성, 치환의 법칙, 일반 함자의 대수에 대한 Lambek 정리는 별도로 다룬다.
+본문의 1장 학습은 이 파일 없이도 이어갈 수 있다.
 
 # 더 읽을거리
 %%%
