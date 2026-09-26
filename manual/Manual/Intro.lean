@@ -69,7 +69,8 @@ number := false
 : `Reynolds/Exercises/ChNN/`
 
   같은 구조에서 연습 지점만 `sorry` 로 비운 것. `scripts/gen-exercises.py` 가
-  완성본에서 만들어 내므로 손으로 고치지 않는다.
+  완성본에서 만들어 낸다. 교재 변경은 생성기를 거치고, 개인 풀이 브랜치에서는
+  `sorry` 자리에 증명을 직접 쓴다.
 
 : `ReynoldsTests/`
 
@@ -106,3 +107,6 @@ number := false
 2. `Reynolds/Exercises/` 에서 `sorry` 를 찾아 지우고 채운다
 3. `lake exe grade` 로 확인한다
 4. 막히거나 다 풀었으면 `Reynolds/Answers/` 의 같은 선언과 비교한다
+
+풀이 브랜치에서 `python3 scripts/gen-exercises.py` 를 실행하면 채운 증명이 다시 `sorry` 로
+바뀐다. 풀이 PR은 생성 파일 일치 검사를 건너뛰며, Exercises 밖의 파일을 바꾸면 CI가 실패한다.

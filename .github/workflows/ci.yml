@@ -19,6 +19,25 @@ jobs:
       pages: read
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: 풀이 PR은 Exercises 파일만 변경
+        if: ${{ github.event_name == 'pull_request' && startsWith(github.event.pull_request.title, 'study(') }}
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          if [[ -z "$changed" ]]; then
+            echo '::error::풀이 PR에 변경 파일이 없다.'
+            exit 1
+          fi
+          while IFS= read -r path; do
+            case "$path" in
+              Reynolds/Exercises/*.lean) ;;
+              *) echo "::error file=$path::풀이 PR은 Exercises 파일만 수정해야 한다."; exit 1 ;;
+            esac
+          done <<< "$changed"
 
       # elan 설치 + Mathlib 캐시만 맡기고, 빌드·테스트·린트는 아래에서 직접 돌린다.
       # 어느 단계가 깨졌는지 보이게 하려는 것이고, 순서도 우리가 정해야 하기 때문이다.
@@ -54,6 +73,7 @@ jobs:
         run: lake lint
 
       - name: Exercises 가 Answers 와 맞는지
+        if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.title, 'study(') }}
         run: python3 scripts/gen-exercises.py --check
 
       - name: ANCHOR · 태그 정합성
