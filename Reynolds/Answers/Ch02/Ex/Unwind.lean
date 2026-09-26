@@ -30,9 +30,9 @@ Reynolds 연습 2.5 에 대응한다.
 양방향 `⊑` 인데 두 쪽의 성격이 전혀 다르다.
 
 **쉬운 쪽 (`⊒`).** 늘린 반복의 뜻이 최소인데, 원래 반복의 뜻 `W` 가 늘린 반복의 풀기
-방정식을 만족한다. `fix_least` 한 번으로 끝난다. 연습 2.2(c) 에서 한 것과 같은 모양이다.
+방정식을 만족한다. 최소성 한 번으로 끝난다. 연습 2.2(c) 에서 한 것과 같은 모양이다.
 
-**어려운 쪽 (`⊑`).** 같은 수를 쓰면 막힌다. `fix_least` 로 환원하면 "늘린 반복의 뜻이
+**어려운 쪽 (`⊑`).** 같은 수를 쓰면 막힌다. 최소성으로 환원하면 "늘린 반복의 뜻이
 한 바퀴 건너뛴 것보다 크지 않다" 를 보여야 하는데, 그것을 풀면 **증명하려던 것이 다시
 나온다.** 순환이다.
 
@@ -63,7 +63,8 @@ U σ = if ⟦b⟧ᵇ σ then ⟦c⟧ σ >>= W2 else W2 σ
 §2.5 의 명제 2.6 에서 진술을 일반화해야 했던 것과 같은 사정이다.
 
 ## 읽는 순서
-`Ex/Decr.lean` 다음. §2.4 의 `fix_least` 와 `Chain.lub_le` 를 쓴다.
+`Ex/Decr.lean` 다음. §2.4 의 최소 고정점 정리(`Eval.lean`의 `whileF` 전용 판
+`whileF_fix_le`)와 `Chain.lub_le` 를 쓴다.
 -/
 
 -- 늘린 본체가 실제로 어떻게 도는지 `#guard` 로 본다.
@@ -120,8 +121,10 @@ def dblBody (b : BoolExp V) (c : Comm V) : Comm V := .seq c (.ite b c .skip)
 두 방향의 성격이 전혀 다르다.
 
 - `⊒` (쉬운 쪽) — 원래 반복의 뜻 `W` 가 **늘린 반복의** 풀기 방정식을 만족한다.
-  `fix_least` 한 번. 연습 2.2(c) 에서 한 것과 같다.
-- `⊑` (어려운 쪽) — 같은 수가 안 통한다. `fix_least` 로 환원하면 증명하려던 것이 다시
+  최소성 한 번. 연습 2.2(c) 에서 한 것과 같다. (연습 독립성 원칙 — `AGENTS.md` §1-9 —
+  때문에 `fix_least` 자신이 아니라 `Eval.lean`의 `whileF` 전용 판 `whileF_fix_le`를
+  쓴다.)
+- `⊑` (어려운 쪽) — 같은 수가 안 통한다. 최소성으로 환원하면 증명하려던 것이 다시
   나와 순환에 빠진다.
 
 어려운 쪽은 **근사열을 직접 따라간다.** 상계 `U` 를 세우고 `∀ n, Gⁿ(⊥) ⊑ U` 를 `n` 에
@@ -191,7 +194,7 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
       exact Chain.lub_le fun n => by simpa using hchain n
     -- 이제 `W2` 가 원래 반복의 전고정점이므로 최소성이 준다.
     rw [hWdef]
-    refine fix_least (whileF_monotone _ _) ?_
+    refine whileF_fix_le _ _ ?_
     intro σ
     unfold whileF
     by_cases hb : ⟦b⟧ᵇ σ
@@ -204,7 +207,7 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
       rw [hW2 σ, if_neg hb]
   · -- ⊒ : 쉬운 쪽. `W` 가 늘린 반복의 고정점이다.
     rw [hW2def]
-    refine fix_least (whileF_monotone _ _) ?_
+    refine whileF_fix_le _ _ ?_
     intro σ
     unfold whileF
     by_cases hb : ⟦b⟧ᵇ σ

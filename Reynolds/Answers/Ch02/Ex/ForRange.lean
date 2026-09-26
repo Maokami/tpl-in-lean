@@ -205,10 +205,20 @@ def forV4 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 
 > 그러므로 판본 4 를 고를 이유는 의미론이 아니라 구현이다. 의미론이 같다고 말해 주는
 > 것과, 그래서 아무래도 좋다는 것은 다르다.
+
+**진술에 `hexact` 가 가설로 들어간 이유**: `forV3_eq_fold`(§2.6 for-exact)는 채점
+연습이다. 이 증명이 그것을 직접 부르면, 이 연습이 §2.6 의 연습에도 의존하게 되어
+연습 독립성 원칙(`AGENTS.md` §1-9)이 깨진다. 그래서 그 결론 자체를 가설로 받는다 —
+결과를 아는 상태에서 판본 4 와 비교하는 것이 이 연습의 진짜 내용이므로, 이렇게 진술을
+바꿔도 잃는 것이 없다.
 -/
 @[exercise "Ex 2.9" 3]
 theorem forV4_eval_eq_forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
-    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) (hwe₀ : w ∉ e₀.fv) (σ : State V) :
+    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) (hwe₀ : w ∉ e₀.fv) (σ : State V)
+    (hexact : (forV3 v w e₀ e₁ c).eval σ
+      = restore w σ (restore v (σ[w := ⟦e₁⟧ₑ σ])
+          (forFold v c (⟦e₁⟧ₑ σ - ⟦e₀⟧ₑ σ + 1).toNat
+            ((σ[w := ⟦e₁⟧ₑ σ])[v := ⟦e₀⟧ₑ σ])))) :
     (forV4 v w e₀ e₁ c).eval σ = (forV3 v w e₀ e₁ c).eval σ := by
   have hwv : w ≠ v := Ne.symm hvw
   -- `w` 를 깔아도 초기값 식의 값은 그대로다 (§2.6 과 같은 사정).
@@ -220,8 +230,8 @@ theorem forV4_eval_eq_forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
   have hv₂ : ((σ[w := ⟦e₁⟧ₑ σ])[v := ⟦e₀⟧ₑ σ]) v = ⟦e₀⟧ₑ σ := State.subst_self ..
   have hw₂ : ((σ[w := ⟦e₁⟧ₑ σ])[v := ⟦e₀⟧ₑ σ]) w = ⟦e₁⟧ₑ σ := by
     rw [State.subst_of_ne _ _ _ _ hwv, State.subst_self]
-  -- 오른쪽은 §2.6 의 정확 반복 정리가 이미 푼다.
-  rw [forV3_eq_fold v w e₀ e₁ c hv hw hvw hwe₀ σ]
+  -- 오른쪽은 가설 `hexact` — §2.6 의 정확 반복 정리를 이 자리에 맞춰 둔 것 — 가 이미 푼다.
+  rw [hexact]
   -- 왼쪽의 `newvar` 두 겹을 편다.
   have e1 : (forV4 v w e₀ e₁ c).eval σ
       = restore w σ ((Comm.newvar v e₀

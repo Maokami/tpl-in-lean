@@ -117,6 +117,127 @@ theorem whileF_continuous (b : BoolExp V) (s : State V → SigmaBot V) :
         _ ≤ g σ := (hg ⟨c.seq 0, ⟨0, rfl⟩, rfl⟩) σ
 -- ANCHOR_END: whileF_continuous
 
+/-! ## 1.5 `whileF` 전용 도구 — 채점 연습을 부르지 않는 판
+
+`Comm.eval_isSemantics`(풀기 방정식)와 `Comm.eval_while_least`(최소성),
+`Comm.coincidence_general`·`Comm.eval_agree_outside_fa`·`Comm.run_complete`(Scott 귀납법)는
+모두 채점 연습이 아니고, 학생에게 완성본으로 주어진다. 그런데 그 완성본들이 각각
+`fix_eq`·`whileF_continuous`·`fix_least`·`scott_induction` 이라는 **채점 연습**을 부르면,
+그 완성본을 재료로 쓰는 다른 채점 연습(§2.6·§2.8의 여러 연습, Ex 2.1 등)이 결국 두 채점
+연습에 동시에 걸리게 된다 — 연습 독립성 원칙(`AGENTS.md` §1-9) 위반이다.
+
+아래 세 정리는 그 네 연습을 부르지 않고 `whileF` 하나로 좁혀 같은 결론을 다시 증명한다.
+`fix_eq`·`fix_least`의 **일반적인** 진술을 그대로 복사한 보조정리를 따로 두지 않는 이유는,
+그러면 그 복사본이 `fix_eq`·`fix_least` 연습 자신을 그대로 닫아버리기 때문이다 — 대상을
+`whileF` 하나로 좁힌 진술이라야 그 연습을 대신 풀어주지 않는다.
+-/
+
+omit [DecidableEq V] in
+/--
+연습 독립성(`AGENTS.md` §1-9): `while`의 풀기 방정식을 채점 연습 `fix_eq`·
+`whileF_continuous` 없이 직접 증명한다. `Comm.eval_isSemantics`의 `wh` 절이 이것을 쓴다.
+
+증명의 얼개는 `whileF_continuous`와 같지만 대상을 반복 사슬 하나 — `⊥, F(⊥), F²(⊥), …` —
+로 좁혔다. 상태 `σ`를 고정하면 `fix F hm σ`는 그 사슬을 점별로 잰 극한(`Chain.lub_apply`)
+이고, 그 값을 `⟦b⟧ σ`와 `⟦c⟧ σ`로 갈래를 나눠 직접 계산할 수 있다 — `whileF_continuous`처럼
+공역이 프리도메인이라는 것 말고 아무 사슬에나 통하는 일반적인 연속성을 세울 필요가 없다.
+-/
+theorem whileF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : State V) :
+    fix (whileF b s) (whileF_monotone b s) σ
+      = if ⟦b⟧ᵇ σ then Option.bind (s σ) (fix (whileF b s) (whileF_monotone b s)) else some σ := by
+  have hm := whileF_monotone b s
+  have hW : ∀ ρ : State V, fix (whileF b s) hm ρ = ((iterChain hm).apply ρ).lub :=
+    fun ρ => Chain.lub_apply _ ρ
+  rw [hW σ]
+  by_cases hb : ⟦b⟧ᵇ σ
+  · rcases hs : s σ with _ | τ
+    · -- 본체가 ⊥. `n ≥ 1`인 항은 모두 ⊥ — 조건이 참인 자리는 언제나 본체의 값을 되묻는다.
+      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = none := by
+        intro n
+        change (whileF b s)^[n + 1] ⊥ σ = none
+        rw [Function.iterate_succ_apply']
+        simp [whileF, hb, hs]
+      have hle : ((iterChain hm).apply σ).lub ≤ none := by
+        refine Chain.lub_le fun n => ?_
+        cases n with
+        | zero => exact bot_le
+        | succ n => exact le_of_eq (hstep n)
+      -- `rcases hs : s σ with _ | τ`가 이미 이 갈래의 목표에서 `s σ`를 `none`으로 바꿔 두었다.
+      rw [le_antisymm hle bot_le, if_pos hb]
+      rfl
+    · -- 본체가 `some τ`. 이 사슬은 `τ`에서 시작한 반복 사슬을 한 칸 민 것과 같다.
+      have hshift : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = ((iterChain hm).apply τ).seq n := by
+        intro n
+        change (whileF b s)^[n + 1] ⊥ σ = (whileF b s)^[n] ⊥ τ
+        rw [Function.iterate_succ_apply']
+        simp [whileF, hb, hs]
+      have h0 : ((iterChain hm).apply σ).seq 0 = none := rfl
+      have hlub : ((iterChain hm).apply σ).lub = ((iterChain hm).apply τ).lub := by
+        refine le_antisymm (Chain.lub_le fun n => ?_) (Chain.lub_le fun n => ?_)
+        · cases n with
+          | zero => rw [h0]; exact bot_le
+          | succ n => rw [hshift]; exact ((iterChain hm).apply τ).le_lub n
+        · rw [← hshift]; exact ((iterChain hm).apply σ).le_lub (n + 1)
+      rw [if_pos hb]
+      change ((iterChain hm).apply σ).lub = fix (whileF b s) hm τ
+      rw [hW τ]
+      exact hlub
+  · -- 조건이 거짓. `n ≥ 1`인 항은 모두 `some σ` — 그 자리에서 즉시 끝난다.
+    have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = some σ := by
+      intro n
+      change (whileF b s)^[n + 1] ⊥ σ = some σ
+      rw [Function.iterate_succ_apply']
+      simp [whileF, hb]
+    have hge : some σ ≤ ((iterChain hm).apply σ).lub := by
+      rw [← hstep 0]; exact ((iterChain hm).apply σ).le_lub 1
+    have hle : ((iterChain hm).apply σ).lub ≤ some σ := by
+      refine Chain.lub_le fun n => ?_
+      cases n with
+      | zero => exact bot_le
+      | succ n => exact le_of_eq (hstep n)
+    rw [le_antisymm hle hge, if_neg hb]
+
+omit [DecidableEq V] in
+/--
+연습 독립성(`AGENTS.md` §1-9): `whileF`의 고정점이 전고정점 아래에 있다는 것을 채점 연습
+`fix_least`를 부르지 않고 증명한다. `Comm.eval_while_least`가 이것을 쓴다.
+
+증명은 `fix_least`의 반복-사슬 귀납과 같은 모양이지만, 대상을 `whileF` 하나로 좁혔다.
+`fix_least`의 **일반적인** 진술을 그대로 복사하지 않는 이유는 §1.5 첫머리에 적어 두었다 —
+일반적인 복사본은 `fix_least` 연습 자체를 곧바로 닫아버린다.
+-/
+theorem whileF_fix_le (b : BoolExp V) (s : State V → SigmaBot V) {w : State V → SigmaBot V}
+    (hw : whileF b s w ≤ w) :
+    fix (whileF b s) (whileF_monotone b s) ≤ w := by
+  refine (iterChain (whileF_monotone b s)).lub_le fun n => ?_
+  induction n with
+  | zero => exact bot_le
+  | succ n ih =>
+      calc (whileF b s)^[n + 1] ⊥ = whileF b s ((whileF b s)^[n] ⊥) :=
+            Function.iterate_succ_apply' (whileF b s) n ⊥
+        _ ≤ whileF b s w := whileF_monotone b s ih
+        _ ≤ w := hw
+
+omit [DecidableEq V] in
+/--
+연습 독립성(`AGENTS.md` §1-9): 채점 연습 `scott_induction`을 부르지 않고 증명하는,
+`whileF`의 고정점에 대한 Scott 귀납법. 증명은 `scott_induction`과 글자까지 같다 —
+대상을 `whileF` 하나로 좁혔을 뿐이다. `Comm.coincidence_general`·`Comm.eval_agree_outside_fa`
+(둘 다 `FreeVars.lean`)와 `Comm.run_complete`(`Interpreter.lean`)처럼 `while`의 뜻에 대해
+귀납하는 완성본 증명들이 이것을 쓴다.
+-/
+theorem whileF_scott_induction (b : BoolExp V) (s : State V → SigmaBot V)
+    {P : (State V → SigmaBot V) → Prop}
+    (hadm : ∀ c : Chain (State V → SigmaBot V), (∀ n, P (c.seq n)) → P c.lub)
+    (hbot : P ⊥) (hstep : ∀ w, P w → P (whileF b s w)) :
+    P (fix (whileF b s) (whileF_monotone b s)) := by
+  refine hadm (iterChain (whileF_monotone b s)) fun n => ?_
+  induction n with
+  | zero => exact hbot
+  | succ n ih =>
+      rw [iterChain_seq, Function.iterate_succ_apply']
+      exact hstep _ ih
+
 /-! ## 2. 의미 함수
 
 여섯 절 중 다섯은 §2.2의 방정식을 받아 적은 것이다. `wh` 절만 `fix`를 부른다. -/
@@ -145,7 +266,8 @@ scoped notation:max "⟦" c "⟧ᶜ" => Comm.eval c
 /-! ## 3. 명세를 만족한다
 
 §2.2의 `IsSemantics`는 여섯 방정식이었다. 다섯은 정의 그대로이고,
-`wh` 방정식이 `fix_eq` — 극한이 고정점이라는 사실 — 로 나온다. -/
+`wh` 방정식이 `whileF_fix_unfold` — 극한이 고정점이라는 사실을 `whileF`에 대해 직접
+증명한 것 — 로 나온다. (일반적인 `fix_eq`가 아닌 이유는 §1.5 참고.) -/
 
 -- ANCHOR: Comm.eval_isSemantics
 /--
@@ -158,18 +280,14 @@ scoped notation:max "⟦" c "⟧ᶜ" => Comm.eval c
                  = if ⟦b⟧ σ then ⟦c⟧ σ >>= ⟦while b do c⟧ else some σ
 ```
 
-§2.2에서 정의가 되지 못했던 풀기 방정식이 정의(`fix`)와 정리(`fix_eq`)로
+§2.2에서 정의가 되지 못했던 풀기 방정식이 정의(`fix`)와 정리(`whileF_fix_unfold`)로
 갈라져서 돌아왔다.
 -/
 theorem Comm.eval_isSemantics : IsSemantics (V := V) Comm.eval := by
   refine ⟨fun v e σ => rfl, fun σ => rfl, fun c₀ c₁ σ => rfl, fun b c₀ c₁ σ => rfl,
     fun b c σ => ?_, fun v e c σ => rfl⟩
-  -- `wh` 방정식. 고정점 등식을 상태 `σ`에서 읽는다.
-  have h := fix_eq (whileF_continuous b c.eval)
-  calc Comm.eval (.wh b c) σ
-      = whileF b c.eval (fix (whileF b c.eval) (whileF_monotone b c.eval)) σ :=
-        (congrFun h σ).symm
-    _ = if ⟦b⟧ᵇ σ then Option.bind (c.eval σ) (Comm.eval (.wh b c)) else some σ := rfl
+  -- `wh` 방정식. `whileF_fix_unfold`가 상태 `σ`에서 바로 읽어 준다.
+  exact whileF_fix_unfold b c.eval σ
 -- ANCHOR_END: Comm.eval_isSemantics
 
 /-! ## 4. 어떤 해보다도 아래에 있다
@@ -182,15 +300,17 @@ theorem Comm.eval_isSemantics : IsSemantics (V := V) Comm.eval := by
 **`while`의 뜻은 풀기 방정식의 최소 해다.**
 
 `w`가 방정식을 만족하면 `whileF`의 고정점이고, 고정점은 전고정점이므로
-`fix_least`가 바로 준다.
+`whileF_fix_le`가 바로 준다.
 
 채점 연습이 아니다. `fix_least`가 이미 연습이라, 이것까지 비우면 비운 것끼리
-의존하게 된다 (연습 독립성 원칙, `AGENTS.md` §1-9). 완성본을 읽는 자리로 남긴다.
+의존하게 된다 (연습 독립성 원칙, `AGENTS.md` §1-9). 그래서 `fix_least`도, 그 일반적인
+진술을 그대로 복사한 판도 아니라 — 복사본은 `fix_least` 연습을 그대로 닫아버린다 — §1.5
+의 `whileF` 전용 판 `whileF_fix_le`를 쓴다. 완성본을 읽는 자리로 남긴다.
 -/
 theorem Comm.eval_while_least {b : BoolExp V} {c : Comm V} {w : State V → SigmaBot V}
     (hw : ∀ σ, w σ = if ⟦b⟧ᵇ σ then Option.bind (c.eval σ) w else some σ) :
     Comm.eval (.wh b c) ≤ w :=
-  fix_least (whileF_monotone b c.eval) (le_of_eq (funext fun σ => (hw σ).symm))
+  whileF_fix_le b c.eval (le_of_eq (funext fun σ => (hw σ).symm))
 -- ANCHOR_END: Comm.eval_while_least
 
 /-! ## 5. 여기서 어디로 가나

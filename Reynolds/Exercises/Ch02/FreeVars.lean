@@ -122,14 +122,26 @@ def Comm.fa : Comm V → Finset V
 **쓰는 변수는 읽거나 쓰는 변수다.** `FA(c) ⊆ FV(c)`.
 
 절마다 확인하는 계산이다. `newvar` 절에서 `erase` 끼리의 포함이 필요하다.
--/
-@[exercise "§2.5 fa-subset" 1]
-theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
-  -- 힌트 1: 구조적 귀납. `skip` 과 `newvar` 분기는 `«skip»`, `«newvar»` 로 쓴다.
-  -- 힌트 2: `Finset.union_subset`, `Finset.subset_union_left/right`,
-  --         `Finset.erase_subset_erase` 를 `le_trans` 로 잇는다.
-  sorry
 
+채점 연습이 아니다. 같은 장의 여러 채점 연습(Ex 2.6·2.8 등)이 이 결과를 직접 쓰므로,
+완성된 채로 준다 (연습 독립성 원칙, `AGENTS.md` §1-9).
+-/
+theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
+  intro c
+  induction c with
+  | assign v e => simp [Comm.fa, Comm.fv]
+  | «skip» => simp [Comm.fa, Comm.fv]
+  | seq c₀ c₁ ih₀ ih₁ =>
+      exact Finset.union_subset_union ih₀ ih₁
+  | ite b c₀ c₁ ih₀ ih₁ =>
+      refine Finset.union_subset ?_ ?_
+      · exact le_trans ih₀
+          (le_trans Finset.subset_union_right Finset.subset_union_left)
+      · exact le_trans ih₁ Finset.subset_union_right
+  | wh b c ih =>
+      exact le_trans ih Finset.subset_union_right
+  | «newvar» v e c ih =>
+      exact le_trans (Finset.erase_subset_erase v ih) Finset.subset_union_right
 
 /-! ## 3. `AgreeOn` — 비종료가 있는 "같다"
 
@@ -175,19 +187,55 @@ omit [DecidableEq V] in
 
 허용 가능성이 공짜가 아니라던 `Fixpoint.lean` 의 경고와 나란히 두고 볼 것 —
 이 성질이 통과하는 이유는 순전히 `Σ⊥` 가 평평해서다.
+
+채점 연습이 아니다. 바로 아래 `Comm.coincidence_general` 이 `while` 절에서 이 결과를
+직접 쓰고, 그것이 다시 같은 장의 여러 채점 연습(Ex 2.6 등)에 쓰인다. 완성된 채로 준다
+(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.5 agree-admissible" 2]
 theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
     {σ σ' : State V} (h : ∀ n, AgreeOn S (d.seq n σ) (d.seq n σ')) :
     AgreeOn S (d.lub σ) (d.lub σ') := by
-  -- 먼저 볼 것: `Chain.flat_lub_mem_range` 와 `Chain.flat_stabilizes`. 둘 다 완성되어 있다.
-  -- 힌트 1: `Chain.lub_apply` 로 점별 극한으로 바꾸고, 왼쪽 극한을 `rcases` 로 나눈다.
-  -- 힌트 2: `⊥` 갈래 — 모든 단계가 `⊥` 였다는 것을 `le_lub` + `le_none_iff` 로 끌어내고,
-  --         단계별 일치로 오른쪽도 전부 `⊥` 임을 보인다.
-  -- 힌트 3: 상태 갈래 — 두 극한의 결정 시점 `k`, `k'` 를 얻고, `max k k'` 단계에서
-  --         `flat_stabilizes` 로 두 극한값을 함께 읽는다.
-  sorry
-
+  rw [Chain.lub_apply, Chain.lub_apply]
+  rcases hσ : (d.apply σ).lub with _ | τ
+  · -- 왼쪽 극한이 `⊥` — 왼쪽 사슬이 전부 `⊥` 였고, 일치가 오른쪽도 전부 `⊥` 로 만든다.
+    have hall : ∀ n, d.seq n σ' = none := by
+      intro n
+      have hn := (d.apply σ).le_lub n
+      rw [hσ] at hn
+      simp only [Option.le_none_iff, Chain.apply_seq] at hn
+      have := h n
+      rw [hn] at this
+      rcases hn' : d.seq n σ' with _ | τ'
+      · rfl
+      · rw [hn'] at this; exact absurd this (by simp)
+    have : (d.apply σ').lub ≤ none :=
+      (d.apply σ').lub_le fun n => by rw [Chain.apply_seq, hall n]
+    simp only [Option.le_none_iff] at this
+    rw [this]
+    simp
+  · -- 왼쪽 극한이 상태 — 결정 시점 둘의 최댓값에서 두 극한을 함께 읽는다.
+    obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
+    rw [hσ] at hk
+    rcases hσ' : (d.apply σ').lub with _ | τ'
+    · -- 오른쪽만 `⊥` 일 수는 없다. 단계 `k` 에서 왼쪽이 이미 상태인데,
+      -- 오른쪽 사슬이 전부 `⊥` 면 단계 `k` 의 일치가 거짓이 된다.
+      have hk' : d.seq k σ' = none := by
+        have hn := (d.apply σ').le_lub k
+        rw [hσ'] at hn
+        simpa using hn
+      have := h k
+      rw [show d.seq k σ = some τ from hk, hk'] at this
+      exact absurd this (by simp)
+    · obtain ⟨k', hk'⟩ := (d.apply σ').flat_lub_mem_range
+      rw [hσ'] at hk'
+      -- 공통 단계 `m` 에서는 양쪽 다 극한값이다.
+      have hm : d.seq (max k k') σ = some τ :=
+        Chain.flat_stabilizes (c := d.apply σ) hk (max k k') (le_max_left _ _)
+      have hm' : d.seq (max k k') σ' = some τ' :=
+        Chain.flat_stabilizes (c := d.apply σ') hk' (max k k') (le_max_right _ _)
+      have := h (max k k')
+      rw [hm, hm'] at this
+      exact this
 
 /-! ## 5. 명제 2.6
 
@@ -214,10 +262,10 @@ theorem agree_update {S : Finset V} {σ σ' : State V} (h : ∀ w ∈ S, σ w = 
 **명제 2.6(a), 강화판** — `S ⊇ FV(c)` 위에서 일치하는 두 상태에서 `c` 를 돌리면,
 결과도 `S` 위에서 일치한다 (둘 다 `⊥` 이거나, 둘 다 상태로).
 
-채점 연습이 아니다. 증명이 1장의 일치 정리(명제 1.1)와 Scott 귀납법 위에 서 있고,
-둘 다 이미 연습이라 비우면 비운 것끼리 의존한다 (연습 독립성 원칙). 대신 `while` 절이
-Scott 귀납법과 `AgreeOn.admissible` 이 실제로 맞물리는 자리이니 완성본으로 읽어 두면
-연습 2.5 와 2.6 에서 그대로 쓴다.
+채점 연습이 아니다. 연습 2.5 와 2.6 이 이 결과를 직접 쓴다 (연습 독립성 원칙,
+`AGENTS.md` §1-9). `while` 절은 `scott_induction`(채점 연습)이 아니라 `Eval.lean`의
+`whileF_scott_induction`을 쓴다 — Scott 귀납법과 `AgreeOn.admissible`이 실제로
+맞물리는 자리이니 완성본으로 읽어 두면 좋다.
 -/
 theorem Comm.coincidence_general :
     ∀ (c : Comm V) (S : Finset V), c.fv ⊆ S →
@@ -266,7 +314,7 @@ theorem Comm.coincidence_general :
       have hSb : b.fv ⊆ S := le_trans Finset.subset_union_left hS
       have hSc : c.fv ⊆ S := le_trans Finset.subset_union_right hS
       -- Scott 귀납법. 성질: 일치하는 입력쌍을 일치하는 출력쌍으로 보낸다.
-      have key := scott_induction (whileF_monotone b c.eval)
+      have key := whileF_scott_induction b c.eval
         (P := fun w => ∀ σ σ' : State V,
           (∀ v ∈ S, σ v = σ' v) → AgreeOn S (w σ) (w σ'))
         (fun d hd σ σ' hσσ' => AgreeOn.admissible S d fun n => hd n σ σ' hσσ')
@@ -369,7 +417,7 @@ theorem Comm.eval_agree_outside_fa :
   | wh b c ihc =>
       intro σ τ heval w hw
       have hwc : w ∉ c.fa := by simpa [Comm.fa] using hw
-      have key := scott_induction (whileF_monotone b c.eval)
+      have key := whileF_scott_induction b c.eval
         (P := fun w' => ∀ σ τ : State V, w' σ = some τ → τ w = σ w)
         (fun d hd σ τ hlub => by
           -- 극한이 상태면 어느 단계가 이미 그 상태다.

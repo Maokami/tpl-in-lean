@@ -137,16 +137,20 @@ def diverge : Comm V := .wh .tru .skip
 
 증명이 짧은 이유를 보아 둘 것. 이 반복의 함수 연산자는 **항등 함수**다 —
 조건이 늘 참이고 본체가 아무것도 안 하므로 `whileF tru ⟦skip⟧ w = w` 이다.
-항등 함수는 `⊥` 를 `⊥` 로 보내므로 `⊥` 가 전고정점이고, 최소 고정점은 그보다 아래다
-(`fix_least`). 사슬을 펼쳐 볼 필요가 없다.
+항등 함수는 `⊥` 를 `⊥` 로 보내므로 `⊥` 가 전고정점이고, 최소 고정점은 그보다 아래다.
+사슬을 펼쳐 볼 필요가 없다.
 
 "최소" 고정점을 택한 것이 여기서 값을 한다. 이 반복의 풀기 방정식은 §2.2 에서 보았듯
 **모든** 함수가 해이지만(`unwinding_trivial`), 그중 가장 작은 것이 `⊥` 다.
+
+연습 독립성 원칙(`AGENTS.md` §1-9) 때문에 `fix_least` 자신이 아니라 `Eval.lean`의
+`whileF` 전용 판 `whileF_fix_le`를 쓴다 — `fix_least`의 일반적인 진술을 그대로 복사한
+판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
 theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
   have hbot : Comm.eval (V := V) diverge ≤ ⊥ :=
-    fix_least (whileF_monotone _ _) (le_of_eq rfl)
+    whileF_fix_le _ _ (le_of_eq rfl)
   simpa using hbot σ
 ```
 
