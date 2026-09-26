@@ -751,7 +751,7 @@ file := "ch01-exercise-list"
 number := false
 %%%
 
-1장에는 채점되는 연습이 30개 있다. 책 연습문제와 본문 명제가 섞여 있고,
+1장에는 채점되는 연습이 31개 있다. 책 연습문제와 본문 명제가 섞여 있고,
 아래는 [읽는 순서](--tag--ch01-order)와 같은 차례로 늘어놓은 것이다.
 
 * `Validity.lean` — §1.3 건전성과 규칙. *3개*
@@ -759,7 +759,7 @@ number := false
 * `Realizations.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.3. *9개*
 * `Ex/Summation.lean` — 책 연습 1.5 · 1.6. *6개*
 * `Design.lean` — 정의 선택과 정리의 성립. *3개*
-* `Depth/` — 심화 트랙. *4개*
+* `Depth/` — 심화 트랙. *5개*
 
 본문 명제를 건너뛰면 책 연습에서 쓸 재료가 없다.
 
@@ -771,6 +771,69 @@ number := false
 서로 의존하지 않도록 골라 두었다.
 
 심화 트랙은 책을 따라가는 데 필요하지 않다. 건너뛰어도 1장은 완결된다.
+
+# 선택 심화: 정수 식과 단언을 함께 접기
+%%%
+tag := "ch01-logic-initiality"
+%%%
+
+`x < 3`을 해석하려면 먼저 `x`와 `3`이라는 정수 식의 결과가 필요하다.
+반대로 정수 식을 해석할 때는 단언의 결과가 필요하지 않다. `Depth/Algebra.lean`의
+`LogicAlg`는 이 연결을 정수 식 반송자 `E`와 단언 반송자 `A`로 표현한다.
+반송자는 해석 결과가 사는 타입이다. 변수 타입 `V`는 대수마다 바꾸지 않고 고정한다.
+
+준동형은 생성자를 만드는 순서와 해석하는 순서를 바꾸어도 결과가 같은 함수다.
+여기서는 구문의 종류가 둘이므로 함수도 쌍으로 둔다. `h.1`은 정수 식을 옮기고
+`h.2`는 단언을 옮긴다. `cmp`의 등식에서 입력과 출력에 어느 함수를 쓰는지 확인하면
+두 정렬이 어떻게 연결되는지 읽을 수 있다.
+
+```anchor LogicAlg.IsHom (module := Reynolds.Answers.Ch01.Depth.Algebra)
+/--
+고정된 변수 타입 `V`의 원시 구문에서 `L`로 가는 준동형 조건이다.
+
+함수 쌍의 첫 성분은 정수 식, 둘째 성분은 단언을 옮긴다. `cmp`는 두 성분을 함께 쓰며,
+`quant`는 결합 변수의 이름까지 보존한다. 두 목표 반송자는 기존 `LogicAlg`처럼 같은
+우주 `Type v`에 놓고, 변수 타입의 우주 `Type u`와는 독립적으로 둔다.
+-/
+structure LogicAlg.IsHom {V : Type u} (L : LogicAlg.{u, v} V)
+    (h : (IntExp V → L.E) × (Assert V → L.A)) : Prop where
+  /-- 정수 상수 보존. -/
+  num : ∀ n, h.1 (.num n) = L.num n
+  /-- 변수 보존. -/
+  var : ∀ x, h.1 (.var x) = L.var x
+  /-- 정수 부호 반전 보존. -/
+  eneg : ∀ e, h.1 (.neg e) = L.eneg (h.1 e)
+  /-- 정수 이항 연산 보존. -/
+  ebin : ∀ op e₀ e₁, h.1 (.bin op e₀ e₁) = L.ebin op (h.1 e₀) (h.1 e₁)
+  /-- 참 보존. -/
+  tru : h.2 .tru = L.tru
+  /-- 거짓 보존. -/
+  fls : h.2 .fls = L.fls
+  /-- 비교의 입력에는 정수 식 함수를, 출력에는 단언 함수를 쓴다. -/
+  cmp : ∀ c e₀ e₁, h.2 (.cmp c e₀ e₁) = L.cmp c (h.1 e₀) (h.1 e₁)
+  /-- 논리 부정 보존. -/
+  anot : ∀ p, h.2 (.not p) = L.anot (h.2 p)
+  /-- 논리 이항 연산 보존. -/
+  abin : ∀ op p q, h.2 (.bin op p q) = L.abin op (h.2 p) (h.2 q)
+  /-- 양화사 종류와 결합 변수 이름을 고정한 채 본문을 옮긴다. -/
+  quant : ∀ q x p, h.2 (.quant q x p) = L.quant q x (h.2 p)
+```
+
+`foldE`와 `foldA`는 각 생성자를 목표 대수의 연산으로 바꾸는 함수다.
+이 둘은 위의 열 조건을 만족한다. 초기성은 그런 함수 쌍이 존재하고 유일하다는 뜻이며,
+Lean에서는 `∃!`로 적는다. 다음은 심화 연습 A1.3의 진술이다.
+
+```anchor LogicAlg.initial (module := Reynolds.Answers.Ch01.Depth.Algebra)
+@[exercise "심화 A1.3" 3]
+theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
+    ∃! h : (IntExp V → L.E) × (Assert V → L.A), L.IsHom h := by
+```
+
+유일성을 증명할 때는 정수 식의 결과가 정해짐을 먼저 보인다. 단언의 구조를 따라갈 때
+비교식에서는 그 결과를 쓰고, 부정과 논리 연산에서는 단언에 대한 귀납 가설을 쓴다.
+양화사의 경우 `quant` 조건은 변수 이름까지 그대로 유지한다. 따라서 이 정리는
+`∀x. p`와 이름을 바꾼 구문을 동일시하는 α-동치나 치환 법칙을 말하지 않는다.
+범주론 용어를 배우지 않아도 열 조건과 `∃!`만으로 이 연습을 읽을 수 있다.
 
 # 더 읽을거리
 %%%

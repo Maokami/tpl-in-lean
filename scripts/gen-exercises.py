@@ -200,6 +200,19 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    (
+        "Ch01/Depth/Algebra.lean",
+        "theorem LogicAlg.initial {V : Type u}",
+        "end Reynolds.Exercises.Ch01",
+        """theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
+    ∃! h : (IntExp V → L.E) × (Assert V → L.A), L.IsHom h := by
+  -- 힌트: 존재 증인은 두 접기의 쌍이고, `L.fold_isHom`이 보존 조건을 준다.
+  -- 유일성에서는 정수 식 성분의 등식을 먼저 증명한 뒤 단언에 대해 귀납한다.
+  -- `cmp`에서 두 정렬이 연결된다. `quant`가 보존하는 매개변수도 확인한다.
+  sorry
+
+""",
+    ),
     # ── 심화 B · 시그니처 함자
     (
         "Ch01/Depth/SignatureFunctor.lean",
