@@ -7,6 +7,7 @@ import VersoManual
 import Manual.Intro
 import Manual.Ch01
 import Manual.Ch02
+import Manual.Ch03
 
 open Verso.Genre Manual
 open Verso.Genre.Manual.InlineLean
@@ -37,3 +38,5 @@ Lean 4로 따라 읽는 스터디 자료다.
 {include 1 Manual.Ch01}
 
 {include 1 Manual.Ch02}
+
+{include 1 Manual.Ch03}
