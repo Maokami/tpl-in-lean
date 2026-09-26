@@ -5,7 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 module
 
-public import Reynolds.Answers.Ch03.Spec
+public import Reynolds.Answers.Ch03.Semantic
 
 /-!
 # §3.2 · §3.3 · §3.5 · §3.6 추론 규칙
@@ -31,7 +31,7 @@ Reynolds 는 결과 규칙을 둘로 나눈다 — 전제 강화와 결론 약�
 (`conseq`), 두 반쪽을 그것으로부터 유도한다 (`Hoare.strengthen`, `Hoare.weaken`).
 
 ## 읽는 순서
-`Spec.lean` → 이 파일 → `Soundness.lean` → `Assign.lean`.
+`Spec.lean` → `Semantic.lean` → 이 파일 → `Soundness.lean` → `Assign.lean`.
 -/
 
 @[expose] public section

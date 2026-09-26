@@ -99,19 +99,22 @@ theorem wlp_wh_eq (b : BoolExp V) (c : Comm V) (Q : State V → Prop) (σ : Stat
 강하다.
 
 `X` 가 바로 불변식이다 — 한 바퀴를 견디고, 끝난 자리에서 `Q` 를 준다. 그러니 이것은 `while`
-규칙의 의미 판이고, 증명은 `wh_sound` 와 같은 Scott 귀납법이다. 최대 고정점에 대한 성질을
-최소 고정점(`⟦while⟧ = fix …`) 위의 귀납으로 얻는다.
+규칙의 의미 판 `PartialCorrectS.wh`의 따름정리다. 그 규칙의 Scott 귀납법이 최대 고정점에
+대한 성질을 최소 고정점(`⟦while⟧ = fix …`)에서 얻는 근거다.
 -/
-@[exercise "§3.10 wlp-gfp" 3]
 theorem wlp_wh_greatest {b : BoolExp V} {c : Comm V} {Q X : State V → Prop}
     (hX : ∀ σ, X σ → (⟦b⟧ᵇ σ = false ∧ Q σ) ∨ (⟦b⟧ᵇ σ = true ∧ wlp c X σ)) :
     ∀ σ, X σ → wlp (.wh b c) Q σ := by
-  -- 먼저 볼 것: `Soundness.lean` 의 `wh_sound` 를 풀었다면 같은 증명이다.
-  --            §2.4 `scott_induction`, §3.1 `Sat.admissible` · `Sat.bot`.
-  -- 힌트 1: 목표는 정의상 `Sat X (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) Q` 다 (`change`).
-  -- 힌트 2: `scott_induction … (P := fun w => Sat X w Q)` 의 한 바퀴에서 `hX σ hx` 로 나눈다.
-  --         조건이 거짓이면 그 자리에서 `Q`, 참이면 본체가 끝난 상태에서 `X` 가 되어 가설로 넘긴다.
-  sorry
+  have hbody : PartialCorrectS (fun σ => X σ ∧ ⟦b⟧ᵇ σ = true) c X := by
+    intro σ hx τ hτ
+    rcases hX σ hx.1 with ⟨hb, _⟩ | ⟨_, hc⟩
+    · simp [hx.2] at hb
+    · exact hc τ hτ
+  intro σ hx τ hτ
+  obtain ⟨hxτ, hb⟩ := PartialCorrectS.wh hbody σ hx τ hτ
+  rcases hX τ hxτ with ⟨_, hq⟩ | ⟨hb', _⟩
+  · exact hq
+  · simp [hb] at hb'
 
 
 /-! ## 3. `while` 없는 조각 — 구문적 최약 사전조건 -/

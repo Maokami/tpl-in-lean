@@ -1131,20 +1131,6 @@ BLANKS: list[tuple[str, str, str, str]] = [
     # ── §3.1 명세의 뜻
     (
         "Ch03/Spec.lean",
-        "theorem sat_admissible",
-        "-- ANCHOR_END: satAdmissible",
-        """theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
-    (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
-  -- 먼저 볼 것: §2.3 의 `Chain.flat_lub_mem_range` 와 `Chain.lub_apply`, 그리고 §2.5 의
-  --            `AgreeOn.admissible` — 같은 논증인데 관계가 아니라 술어라 더 짧다.
-  -- 힌트 1: `Chain.lub_apply` 로 `d.lub σ` 를 `Σ⊥` 사슬 `d.apply σ` 의 극한으로 바꾼다.
-  -- 힌트 2: 평평한 사슬의 극한은 어느 항과 같다. 그 항 `k` 에서 가정 `h k` 가 `Q` 를 준다.
-  sorry
-
-""",
-    ),
-    (
-        "Ch03/Spec.lean",
         "theorem TotalCorrect.toPartial",
         "-- ANCHOR_END: totalToPartial",
         """theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
@@ -1168,67 +1154,61 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.2~3.6 건전성 — 규칙마다 하나
+    # ── §3.3–§3.5 의미 규칙
     (
-        "Ch03/Soundness.lean",
-        "theorem assign_sound",
-        "-- ANCHOR_END: assignSound",
-        """theorem assign_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
-    ｛q /[v := e]｝(Comm.assign v e)｛q｝ := by
-  -- 먼저 볼 것: §1.4 의 `substitution_single` (명제 1.4). 이 정리가 전부다.
-  -- 힌트 1: `intro σ hp τ hτ` 뒤 `hτ` 는 정의상 `some (σ[v := ⟦e⟧ₑ σ]) = some τ` 다.
-  --         `change` 로 드러내고 `Option.some.inj` 로 `τ` 를 없앤다.
-  -- 힌트 2: 남는 목표가 `⟦q⟧ₐ (σ[v := ⟦e⟧ₑ σ])` 이고 가정이 `⟦q /[v := e]⟧ₐ σ` 다.
+        "Ch03/Semantic.lean",
+        "theorem as_sound",
+        "-- ANCHOR_END: asSound",
+        """theorem as_sound (Q : State V → Prop) (v : V) (e : IntExp V) :
+    PartialCorrectS (fun σ => Q (σ[v := ⟦e⟧ₑ σ])) (.assign v e) Q ∧
+    TotalCorrectS (fun σ => Q (σ[v := ⟦e⟧ₑ σ])) (.assign v e) Q := by
+  -- 힌트: 부분 판은 종료 상태를 맞추고, 전체 판은 갱신한 상태를 증인으로 준다.
   sorry
 
 """,
     ),
     (
-        "Ch03/Soundness.lean",
-        "theorem seq_sound",
-        "-- ANCHOR_END: seqSound",
-        """theorem seq_sound {p r q : Assert V} {c₀ c₁ : Comm V}
-    (h₀ : ｛p｝c₀｛r｝) (h₁ : ｛r｝c₁｛q｝) : ｛p｝(Comm.seq c₀ c₁)｛q｝ := by
-  -- 힌트 1: `⟦c₀ ; c₁⟧ᶜ σ` 는 정의상 `Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ` 다 (`change … at hτ`).
-  -- 힌트 2: `rcases h : ⟦c₀⟧ᶜ σ with _ | ρ` 로 나눈다. `none` 이면 `hτ` 가 모순이고,
-  --         `some ρ` 면 `h₀` 가 `⟦r⟧ₐ ρ` 를, `h₁` 이 `⟦q⟧ₐ τ` 를 준다.
+        "Ch03/Semantic.lean",
+        "theorem sq_sound",
+        "-- ANCHOR_END: sqSound",
+        """theorem sq_sound {P R Q : State V → Prop} {c₀ c₁ : Comm V} :
+    (PartialCorrectS P c₀ R → PartialCorrectS R c₁ Q → PartialCorrectS P (.seq c₀ c₁) Q) ∧
+    (TotalCorrectS P c₀ R → TotalCorrectS R c₁ Q → TotalCorrectS P (.seq c₀ c₁) Q) := by
+  -- 힌트: 부분 판은 첫 명령의 결과를 나눈다. 전체 판은 두 종료 증인을 잇는다.
   sorry
 
 """,
     ),
     (
-        "Ch03/Soundness.lean",
-        "theorem ite_sound",
-        "-- ANCHOR_END: iteSound",
-        """theorem ite_sound {p q : Assert V} {b : BoolExp V} {c₀ c₁ : Comm V}
-    (h₀ : ｛p ⋀ b.toAssert｝c₀｛q｝) (h₁ : ｛p ⋀ .not b.toAssert｝c₁｛q｝) :
-    ｛p｝(Comm.ite b c₀ c₁)｛q｝ := by
-  -- 먼저 볼 것: §2.2 의 `boolExp_eval_iff`, 이 파일 위의 `Assert.eval_and` · `Assert.eval_not`.
-  -- 힌트 1: `⟦if b then c₀ else c₁⟧ᶜ σ` 는 정의상 `if ⟦b⟧ᵇ σ then … else …` 다.
-  -- 힌트 2: `by_cases hb : ⟦b⟧ᵇ σ = true` 로 나누고 `if_pos` / `if_neg` 로 가지를 고른다.
-  -- 힌트 3: 각 가지의 사전조건 `p ⋀ …` 은 `hp` 와 `hb` 를 `boolExp_eval_iff` 로 합친 것이다.
+        "Ch03/Semantic.lean",
+        "theorem cd_sound",
+        "-- ANCHOR_END: cdSound",
+        """theorem cd_sound {P Q : State V → Prop} {b : BoolExp V} {c₀ c₁ : Comm V} :
+    (PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = true) c₀ Q →
+      PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = false) c₁ Q →
+      PartialCorrectS P (.ite b c₀ c₁) Q) ∧
+    (TotalCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = true) c₀ Q →
+      TotalCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = false) c₁ Q →
+      TotalCorrectS P (.ite b c₀ c₁) Q) := by
+  -- 힌트: 각 성분에서 조건의 불 값을 나누고 해당 가지의 가정을 쓴다.
   sorry
 
 """,
     ),
     (
-        "Ch03/Soundness.lean",
-        "theorem wh_sound",
-        "-- ANCHOR_END: whSound",
-        """theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
-    (hbody : ｛i ⋀ b.toAssert｝c｛i｝) : ｛i｝(Comm.wh b c)｛i ⋀ .not b.toAssert｝ := by
-  -- 먼저 볼 것: §2.4 의 `scott_induction`, §3.1 의 `Sat.admissible` · `Sat.bot`,
-  --            그리고 §2.5 의 `Comm.coincidence_general` — 같은 수법이다.
-  -- 힌트 1: `⟦while b do c⟧ᶜ` 는 정의상 `fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)` 다.
-  --         목표를 `Sat ⟦i⟧ₐ (fix …) ⟦i ⋀ .not b.toAssert⟧ₐ` 로 `change` 한다.
-  -- 힌트 2: `scott_induction (whileF_monotone b ⟦c⟧ᶜ) (P := fun w => Sat ⟦i⟧ₐ w ⟦…⟧ₐ)` 에
-  --         세 의무를 준다 — 허용 가능(`Sat.admissible`), `⊥`(`Sat.bot`), 한 바퀴.
-  -- 힌트 3: 한 바퀴에서 `whileF b ⟦c⟧ᶜ w σ` 를 `change` 로 펼치고, `⟦b⟧ᵇ σ = true` 로 나눈 뒤
-  --         참이면 `rcases hc : ⟦c⟧ᶜ σ` — 본체가 끝난 상태에서 `hbody` 와 귀납 가설 `hw` 를 잇는다.
+        "Ch03/Semantic.lean",
+        "theorem PartialCorrectS.wh",
+        "-- ANCHOR_END: whpSound",
+        """theorem PartialCorrectS.wh {I : State V → Prop} {b : BoolExp V} {c : Comm V}
+    (hbody : PartialCorrectS (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true) c I) :
+    PartialCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false) := by
+  -- 힌트: Sat.admissible·Sat.bot과 Scott 귀납법을 쓴다. 한 바퀴에서는 본체의 종료 여부를 나눈다.
   sorry
 
 """,
     ),
+
+    # ── 변수 선언의 구문 건전성
     (
         "Ch03/Soundness.lean",
         "theorem newvar_sound",
@@ -1420,22 +1400,6 @@ BLANKS: list[tuple[str, str, str, str]] = [
 """,
     ),
     # ── §3.10 최약 사전조건 · 완전성
-    (
-        "Ch03/Wlp.lean",
-        "theorem wlp_wh_greatest",
-        "-- ANCHOR_END: wlpWhGreatest",
-        """theorem wlp_wh_greatest {b : BoolExp V} {c : Comm V} {Q X : State V → Prop}
-    (hX : ∀ σ, X σ → (⟦b⟧ᵇ σ = false ∧ Q σ) ∨ (⟦b⟧ᵇ σ = true ∧ wlp c X σ)) :
-    ∀ σ, X σ → wlp (.wh b c) Q σ := by
-  -- 먼저 볼 것: `Soundness.lean` 의 `wh_sound` 를 풀었다면 같은 증명이다.
-  --            §2.4 `scott_induction`, §3.1 `Sat.admissible` · `Sat.bot`.
-  -- 힌트 1: 목표는 정의상 `Sat X (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) Q` 다 (`change`).
-  -- 힌트 2: `scott_induction … (P := fun w => Sat X w Q)` 의 한 바퀴에서 `hX σ hx` 로 나눈다.
-  --         조건이 거짓이면 그 자리에서 `Q`, 참이면 본체가 끝난 상태에서 `X` 가 되어 가설로 넘긴다.
-  sorry
-
-""",
-    ),
     (
         "Ch03/Wlp.lean",
         "theorem wp_sound",
