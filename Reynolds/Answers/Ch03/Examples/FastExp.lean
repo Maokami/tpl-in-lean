@@ -91,9 +91,11 @@ theorem expInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") expInit expInv := 
 theorem expBody_ok :
     PartialCorrectS (fun σ => expInv σ ∧ ⟦⟪ k > 0 ⟫ᵇ⟧ᵇ σ = true)
       (.ite ⟪ k rem 2 = 1 ⟫ᵇ expOdd expEven) expInv := by
-  refine PartialCorrectS.ite ?_ ?_
+  rintro σ ⟨⟨hn, m, hk, hinv⟩, hpos⟩ τ hτ
+  change (if ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ then ⟦expOdd⟧ᶜ σ else ⟦expEven⟧ᶜ σ) = some τ at hτ
+  by_cases hodd : ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ = true
   · -- 홀수 갈래.
-    rintro σ ⟨⟨⟨hn, m, hk, hinv⟩, hpos⟩, hodd⟩ τ hτ
+    rw [if_pos hodd] at hτ
     obtain rfl := Option.some.inj hτ
     have hm : m % 2 = 1 ∧ 0 < m := by
       simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk] at hpos hodd
@@ -105,7 +107,8 @@ theorem expBody_ok :
         rw [← hinv, pow_succ]; ring
       simpa [State.subst_def, Function.update, IntExp.eval, IntOp.denote] using key
   · -- 짝수 갈래.
-    rintro σ ⟨⟨⟨hn, m, hk, hinv⟩, hpos⟩, heven⟩ τ hτ
+    rw [if_neg hodd] at hτ
+    have heven : ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ = false := Bool.eq_false_iff.mpr hodd
     obtain rfl := Option.some.inj hτ
     have hm : m % 2 = 0 := by
       simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk] at heven

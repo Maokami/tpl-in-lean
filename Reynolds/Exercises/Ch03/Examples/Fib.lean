@@ -6,6 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Exercises.Ch03.Semantic
+public import Reynolds.Exercises.Ch03.Derived
 public import Mathlib.Data.Nat.Fib.Basic
 -- `#guard`는 컴파일 시점에 계산한다 (AGENTS.md §10).
 public meta import Reynolds.Answers.Ch02.Interpreter

@@ -79,7 +79,6 @@ omit [DecidableEq V] in
 이것이 §2.4 에서 말한 **허용 가능성**이다. §2.5 의 `AgreeOn.admissible` 과 같은 논증인데
 관계가 아니라 술어라 더 짧다.
 -/
-@[exercise "§3.1 sat-admissible" 2]
 theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
     (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
   intro τ hτ

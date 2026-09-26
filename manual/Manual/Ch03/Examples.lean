@@ -37,64 +37,50 @@ number := false
 갱신_이다. 명제 1.4가 둘이 같다고 말해 주므로, 구문 판에서 치환이 하던 일을 여기서는 갱신이
 그대로 한다.
 
-```anchor semRules (module := Reynolds.Answers.Ch03.Semantic)
-/-- 대입 — 의미 판. 사후조건을 갱신된 상태에서 묻는다. -/
-theorem assign (Q : State V → Prop) (v : V) (e : IntExp V) :
-    PartialCorrectS (fun σ => Q (σ[v := ⟦e⟧ₑ σ])) (.assign v e) Q := by
-  intro σ hq τ hτ
-  obtain rfl := Option.some.inj hτ
-  exact hq
-
-/-- 순차 합성 — 의미 판. -/
-theorem seq {P R Q : State V → Prop} {c₀ c₁ : Comm V}
-    (h₀ : PartialCorrectS P c₀ R) (h₁ : PartialCorrectS R c₁ Q) :
-    PartialCorrectS P (.seq c₀ c₁) Q := by
-  intro σ hp τ hτ
-  change Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = some τ at hτ
-  rcases h : ⟦c₀⟧ᶜ σ with _ | ρ
-  · rw [h] at hτ; simp at hτ
-  · rw [h] at hτ
-    exact h₁ ρ (h₀ σ hp ρ h) τ hτ
-
-/-- 조건 — 의미 판. 조건을 단언으로 옮길 필요 없이 불 값 그대로 쓴다. -/
-theorem ite {P Q : State V → Prop} {b : BoolExp V} {c₀ c₁ : Comm V}
-    (h₀ : PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = true) c₀ Q)
-    (h₁ : PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = false) c₁ Q) :
-    PartialCorrectS P (.ite b c₀ c₁) Q := by
-  intro σ hp τ hτ
-  change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ at hτ
-  cases hb : ⟦b⟧ᵇ σ
-  · rw [hb] at hτ
-    exact h₁ σ ⟨hp, hb⟩ τ hτ
-  · rw [hb, if_pos rfl] at hτ
-    exact h₀ σ ⟨hp, hb⟩ τ hτ
-
-/-- 반복 — 의미 판. `I` 가 불변식. Scott 귀납법. -/
-theorem wh {I : State V → Prop} {b : BoolExp V} {c : Comm V}
-    (hbody : PartialCorrectS (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true) c I) :
-    PartialCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false) := by
-  change Sat I (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) _
-  refine scott_induction (whileF_monotone b ⟦c⟧ᶜ)
-    (P := fun w => Sat I w fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
-    (fun d hd => Sat.admissible _ _ d hd) (Sat.bot _ _) ?_
-  intro w hw σ hi τ hτ
-  change (if ⟦b⟧ᵇ σ then Option.bind (⟦c⟧ᶜ σ) w else some σ) = some τ at hτ
-  cases hb : ⟦b⟧ᵇ σ
-  · rw [hb] at hτ
-    obtain rfl := Option.some.inj hτ
-    exact ⟨hi, hb⟩
-  · rw [hb, if_pos rfl] at hτ
-    rcases hc : ⟦c⟧ᶜ σ with _ | ρ
-    · rw [hc] at hτ; simp at hτ
-    · rw [hc] at hτ
-      exact hw ρ (hbody σ ⟨hi, hb⟩ ρ hc) τ hτ
-
-/-- 결과 규칙 — 의미 판. 전제가 술어 사이의 함의다. -/
-theorem conseq {P P' Q Q' : State V → Prop} {c : Comm V}
-    (hp : ∀ σ, P' σ → P σ) (h : PartialCorrectS P c Q) (hq : ∀ σ, Q σ → Q' σ) :
-    PartialCorrectS P' c Q' :=
-  fun σ h' τ hτ => hq τ (h σ (hp σ h') τ hτ)
+```anchor stmtAsSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- AS (§3.3). 갱신된 상태에서 사후조건을 묻는 대입은 부분·전체 정확성을 함께 만족한다. -/
+@[exercise "§3.3 as-sound" 1]
+theorem as_sound (Q : State V → Prop) (v : V) (e : IntExp V) :
+    PartialCorrectS (fun σ => Q (σ[v := ⟦e⟧ₑ σ])) (.assign v e) Q ∧
+    TotalCorrectS (fun σ => Q (σ[v := ⟦e⟧ₑ σ])) (.assign v e) Q
 ```
+
+```anchor stmtSqSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- SQ (§3.3). 가운데 조건을 공유하는 두 명령을 순서대로 실행한다. -/
+@[exercise "§3.3 sq-sound" 1]
+theorem sq_sound {P R Q : State V → Prop} {c₀ c₁ : Comm V} :
+    (PartialCorrectS P c₀ R → PartialCorrectS R c₁ Q → PartialCorrectS P (.seq c₀ c₁) Q) ∧
+    (TotalCorrectS P c₀ R → TotalCorrectS R c₁ Q → TotalCorrectS P (.seq c₀ c₁) Q)
+```
+
+```anchor stmtCdSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- CD (§3.5). 참인 가지와 거짓인 가지의 정확성을 각각 확인한다. -/
+@[exercise "§3.5 cd-sound" 1]
+theorem cd_sound {P Q : State V → Prop} {b : BoolExp V} {c₀ c₁ : Comm V} :
+    (PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = true) c₀ Q →
+      PartialCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = false) c₁ Q →
+      PartialCorrectS P (.ite b c₀ c₁) Q) ∧
+    (TotalCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = true) c₀ Q →
+      TotalCorrectS (fun σ => P σ ∧ ⟦b⟧ᵇ σ = false) c₁ Q →
+      TotalCorrectS P (.ite b c₀ c₁) Q)
+```
+
+```anchor stmtWhpSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- WHP (§3.4). 불변식을 보존하는 본체에서 Scott 귀납법으로 반복의 부분 정확성을 얻는다. -/
+@[exercise "§3.4 whp-sound" 3]
+theorem PartialCorrectS.wh {I : State V → Prop} {b : BoolExp V} {c : Comm V}
+    (hbody : PartialCorrectS (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true) c I) :
+    PartialCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
+```
+
+AS·SQ·CD는 각각 부분 정확성과 전체 정확성을 한 연습에서 함께 증명한다. WHP는
+부분 정확성의 반복 규칙이다. 구문 단언의 AS·SQ·CD·WHP 정리는 이 의미 규칙에서 얻는
+완성 자료로 제공한다.
+
+이번 이관에서는 `sat_admissible`과 `wlp_wh_greatest`도 완성 자료로 제공하므로,
+이 이관으로 채점 항목은 두 개 줄었다. 전자는 `Sat.admissible`에서 재사용하고,
+후자는 WHP의 귀결로 얻는다. 전체 정확성의 WHT는 기존 구문 단언 연습을 유지한다.
+WHT를 의미 단언으로 옮기는 작업과 전체 정확성의 사슬 극한 보존 연습은 다음 이관 범위다.
 
 # 피보나치
 %%%

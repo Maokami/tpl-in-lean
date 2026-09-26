@@ -52,7 +52,7 @@ Reynolds §3.1 에 대응한다.
 안 적힐 때 의미 판을 쓴다. 그 자리가 §3.10 표현력 논점의 실물이다.
 
 ## 읽는 순서
-2장을 다 읽은 뒤. 이 파일 → `Hoare.lean` (§3.2, 추론 규칙).
+2장을 다 읽은 뒤. 이 파일 → `Semantic.lean` (의미 규칙) → `Hoare.lean` (추론 규칙).
 
 ## 책과의 차이
 책의 `{ }`·`[ ]` 는 Lean 에서 이미 다른 뜻이라 전각 괄호 `｛ ｝`·［ ］ 를 쓴다.
@@ -104,7 +104,6 @@ omit [DecidableEq V] in
 이것이 §2.4 에서 말한 **허용 가능성**이다. §2.5 의 `AgreeOn.admissible` 과 같은 논증인데
 관계가 아니라 술어라 더 짧다.
 -/
-@[exercise "§3.1 sat-admissible" 2]
 theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
     (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
   intro τ hτ
@@ -115,18 +114,11 @@ theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V
 -- ANCHOR_END: satAdmissible
 
 omit [DecidableEq V] in
-/-- 삼중항 판. Scott 귀납법의 `hadm` 자리에 그대로 들어간다.
-
-`sat_admissible` 을 부르지 않고 같은 논증을 다시 적는다 — §3.5 의 `while` 규칙 건전성
-(그 자체가 연습) 이 이것에 기대므로, 연습이 연습에 기대지 않게 한다 (연습 독립성 원칙,
-`AGENTS.md` §1-9). -/
+/-- 삼중항 판. Scott 귀납법의 `hadm` 자리에 그대로 들어간다. -/
 theorem Sat.admissible (P Q : State V → Prop) (d : Chain (State V → SigmaBot V))
     (h : ∀ n, Sat P (d.seq n) Q) : Sat P d.lub Q := by
-  intro σ hσ τ hτ
-  rw [Chain.lub_apply] at hτ
-  obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
-  rw [← hk] at hτ
-  exact h k σ hσ τ hτ
+  intro σ hσ
+  exact sat_admissible Q σ d (fun n => h n σ hσ)
 
 /-! ## 3. 명령에 대한 명세 -/
 

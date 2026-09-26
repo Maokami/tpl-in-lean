@@ -104,27 +104,23 @@ theorem wlp_wh_eq (b : BoolExp V) (c : Comm V) (Q : State V → Prop) (σ : Stat
 강하다.
 
 `X` 가 바로 불변식이다 — 한 바퀴를 견디고, 끝난 자리에서 `Q` 를 준다. 그러니 이것은 `while`
-규칙의 의미 판이고, 증명은 `wh_sound` 와 같은 Scott 귀납법이다. 최대 고정점에 대한 성질을
-최소 고정점(`⟦while⟧ = fix …`) 위의 귀납으로 얻는다.
+규칙의 의미 판 `PartialCorrectS.wh`의 따름정리다. 그 규칙의 Scott 귀납법이 최대 고정점에
+대한 성질을 최소 고정점(`⟦while⟧ = fix …`)에서 얻는 근거다.
 -/
-@[exercise "§3.10 wlp-gfp" 3]
 theorem wlp_wh_greatest {b : BoolExp V} {c : Comm V} {Q X : State V → Prop}
     (hX : ∀ σ, X σ → (⟦b⟧ᵇ σ = false ∧ Q σ) ∨ (⟦b⟧ᵇ σ = true ∧ wlp c X σ)) :
     ∀ σ, X σ → wlp (.wh b c) Q σ := by
-  change Sat X (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) Q
-  refine scott_induction (whileF_monotone b ⟦c⟧ᶜ) (P := fun w => Sat X w Q)
-    (fun d hd => Sat.admissible _ _ d hd) (Sat.bot _ _) ?_
-  intro w hw σ hx τ hτ
-  change (if ⟦b⟧ᵇ σ then Option.bind (⟦c⟧ᶜ σ) w else some σ) = some τ at hτ
-  rcases hX σ hx with ⟨hb, hq⟩ | ⟨hb, hc⟩
-  · rw [hb] at hτ
-    obtain rfl := Option.some.inj hτ
-    exact hq
-  · rw [hb, if_pos rfl] at hτ
-    rcases hρ : ⟦c⟧ᶜ σ with _ | ρ
-    · rw [hρ] at hτ; simp at hτ
-    · rw [hρ] at hτ
-      exact hw ρ (hc ρ hρ) τ hτ
+  have hbody : PartialCorrectS (fun σ => X σ ∧ ⟦b⟧ᵇ σ = true) c X := by
+    intro σ hx τ hτ
+    rcases hX σ hx.1 with ⟨hb, _⟩ | ⟨_, hc⟩
+    · simp [hx.2] at hb
+    · exact hc τ hτ
+  intro σ hx τ hτ
+  obtain ⟨hxτ, hb⟩ := PartialCorrectS.wh hbody σ hx τ hτ
+  rcases hX τ hxτ with ⟨_, hq⟩ | ⟨hb', _⟩
+  · exact hq
+  · simp [hb] at hb'
+
 -- ANCHOR_END: wlpWhGreatest
 
 /-! ## 3. `while` 없는 조각 — 구문적 최약 사전조건 -/

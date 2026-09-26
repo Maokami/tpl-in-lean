@@ -102,34 +102,28 @@ theorem HoareT.weaken [HasFresh V] {p q q' : Assert V} {c : Comm V}
 theorem skipT_sound (p : Assert V) : ［p］Comm.skip［p］ :=
   fun σ hp => ⟨σ, rfl, hp⟩
 
+/-- AS의 전체 정확성 성분을 구문 치환 명세로 옮긴다. -/
 theorem assignT_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
-    ［q /[v := e]］(Comm.assign v e)［q］ :=
-  fun σ hp => ⟨_, rfl, (substitution_single q v e σ).mp hp⟩
-
-theorem seqT_sound {p r q : Assert V} {c₀ c₁ : Comm V}
-    (h₀ : ［p］c₀［r］) (h₁ : ［r］c₁［q］) : ［p］(Comm.seq c₀ c₁)［q］ := by
+    ［q /[v := e]］(Comm.assign v e)［q］ := by
   intro σ hp
-  obtain ⟨ρ, hρ, hr⟩ := h₀ σ hp
-  obtain ⟨τ, hτ, hq⟩ := h₁ ρ hr
-  refine ⟨τ, ?_, hq⟩
-  change Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = some τ
-  rw [hρ]
-  exact hτ
+  exact (as_sound ⟦q⟧ₐ v e).2 σ ((substitution_single q v e σ).mp hp)
 
+/-- SQ의 전체 정확성 성분을 구문 명세에 적용한다. -/
+theorem seqT_sound {p r q : Assert V} {c₀ c₁ : Comm V}
+    (h₀ : ［p］c₀［r］) (h₁ : ［r］c₁［q］) : ［p］(Comm.seq c₀ c₁)［q］ := sq_sound.2 h₀ h₁
+
+/-- CD의 전체 정확성 성분에서 불 조건을 구문 단언으로 옮긴다. -/
 theorem iteT_sound {p q : Assert V} {b : BoolExp V} {c₀ c₁ : Comm V}
     (h₀ : ［p ⋀ b.toAssert］c₀［q］) (h₁ : ［p ⋀ .not b.toAssert］c₁［q］) :
     ［p］(Comm.ite b c₀ c₁)［q］ := by
-  intro σ hp
-  by_cases hb : ⟦b⟧ᵇ σ = true
-  · obtain ⟨τ, hτ, hq⟩ := h₀ σ ((Assert.eval_and _ _ _).mpr ⟨hp, (boolExp_eval_iff b σ).mpr hb⟩)
-    refine ⟨τ, ?_, hq⟩
-    change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ
-    rw [if_pos hb]; exact hτ
-  · obtain ⟨τ, hτ, hq⟩ := h₁ σ ((Assert.eval_and _ _ _).mpr
-      ⟨hp, (Assert.eval_not _ _).mpr fun h => hb ((boolExp_eval_iff b σ).mp h)⟩)
-    refine ⟨τ, ?_, hq⟩
-    change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ
-    rw [if_neg hb]; exact hτ
+  refine (cd_sound (P := ⟦p⟧ₐ) (Q := ⟦q⟧ₐ) (b := b) (c₀ := c₀) (c₁ := c₁)).2 ?_ ?_
+  · intro σ hp
+    exact h₀ σ ((Assert.eval_and _ _ _).mpr ⟨hp.1, (boolExp_eval_iff b σ).mpr hp.2⟩)
+  · intro σ hp
+    exact h₁ σ ((Assert.eval_and _ _ _).mpr
+      ⟨hp.1, (Assert.eval_not _ _).mpr fun h => by
+        have := (boolExp_eval_iff b σ).mp h
+        simp [hp.2] at this⟩)
 
 /--
 **전체 정확성 `while` 규칙의 건전성 — 정초 귀납.**

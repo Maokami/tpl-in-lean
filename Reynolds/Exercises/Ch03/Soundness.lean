@@ -14,8 +14,9 @@ public import Reynolds.Exercises.Ch03.Hoare
 
 ## 규칙마다 독립이다
 
-한 규칙의 건전성이 다른 규칙의 건전성에 기대지 않는다. 그래서 절마다 따로 정리로 두고
-연습으로 낸다. 각각이 앞 장의 어느 정리 위에 서는지가 정해져 있다.
+AS·SQ·CD·WHP는 `Semantic.lean`에서 각각 독립된 의미 판 연습으로 증명한다.
+이 파일의 해당 구문 판은 그 결과를 구문 단언에 적용한다. 변수 선언의 건전성은
+아래에 별도 연습으로 남긴다. 각 규칙이 앞 장의 어느 정리를 쓰는지는 다음과 같다.
 
 - 대입 공리 — 명제 1.4 (`substitution_single`). **1장 §1.4 의 치환 정리가 이 한 줄을
   위해 있었다.**
@@ -56,67 +57,50 @@ theorem skip_sound (p : Assert V) : ｛p｝Comm.skip｛p｝ := by
 대입 뒤의 상태는 `σ[v := ⟦e⟧ σ]` 이고, 거기서 `q` 가 참이라는 것은 `σ` 에서 `q/v→e` 가
 참이라는 것과 같다. 그것이 `substitution_single` 이다.
 -/
-@[exercise "§3.3 assign-sound" 1]
 theorem assign_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
     ｛q /[v := e]｝(Comm.assign v e)｛q｝ := by
-  -- 먼저 볼 것: §1.4 의 `substitution_single` (명제 1.4). 이 정리가 전부다.
-  -- 힌트 1: `intro σ hp τ hτ` 뒤 `hτ` 는 정의상 `some (σ[v := ⟦e⟧ₑ σ]) = some τ` 다.
-  --         `change` 로 드러내고 `Option.some.inj` 로 `τ` 를 없앤다.
-  -- 힌트 2: 남는 목표가 `⟦q⟧ₐ (σ[v := ⟦e⟧ₑ σ])` 이고 가정이 `⟦q /[v := e]⟧ₐ σ` 다.
-  sorry
+  intro σ hp
+  exact (as_sound ⟦q⟧ₐ v e).1 σ ((substitution_single q v e σ).mp hp)
 
 
 /-- **순차 합성의 건전성.** `c₀` 가 끝나면 `r`, 거기서 `c₁` 이 끝나면 `q`. 어느 쪽이든
 발산하면 공허하다. -/
-@[exercise "§3.3 seq-sound" 1]
 theorem seq_sound {p r q : Assert V} {c₀ c₁ : Comm V}
-    (h₀ : ｛p｝c₀｛r｝) (h₁ : ｛r｝c₁｛q｝) : ｛p｝(Comm.seq c₀ c₁)｛q｝ := by
-  -- 힌트 1: `⟦c₀ ; c₁⟧ᶜ σ` 는 정의상 `Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ` 다 (`change … at hτ`).
-  -- 힌트 2: `rcases h : ⟦c₀⟧ᶜ σ with _ | ρ` 로 나눈다. `none` 이면 `hτ` 가 모순이고,
-  --         `some ρ` 면 `h₀` 가 `⟦r⟧ₐ ρ` 를, `h₁` 이 `⟦q⟧ₐ τ` 를 준다.
-  sorry
+    (h₀ : ｛p｝c₀｛r｝) (h₁ : ｛r｝c₁｛q｝) : ｛p｝(Comm.seq c₀ c₁)｛q｝ := sq_sound.1 h₀ h₁
 
 
 /-- **조건 규칙의 건전성.** 어느 가지로 갔는지가 곧 조건의 참·거짓이고, 그것을 단언으로
 옮기는 것이 §2.2 의 `boolExp_eval_iff` 다. -/
-@[exercise "§3.5 ite-sound" 1]
 theorem ite_sound {p q : Assert V} {b : BoolExp V} {c₀ c₁ : Comm V}
     (h₀ : ｛p ⋀ b.toAssert｝c₀｛q｝) (h₁ : ｛p ⋀ .not b.toAssert｝c₁｛q｝) :
     ｛p｝(Comm.ite b c₀ c₁)｛q｝ := by
-  -- 먼저 볼 것: §2.2 의 `boolExp_eval_iff`, 이 파일 위의 `Assert.eval_and` · `Assert.eval_not`.
-  -- 힌트 1: `⟦if b then c₀ else c₁⟧ᶜ σ` 는 정의상 `if ⟦b⟧ᵇ σ then … else …` 다.
-  -- 힌트 2: `by_cases hb : ⟦b⟧ᵇ σ = true` 로 나누고 `if_pos` / `if_neg` 로 가지를 고른다.
-  -- 힌트 3: 각 가지의 사전조건 `p ⋀ …` 은 `hp` 와 `hb` 를 `boolExp_eval_iff` 로 합친 것이다.
-  sorry
+  refine (cd_sound (P := ⟦p⟧ₐ) (Q := ⟦q⟧ₐ) (b := b) (c₀ := c₀) (c₁ := c₁)).1 ?_ ?_
+  · intro σ hp
+    exact h₀ σ ((Assert.eval_and _ _ _).mpr ⟨hp.1, (boolExp_eval_iff b σ).mpr hp.2⟩)
+  · intro σ hp
+    exact h₁ σ ((Assert.eval_and _ _ _).mpr
+      ⟨hp.1, (Assert.eval_not _ _).mpr fun h => by
+        have := (boolExp_eval_iff b σ).mp h
+        simp [hp.2] at this⟩)
 
 
 /--
-**`while` 규칙의 건전성 — Scott 귀납법.**
+**`while` 규칙의 건전성.** 의미 판 WHP를 구문 단언으로 옮긴다.
 
-`⟦while b do c⟧` 는 `whileF b ⟦c⟧` 의 최소 고정점이다. 그 고정점이 "`i` 에서 출발해 끝나면
-`i ∧ ¬b`" 를 만족한다는 것을 §2.4 의 `scott_induction` 으로 얻는다. 세 의무가 §3.1 에서
-말한 것과 맞물린다.
-
-- 허용 가능 — `Sat.admissible`. `⊥` 가 모든 사후조건을 만족한다는 것의 사슬 판.
-- `⊥` — `Sat.bot`. 끝나지 않으므로 공허.
-- 한 바퀴 — 조건이 참이면 본체가 `i` 를 지키고(전제) 나머지에 넘긴다(가설). 거짓이면 그
-  자리에서 `i ∧ ¬b` 다.
-
-명제 2.6, 명제 2.7 에 이어 Scott 귀납법을 세 번째 쓰는 자리다. 이번에는 성질이 두 상태의
-관계가 아니라 한 상태의 술어라 더 단순하다.
+`PartialCorrectS.wh`가 Scott 귀납법으로 반복의 부분 정확성을 준다.
+여기서는 `boolExp_eval_iff`로 본체의 전제와 반복의 사후조건을 구문 단언에 맞춘다.
 -/
-@[exercise "§3.5 wh-sound" 3]
 theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
     (hbody : ｛i ⋀ b.toAssert｝c｛i｝) : ｛i｝(Comm.wh b c)｛i ⋀ .not b.toAssert｝ := by
-  -- 먼저 볼 것: §2.4 의 `scott_induction`, §3.1 의 `Sat.admissible` · `Sat.bot`,
-  --            그리고 §2.5 의 `Comm.coincidence_general` — 같은 수법이다.
-  -- 힌트 1: `⟦while b do c⟧ᶜ` 는 정의상 `fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)` 다.
-  --         목표를 `Sat ⟦i⟧ₐ (fix …) ⟦i ⋀ .not b.toAssert⟧ₐ` 로 `change` 한다.
-  -- 힌트 2: `scott_induction (whileF_monotone b ⟦c⟧ᶜ) (P := fun w => Sat ⟦i⟧ₐ w ⟦…⟧ₐ)` 에
-  --         세 의무를 준다 — 허용 가능(`Sat.admissible`), `⊥`(`Sat.bot`), 한 바퀴.
-  -- 힌트 3: 한 바퀴에서 `whileF b ⟦c⟧ᶜ w σ` 를 `change` 로 펼치고, `⟦b⟧ᵇ σ = true` 로 나눈 뒤
-  --         참이면 `rcases hc : ⟦c⟧ᶜ σ` — 본체가 끝난 상태에서 `hbody` 와 귀납 가설 `hw` 를 잇는다.
-  sorry
+  have hsem : PartialCorrectS (fun σ => ⟦i⟧ₐ σ ∧ ⟦b⟧ᵇ σ = true) c ⟦i⟧ₐ := by
+    intro σ hp
+    exact hbody σ ((Assert.eval_and _ _ _).mpr ⟨hp.1, (boolExp_eval_iff b σ).mpr hp.2⟩)
+  intro σ hi τ hτ
+  obtain ⟨hiτ, hb⟩ := PartialCorrectS.wh hsem σ hi τ hτ
+  exact (Assert.eval_and _ _ _).mpr
+    ⟨hiτ, (Assert.eval_not _ _).mpr fun h => by
+      have := (boolExp_eval_iff b τ).mp h
+      simp [hb] at this⟩
 
 
 /--

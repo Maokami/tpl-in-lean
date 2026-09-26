@@ -109,8 +109,8 @@ file := "ch03-soundness"
 number := false
 %%%
 
-건전성은 `Hoare`에 대한 구조적 귀납이고, 절마다 앞 장의 정리 하나가 받친다. 규칙끼리
-서로 기대지 않으므로 절마다 따로 떼어 연습으로 낼 수 있다.
+건전성은 `Hoare`에 대한 구조적 귀납이다. AS·SQ·CD·WHP의 의미 판을 독립된 연습으로
+증명하고, 아래 구문 판은 그 결과를 구문 단언에 적용하는 따름정리로 둔다.
 
 대입 공리의 건전성은 1장 명제 1.4 그대로다. §1.4에서 포획을 피하는 치환을 애써 만든 것이
 이 한 줄을 위해서였다.
@@ -122,13 +122,10 @@ number := false
 대입 뒤의 상태는 `σ[v := ⟦e⟧ σ]` 이고, 거기서 `q` 가 참이라는 것은 `σ` 에서 `q/v→e` 가
 참이라는 것과 같다. 그것이 `substitution_single` 이다.
 -/
-@[exercise "§3.3 assign-sound" 1]
 theorem assign_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
     ｛q /[v := e]｝(Comm.assign v e)｛q｝ := by
-  intro σ hp τ hτ
-  change some (σ[v := ⟦e⟧ₑ σ]) = some τ at hτ
-  obtain rfl := Option.some.inj hτ
-  exact (substitution_single q v e σ).mp hp
+  intro σ hp
+  exact (as_sound ⟦q⟧ₐ v e).1 σ ((substitution_single q v e σ).mp hp)
 ```
 
 `while` 규칙의 건전성은 §2.4의 Scott 귀납법이다. §3.1에서 본 두 사실, 곧 `⊥`가 모든
@@ -136,42 +133,22 @@ theorem assign_sound [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
 
 ```anchor whSound (module := Reynolds.Answers.Ch03.Soundness)
 /--
-**`while` 규칙의 건전성 — Scott 귀납법.**
+**`while` 규칙의 건전성.** 의미 판 WHP를 구문 단언으로 옮긴다.
 
-`⟦while b do c⟧` 는 `whileF b ⟦c⟧` 의 최소 고정점이다. 그 고정점이 "`i` 에서 출발해 끝나면
-`i ∧ ¬b`" 를 만족한다는 것을 §2.4 의 `scott_induction` 으로 얻는다. 세 의무가 §3.1 에서
-말한 것과 맞물린다.
-
-- 허용 가능 — `Sat.admissible`. `⊥` 가 모든 사후조건을 만족한다는 것의 사슬 판.
-- `⊥` — `Sat.bot`. 끝나지 않으므로 공허.
-- 한 바퀴 — 조건이 참이면 본체가 `i` 를 지키고(전제) 나머지에 넘긴다(가설). 거짓이면 그
-  자리에서 `i ∧ ¬b` 다.
-
-명제 2.6, 명제 2.7 에 이어 Scott 귀납법을 세 번째 쓰는 자리다. 이번에는 성질이 두 상태의
-관계가 아니라 한 상태의 술어라 더 단순하다.
+`PartialCorrectS.wh`가 Scott 귀납법으로 반복의 부분 정확성을 준다.
+여기서는 `boolExp_eval_iff`로 본체의 전제와 반복의 사후조건을 구문 단언에 맞춘다.
 -/
-@[exercise "§3.5 wh-sound" 3]
 theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
     (hbody : ｛i ⋀ b.toAssert｝c｛i｝) : ｛i｝(Comm.wh b c)｛i ⋀ .not b.toAssert｝ := by
-  change Sat ⟦i⟧ₐ (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) ⟦i ⋀ .not b.toAssert⟧ₐ
-  refine scott_induction (whileF_monotone b ⟦c⟧ᶜ)
-    (P := fun w => Sat ⟦i⟧ₐ w ⟦i ⋀ .not b.toAssert⟧ₐ) ?_ ?_ ?_
-  · exact fun d hd => Sat.admissible _ _ d hd
-  · exact Sat.bot _ _
-  · intro w hw σ hi τ hτ
-    change (if ⟦b⟧ᵇ σ then Option.bind (⟦c⟧ᶜ σ) w else some σ) = some τ at hτ
-    by_cases hb : ⟦b⟧ᵇ σ = true
-    · rw [if_pos hb] at hτ
-      rcases hc : ⟦c⟧ᶜ σ with _ | ρ
-      · rw [hc] at hτ; simp at hτ
-      · rw [hc] at hτ
-        change w ρ = some τ at hτ
-        exact hw ρ (hbody σ ((Assert.eval_and _ _ _).mpr
-          ⟨hi, (boolExp_eval_iff b σ).mpr hb⟩) ρ hc) τ hτ
-    · rw [if_neg hb] at hτ
-      obtain rfl := Option.some.inj hτ
-      exact (Assert.eval_and _ _ _).mpr
-        ⟨hi, (Assert.eval_not _ _).mpr fun h => hb ((boolExp_eval_iff b σ).mp h)⟩
+  have hsem : PartialCorrectS (fun σ => ⟦i⟧ₐ σ ∧ ⟦b⟧ᵇ σ = true) c ⟦i⟧ₐ := by
+    intro σ hp
+    exact hbody σ ((Assert.eval_and _ _ _).mpr ⟨hp.1, (boolExp_eval_iff b σ).mpr hp.2⟩)
+  intro σ hi τ hτ
+  obtain ⟨hiτ, hb⟩ := PartialCorrectS.wh hsem σ hi τ hτ
+  exact (Assert.eval_and _ _ _).mpr
+    ⟨hiτ, (Assert.eval_not _ _).mpr fun h => by
+      have := (boolExp_eval_iff b τ).mp h
+      simp [hb] at this⟩
 ```
 
 §2.5의 명제 2.6, 명제 2.7에 이어 Scott 귀납법을 세 번째로 쓰는 자리다. 앞의 둘은 두 상태
