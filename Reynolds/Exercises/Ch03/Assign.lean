@@ -44,7 +44,7 @@ public import Reynolds.Exercises.Ch03.Soundness
 
 namespace Reynolds.Exercises.Ch03
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 
 universe u
 
@@ -77,7 +77,8 @@ theorem assign_forward_sound [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntEx
     (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
     ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
   -- 먼저 볼 것: `substitution_single` (명제 1.4) 와 식 판 `substitution_intExp`,
-  --            `coincidence_assert` (명제 1.1), `Assert.eval_ex` · `Assert.eval_and` · `Assert.eval_eq`.
+  --            `coincidence_assert` (명제 1.1),
+  --            `Assert.eval_ex` · `Assert.eval_and` · `Assert.eval_eq`.
   -- 힌트 1: 대입 뒤 상태는 `σ[v := ⟦e⟧ₑ σ]` 다. `∃ v₀` 의 증인은 옛 값 `σ v` 다.
   -- 힌트 2: `p/v→v₀` 쪽 — `substitution_single` 로 뜻으로 옮기면 `p` 를 "`v` 에 옛 값을 도로
   --         넣은 상태" 에서 묻는다. 그 상태는 `p` 가 보는 변수들에서 `σ` 와 같다 (`h₀`, `h₂`).

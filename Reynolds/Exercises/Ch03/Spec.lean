@@ -5,7 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 module
 
-public import Reynolds.Exercises.Ch02
+public import Reynolds.Answers.Ch02
 
 /-!
 # §3.1 명세의 구문과 뜻
@@ -61,7 +61,7 @@ Reynolds §3.1 에 대응한다.
 
 namespace Reynolds.Exercises.Ch03
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 
 universe u
 

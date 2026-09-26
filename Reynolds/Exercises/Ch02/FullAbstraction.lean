@@ -54,7 +54,7 @@ Reynolds §2.8 전반부에 대응한다. "무엇을 관찰하기로 했는가" 
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

@@ -7,6 +7,7 @@ module
 
 public import Reynolds.Answers.Ch02.Syntax
 public import Reynolds.Answers.Ch02.Notation
+public import Reynolds.Answers.Ch02.DenoteBool
 public import Reynolds.Answers.Ch02.Semantics
 public import Reynolds.Answers.Ch02.Domain
 public import Reynolds.Answers.Ch02.Domain.Lifting

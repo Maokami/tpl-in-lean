@@ -5,7 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 module
 
-public import Reynolds.Exercises.Ch01.Syntax
+public import Reynolds.Answers.Ch01.Syntax
 
 /-!
 # §2.1 단순 명령형 언어의 추상 구문
@@ -45,7 +45,7 @@ Reynolds §2.1 에 대응한다.
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

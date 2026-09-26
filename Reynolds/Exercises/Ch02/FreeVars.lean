@@ -6,7 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Exercises.Ch02.Interpreter
-public import Reynolds.Exercises.Ch01.FreeVars
+public import Reynolds.Answers.Ch01.FreeVars
 
 /-!
 # §2.5 자유 변수 (1) — 두 종류의 자유 변수와 명제 2.6
@@ -50,7 +50,7 @@ Reynolds §2.5 전반부에 대응한다. 치환과 별칭(aliasing)은 다음 �
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

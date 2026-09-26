@@ -36,7 +36,7 @@ Reynolds 가 §3.7 에 모아 둔 규칙들 — 상수 규칙, 연언·선언 �
 
 namespace Reynolds.Exercises.Ch03
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 
 universe u
 

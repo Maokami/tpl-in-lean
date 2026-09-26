@@ -8,9 +8,9 @@ module
 public import Reynolds.Exercises.Ch03.Semantic
 public import Mathlib.Data.Nat.Fib.Basic
 -- `#guard`는 컴파일 시점에 계산한다 (AGENTS.md §10).
-public meta import Reynolds.Exercises.Ch02.Interpreter
+public meta import Reynolds.Answers.Ch02.Interpreter
 public meta import Reynolds.Answers.Ch02.Notation
-public meta import Reynolds.Exercises.Ch02.Semantics
+public meta import Reynolds.Answers.Ch02.Semantics
 public meta import Reynolds.Prelude
 
 /-!
@@ -48,7 +48,7 @@ while k ≠ n do
 
 namespace Reynolds.Exercises.Ch03.Examples
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02 Reynolds.Exercises.Ch03
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02 Reynolds.Exercises.Ch03
 
 /-- 초기화 — 불변식을 세운다. -/
 def fibInit : Comm String := ⟪ k := 0; f := 0; g := 1 ⟫ᶜ

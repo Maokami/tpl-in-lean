@@ -10,7 +10,7 @@ public import Reynolds.Answers.Ch02.Notation
 -- `#guard`는 컴파일 시점에 계산한다 (AGENTS.md §10).
 public meta import Reynolds.Answers.Ch02.Notation
 public meta import Reynolds.Exercises.Ch02.Semantics
-public meta import Reynolds.Exercises.Ch01.Semantics
+public meta import Reynolds.Answers.Ch01.Semantics
 public meta import Reynolds.Prelude
 
 /-!
@@ -54,7 +54,7 @@ set_option linter.hashCommand false
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

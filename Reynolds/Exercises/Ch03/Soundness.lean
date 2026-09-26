@@ -35,7 +35,7 @@ public import Reynolds.Exercises.Ch03.Hoare
 
 namespace Reynolds.Exercises.Ch03
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 
 universe u
 
