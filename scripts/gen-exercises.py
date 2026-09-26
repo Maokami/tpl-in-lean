@@ -213,6 +213,20 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 심화 C · Mathlib 초기성 (초기성 자체는 가설로 제공)
+    (
+        "Ch01/Depth/CategoryBridge.lean",
+        "theorem uniqueHom_of_isInitial",
+        "/--\n두 초기성 표현의 논리적 대응.",
+        """theorem uniqueHom_of_isInitial (h : IsInitial (syntaxAlg V)) (L : LogicAlg.{u, u} V) :
+    ∃! f : (IntExp V → L.E) × (Assert V → L.A), L.IsHom f := by
+  -- 힌트: `h.to L`에서 함수 쌍과 보존 증명을 꺼낸다.
+  -- 다른 함수 쌍을 `Hom.ofIsHom`으로 묶고 `h.hom_ext`로 비교한다.
+  -- 사상의 등식에 `congrArg Hom.pair`를 적용하면 함수 쌍의 등식을 얻는다.
+  sorry
+
+""",
+    ),
     # ── 심화 B · 시그니처 함자
     (
         "Ch01/Depth/SignatureFunctor.lean",
