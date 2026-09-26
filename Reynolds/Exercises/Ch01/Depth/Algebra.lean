@@ -244,8 +244,8 @@ Reynolds 의 각주는 "초기 대수"가 아니라 "다중 정렬(many-sorted) 
 매개변수로 고정하므로 대수마다 달라지는 반송자는 `E`와 `A` 둘뿐이다.
 
 일반적인 다중 정렬 시그니처 프레임워크와 그 범주를 만들지는 않는다. 아래 `LogicAlg`와
-두 접기는 다중 정렬의 연산 모양을 보여 주지만, 이 파일에서 `LogicAlg` 전체의 `∃!` 초기성
-정리까지 증명한 것은 아니다. 또한 `quant : Quant → V → A → A`는 결합 변수의 이름을
+두 접기를 먼저 정의하고, 생성자를 보존하는 함수 쌍이 유일하다는 `∃!` 초기성을 증명한다.
+여기서 `quant : Quant → V → A → A`는 결합 변수의 이름을
 구문 자료로 보존하는 원시 이름 구문(raw named syntax)의 연산이다. α-동치로 나눈 구문의
 초기성은 별도의 모델 범주가 필요한 다른 진술이다. -/
 
@@ -296,5 +296,79 @@ def LogicAlg.foldA {V : Type u} (L : LogicAlg.{u, v} V) : Assert V → L.A
   | .not p         => L.anot (L.foldA p)
   | .bin op p q    => L.abin op (L.foldA p) (L.foldA q)
   | .quant q v p   => L.quant q v (L.foldA p)
+
+
+/-! ## 9. 두 정렬의 준동형과 초기성
+
+정수 식과 단언은 서로 다른 타입이므로 준동형도 함수 두 개가 필요하다.
+`h.1`은 정수 식을 `L.E`로, `h.2`는 단언을 `L.A`로 옮긴다.
+보존 등식은 정수 식 생성자 넷과 단언 생성자 여섯에 하나씩 대응한다.
+특히 비교식의 결과는 `h.2`로 옮기지만, 비교하는 두 정수 식은 `h.1`로 옮긴다.
+
+정수 식 생성자에는 단언이 들어 있지 않으므로 먼저 `h.1`의 유일성을 증명할 수 있다.
+그 결과를 단언 귀납법의 `cmp` 케이스에서 쓰면 `h.2`도 결정된다.
+`quant`에서는 양화사 종류와 변수 이름을 그대로 두고 본문의 결과만 옮긴다.
+따라서 아래 초기성은 이름을 가진 원시 구문에 대한 진술이다. 변수 이름을 바꾼 두 구문을
+같게 취급하는 α-동치나, 변수 포획을 피하는 치환의 법칙은 이 보존 조건에 포함되지 않는다.
+-/
+
+/--
+고정된 변수 타입 `V`의 원시 구문에서 `L`로 가는 준동형 조건이다.
+
+함수 쌍의 첫 성분은 정수 식, 둘째 성분은 단언을 옮긴다. `cmp`는 두 성분을 함께 쓰며,
+`quant`는 결합 변수의 이름까지 보존한다. 두 목표 반송자는 기존 `LogicAlg`처럼 같은
+우주 `Type v`에 놓고, 변수 타입의 우주 `Type u`와는 독립적으로 둔다.
+-/
+structure LogicAlg.IsHom {V : Type u} (L : LogicAlg.{u, v} V)
+    (h : (IntExp V → L.E) × (Assert V → L.A)) : Prop where
+  /-- 정수 상수 보존. -/
+  num : ∀ n, h.1 (.num n) = L.num n
+  /-- 변수 보존. -/
+  var : ∀ x, h.1 (.var x) = L.var x
+  /-- 정수 부호 반전 보존. -/
+  eneg : ∀ e, h.1 (.neg e) = L.eneg (h.1 e)
+  /-- 정수 이항 연산 보존. -/
+  ebin : ∀ op e₀ e₁, h.1 (.bin op e₀ e₁) = L.ebin op (h.1 e₀) (h.1 e₁)
+  /-- 참 보존. -/
+  tru : h.2 .tru = L.tru
+  /-- 거짓 보존. -/
+  fls : h.2 .fls = L.fls
+  /-- 비교의 입력에는 정수 식 함수를, 출력에는 단언 함수를 쓴다. -/
+  cmp : ∀ c e₀ e₁, h.2 (.cmp c e₀ e₁) = L.cmp c (h.1 e₀) (h.1 e₁)
+  /-- 논리 부정 보존. -/
+  anot : ∀ p, h.2 (.not p) = L.anot (h.2 p)
+  /-- 논리 이항 연산 보존. -/
+  abin : ∀ op p q, h.2 (.bin op p q) = L.abin op (h.2 p) (h.2 q)
+  /-- 양화사 종류와 결합 변수 이름을 고정한 채 본문을 옮긴다. -/
+  quant : ∀ q x p, h.2 (.quant q x p) = L.quant q x (h.2 p)
+
+/-- 두 접기의 정의가 열 가지 생성자 보존 등식을 그대로 만족한다. -/
+theorem LogicAlg.fold_isHom {V : Type u} (L : LogicAlg.{u, v} V) :
+    L.IsHom (L.foldE, L.foldA) where
+  num _ := rfl
+  var _ := rfl
+  eneg _ := rfl
+  ebin _ _ _ := rfl
+  tru := rfl
+  fls := rfl
+  cmp _ _ _ := rfl
+  anot _ := rfl
+  abin _ _ _ := rfl
+  quant _ _ _ := rfl
+
+/--
+Reynolds §1.1의 다중 정렬 초기성을, 변수 타입을 고정한 두 정렬 원시 구문에 적은 것이다.
+
+목표 대수 `L`마다 생성자를 보존하는 함수 쌍이 정확히 하나 있으며, 그 쌍은 두 접기다.
+`∃!`는 존재와 유일성을 함께 말한다. 유일성은 먼저 정수 식의 구조적 귀납법으로 첫 성분을
+정한 뒤, 그 결과를 비교식에 사용하여 단언의 구조적 귀납법으로 둘째 성분을 정한다.
+-/
+@[exercise "심화 A1.3" 3]
+theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
+    ∃! h : (IntExp V → L.E) × (Assert V → L.A), L.IsHom h := by
+  -- 힌트: 존재 증인은 두 접기의 쌍이고, `L.fold_isHom`이 보존 조건을 준다.
+  -- 유일성에서는 정수 식 성분의 등식을 먼저 증명한 뒤 단언에 대해 귀납한다.
+  -- `cmp`에서 두 정렬이 연결된다. `quant`가 보존하는 매개변수도 확인한다.
+  sorry
 
 end Reynolds.Exercises.Ch01
