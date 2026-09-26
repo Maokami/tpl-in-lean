@@ -143,6 +143,11 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 "의미론이 옳은 추상 수준인가" 라는 물음으로 끝난다. 책 연습 2.1~2.10 은 코드와
 docstring 으로 읽는다.
 
+3장 Verso 문서는 **본문 전체(§3.1~§3.10)**를 다룬다. 명세의 뜻을 2장 위에 세우는 데서
+시작해, 규칙마다 1·2장의 정리 하나로 건전성을 증명하고, 주석 명세와 검증 조건 생성기,
+Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미 단언으로 끝까지 가는 두 예제를
+지나, wlp 가 최대 고정점이라는 쌍대성과 `while` 없는 조각의 상대 완전성으로 끝난다.
+
 ---
 
 ## 목차
@@ -209,6 +214,7 @@ docstring 으로 읽는다.
 | §3.7 상수 · 연언 · ∃ · 치환 규칙 | [`Derived.lean`](./Reynolds/Answers/Ch03/Derived.lean) | [#40](../../pull/40) | [`ch03-s07`](../../tree/ch03-s07) |
 | §3.8–3.9 예제 — 피보나치 · 빠른 거듭제곱 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) · [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#41](../../pull/41) | [`ch03-s08-s09`](../../tree/ch03-s08-s09) |
 | §3.10 최약 사전조건 · 완전성 · 한계 | [`Wlp.lean`](./Reynolds/Answers/Ch03/Wlp.lean) | [#43](../../pull/43) | [`ch03-s10`](../../tree/ch03-s10) |
+| 문서 §3.1~§3.10 | [`manual/Manual/Ch03.lean`](./manual/Manual/Ch03.lean) · [`Ch03/`](./manual/Manual/Ch03) | [#44](../../pull/44) | [`ch03-docs`](../../tree/ch03-docs) |
 
 3장도 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-03.md`](./docs/chapter-03.md).
 
