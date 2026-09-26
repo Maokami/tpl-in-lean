@@ -125,8 +125,10 @@ def Comm.fa : Comm V → Finset V
 **쓰는 변수는 읽거나 쓰는 변수다.** `FA(c) ⊆ FV(c)`.
 
 절마다 확인하는 계산이다. `newvar` 절에서 `erase` 끼리의 포함이 필요하다.
+
+채점 연습이 아니다. 같은 장의 여러 채점 연습(Ex 2.6·2.8 등)이 이 결과를 직접 쓰므로,
+완성된 채로 준다 (연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.5 fa-subset" 1]
 theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
   intro c
   induction c with
@@ -192,8 +194,11 @@ omit [DecidableEq V] in
 
 허용 가능성이 공짜가 아니라던 `Fixpoint.lean` 의 경고와 나란히 두고 볼 것 —
 이 성질이 통과하는 이유는 순전히 `Σ⊥` 가 평평해서다.
+
+채점 연습이 아니다. 바로 아래 `Comm.coincidence_general` 이 `while` 절에서 이 결과를
+직접 쓰고, 그것이 다시 같은 장의 여러 채점 연습(Ex 2.6 등)에 쓰인다. 완성된 채로 준다
+(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.5 agree-admissible" 2]
 theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
     {σ σ' : State V} (h : ∀ n, AgreeOn S (d.seq n σ) (d.seq n σ')) :
     AgreeOn S (d.lub σ) (d.lub σ') := by
@@ -266,10 +271,10 @@ theorem agree_update {S : Finset V} {σ σ' : State V} (h : ∀ w ∈ S, σ w = 
 **명제 2.6(a), 강화판** — `S ⊇ FV(c)` 위에서 일치하는 두 상태에서 `c` 를 돌리면,
 결과도 `S` 위에서 일치한다 (둘 다 `⊥` 이거나, 둘 다 상태로).
 
-채점 연습이 아니다. 증명이 1장의 일치 정리(명제 1.1)와 Scott 귀납법 위에 서 있고,
-둘 다 이미 연습이라 비우면 비운 것끼리 의존한다 (연습 독립성 원칙). 대신 `while` 절이
-Scott 귀납법과 `AgreeOn.admissible` 이 실제로 맞물리는 자리이니 완성본으로 읽어 두면
-연습 2.5 와 2.6 에서 그대로 쓴다.
+채점 연습이 아니다. 연습 2.5 와 2.6 이 이 결과를 직접 쓴다 (연습 독립성 원칙,
+`AGENTS.md` §1-9). `while` 절은 `scott_induction`(채점 연습)이 아니라 `Eval.lean`의
+`whileF_scott_induction`을 쓴다 — Scott 귀납법과 `AgreeOn.admissible`이 실제로
+맞물리는 자리이니 완성본으로 읽어 두면 좋다.
 -/
 theorem Comm.coincidence_general :
     ∀ (c : Comm V) (S : Finset V), c.fv ⊆ S →
@@ -318,7 +323,7 @@ theorem Comm.coincidence_general :
       have hSb : b.fv ⊆ S := le_trans Finset.subset_union_left hS
       have hSc : c.fv ⊆ S := le_trans Finset.subset_union_right hS
       -- Scott 귀납법. 성질: 일치하는 입력쌍을 일치하는 출력쌍으로 보낸다.
-      have key := scott_induction (whileF_monotone b c.eval)
+      have key := whileF_scott_induction b c.eval
         (P := fun w => ∀ σ σ' : State V,
           (∀ v ∈ S, σ v = σ' v) → AgreeOn S (w σ) (w σ'))
         (fun d hd σ σ' hσσ' => AgreeOn.admissible S d fun n => hd n σ σ' hσσ')
@@ -423,7 +428,7 @@ theorem Comm.eval_agree_outside_fa :
   | wh b c ihc =>
       intro σ τ heval w hw
       have hwc : w ∉ c.fa := by simpa [Comm.fa] using hw
-      have key := scott_induction (whileF_monotone b c.eval)
+      have key := whileF_scott_induction b c.eval
         (P := fun w' => ∀ σ τ : State V, w' σ = some τ → τ w = σ w)
         (fun d hd σ τ hlub => by
           -- 극한이 상태면 어느 단계가 이미 그 상태다.

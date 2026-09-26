@@ -118,14 +118,18 @@ theorem isLUB_shifted {F : α → α} (hF : Monotone F) :
 
 `F`의 연속성을 반복의 사슬에 적용하면 `F(fix)`가 "F를 입힌 사슬"의 극한이 된다.
 그 사슬은 원래 사슬을 한 칸 민 것이고, 밀어도 극한은 그대로다. 극한의 유일성으로 끝난다.
+
+**책과의 차이**: 단조성 `hm`을 연속성 `hF`에서 `hF.monotone`으로 뽑지 않고 따로 받는다.
+`Continuous.monotone`은 그 자체로 §2.3의 다른 채점 연습이라, 이 진술이 그것을 부르면
+연습 독립성 원칙(`AGENTS.md` §1-9)이 깨진다.
 -/
 @[exercise "§2.4 fix-eq" 3]
-theorem fix_eq {F : α → α} (hF : Continuous F) :
-    F (fix F hF.monotone) = fix F hF.monotone := by
+theorem fix_eq {F : α → α} (hm : Monotone F) (hF : Continuous F) :
+    F (fix F hm) = fix F hm := by
   -- 연속성: `F(fix)`는 `F '' (사슬의 값들)`의 극한이다.
-  have h₁ := hF (iterChain hF.monotone)
+  have h₁ := hF (iterChain hm)
   -- 그 상은 밀린 사슬의 값들과 같다.
-  have himg : F '' Set.range (iterChain hF.monotone).seq
+  have himg : F '' Set.range (iterChain hm).seq
       = Set.range fun n => F^[n + 1] ⊥ := by
     ext y
     constructor
@@ -135,7 +139,7 @@ theorem fix_eq {F : α → α} (hF : Continuous F) :
       exact ⟨F^[n] ⊥, ⟨n, rfl⟩, (Function.iterate_succ_apply' F n ⊥).symm⟩
   rw [himg] at h₁
   -- 밀린 사슬의 극한은 `fix`이기도 하다. 극한은 유일하다.
-  exact h₁.unique (isLUB_shifted hF.monotone)
+  exact h₁.unique (isLUB_shifted hm)
 -- ANCHOR_END: fix_eq
 
 /-! ## 3. 그 고정점이 최소다
@@ -169,7 +173,7 @@ theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
 /-- 두 단계를 합친 진술. `fix`는 고정점이고, 모든 고정점 아래에 있다. -/
 theorem fix_isLeast {F : α → α} (hF : Continuous F) {x : α} (hx : F x = x) :
     F (fix F hF.monotone) = fix F hF.monotone ∧ fix F hF.monotone ≤ x :=
-  ⟨fix_eq hF, fix_least hF.monotone (le_of_eq hx)⟩
+  ⟨fix_eq hF.monotone hF, fix_least hF.monotone (le_of_eq hx)⟩
 
 /-! ## 4. Scott 귀납법
 

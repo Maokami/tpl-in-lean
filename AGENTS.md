@@ -408,6 +408,8 @@ lake build                                  # 전체 (Exercises 의 sorry 경고
 lake test                                   # #guard 단위 테스트
 lake lint                                   # 환경 린터 (docBlame 등)
 lake exe grade --answers                    # Answers sorry-free · 불법 공리 없음
+lake env lean scripts/check-independence.lean       # 채점 연습 간 의존성 없음
+lake env lean scripts/check-duplicate-exercises.lean # 완성 정리로 답 누수 없음
 lake exe grade --chapter N                  # 손댄 장의 Exercises 상태 확인
 python3 scripts/gen-exercises.py --check    # 두 트리가 어긋나지 않는지
 ./scripts/check-anchors.sh                  # ANCHOR 짝 + 두 트리 @[exercise] 태그 일치

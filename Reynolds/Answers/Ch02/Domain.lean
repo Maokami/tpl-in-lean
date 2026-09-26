@@ -218,8 +218,11 @@ variable [PartialOrder α] [PartialOrder β] [Predomain α]
 
 Reynolds는 단조성을 먼저 요구한 뒤 극한 보존을 덧붙인다. 이 정리는 현재 정의에서
 그 첫 조건이 이미 따라옴을 보인다.
+
+채점 연습이 아니다. `Domain/FunctionSpace.lean`의 명제 2.2·2.3(`Cont.lub_continuous`,
+`Continuous.comp`)이 둘 다 증명에서 이 결과를 쓰고(`hf.monotone`), 그 둘도 채점 연습이라,
+완성된 채로 준다(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.3 continuous-monotone" 2]
 theorem Continuous.monotone {f : α → β} (hf : Continuous f) : Monotone f := by
   intro x y hxy
   have h := hf (Chain.step hxy)

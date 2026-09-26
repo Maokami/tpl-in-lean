@@ -67,9 +67,12 @@ def IntExp.fv : IntExp V → Finset V
 진술에서 `σ σ'` 를 `∀` 로 묶어 둔 이유는 아래 `coincidence_assert` 에서 드러난다.
 정수 식에는 결합자가 없어 여기서는 티가 안 나지만, 양화사 케이스에서는 귀납 가설을
 `σ`, `σ'` 가 아니라 `σ[v := n]`, `σ'[v := n]` 에 적용해야 한다.
+
+채점 연습이 아니다. 아래 `coincidence_assert` (명제 1.1b) 와 `Substitution.lean` 의
+`substitution_assert` (명제 1.3) 가 둘 다 이 결과를 직접 쓰므로, 완성된 채로 준다
+(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
 -- ANCHOR: coincidence
-@[exercise "Prop 1.1a" 2]
 theorem coincidence_intExp :
     ∀ (e : IntExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' := by
   intro e

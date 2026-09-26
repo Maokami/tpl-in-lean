@@ -133,16 +133,28 @@ theorem BoolExp.fv_rename (b : BoolExp V) (δ : Ren V) :
 
 명제 1.3 의 정수 식 판(`substitution_intExp`)을 절마다 이어 붙인다 —
 `BoolExp.fv_coincidence` 가 일치 정리에서 했던 것과 같은 일이다.
+
+채점 연습이 아니다. `Comm.substitution_general` 과 Ex 2.8(`Comm.substitution_weak`)이
+이 결과를 직접 쓰므로, 완성된 채로 준다 (연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.5 bool-subst" 1]
 theorem substitution_boolExp :
     ∀ (b : BoolExp V) (δ : Subst V) (σ σ' : State V),
       (∀ w ∈ b.fv, σ w = ⟦δ w⟧ₑ σ') → ⟦b /ᵇ δ⟧ᵇ σ' = ⟦b⟧ᵇ σ := by
-  -- 먼저 볼 것: 1장 `substitution_intExp` 의 완성 증명. 절마다 그것을 이어 붙인다.
-  -- 힌트: `cmp` 케이스에서 두 식에 각각 `substitution_intExp` 를 쓴다.
-  --       나머지는 `not`/`bin` 의 귀납 가설이다.
-  sorry
-
+  intro b
+  induction b with
+  | tru => intro _ _ _ _; rfl
+  | fls => intro _ _ _ _; rfl
+  | cmp c e₀ e₁ =>
+      intro δ σ σ' h
+      have h₀ := substitution_intExp e₀ δ σ σ' fun w hw => h w (by simp [BoolExp.fv, hw])
+      have h₁ := substitution_intExp e₁ δ σ σ' fun w hw => h w (by simp [BoolExp.fv, hw])
+      simp [BoolExp.subst, BoolExp.eval, h₀, h₁]
+  | not b ih => intro δ σ σ' h; simp [BoolExp.subst, BoolExp.eval, ih δ σ σ' h]
+  | bin op b₀ b₁ ih₀ ih₁ =>
+      intro δ σ σ' h
+      have h₀ := ih₀ δ σ σ' fun w hw => h w (by simp [BoolExp.fv, hw])
+      have h₁ := ih₁ δ σ σ' fun w hw => h w (by simp [BoolExp.fv, hw])
+      simp [BoolExp.subst, BoolExp.eval, h₀, h₁]
 
 /-! ## 3. 새 결합 변수 고르기
 
