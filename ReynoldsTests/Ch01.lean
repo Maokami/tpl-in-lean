@@ -126,4 +126,21 @@ def naiveBad : Assert ℕ := .quant .ex 1 (.cmp .gt (.var 1) yPlus1)
 -- 자유 변수는 `y`(=1) 하나다. `x` 는 사라지고 `y+1` 의 `y` 가 들어왔다.
 #guard (existsGt /[0 := yPlus1] ).fv == ({1} : Finset ℕ)
 
+/-! ## 연습 1.4 — 동시 치환과 필요한 이름 바꾸기 (Reynolds p. 23) -/
+
+-- (a) 합이 들어가지 않는 존재 양화사의 본문에서는 y를 바꿀 필요가 없다.
+#guard (Ex.e14a /ₛ Ex.e14aSubst) ==
+  ⟪ ∀ xx, ∀ xxx, xx < x + y + z ∧ x + y + z < xxx
+    ⇒ (∃ y, xx < y ∧ y < xxx) ⟫ₐ
+#guard (Ex.e14a /ₛ Ex.e14aSubst).fv == ({"x", "y", "z"} : Finset String)
+
+-- (b) 두 ∃n 중 n이 새로 들어오는 첫 번째에서만 이름을 바꾼다.
+#guard (Ex.e14b /ₛ Ex.e14bSubst) ==
+  ⟪ ∀ x, (∃ xx, n = xx × x) ⇒ (∃ n, d = n × x) ⟫ₐ
+#guard (Ex.e14b /ₛ Ex.e14bSubst).fv == ({"n", "d"} : Finset String)
+
+-- (c) 속박된 x와 y에는 원래 치환을 적용하지 않고, 자유로운 z에 들어온 x도 다시 치환하지 않는다.
+#guard (Ex.e14c /ₛ Ex.e14cSubst) == ⟪ ∀ xx, ∃ y, xx < x ⇒ xx < y ∧ y < x ⟫ₐ
+#guard (Ex.e14c /ₛ Ex.e14cSubst).fv == ({"x"} : Finset String)
+
 end Reynolds.Answers.Ch01
