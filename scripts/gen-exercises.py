@@ -1530,9 +1530,10 @@ def main() -> int:
             stale.append(orphan) if check else orphan.unlink()
 
     if check and stale:
-        print("Exercises 트리가 Answers 와 어긋난다. `python3 scripts/gen-exercises.py` 를 돌려라:")
+        print("Exercises 트리가 Answers 와 어긋난다:")
         for pth in stale:
             print(f"  {pth.relative_to(ROOT)}")
+        print("교재 변경 PR이면 풀이를 별도 보관한 뒤 생성하라. 풀이 PR에서는 생성기를 실행하지 마라 — 채운 증명이 사라진다.")
         return 1
     if not check:
         print(f"Exercises {len(generated)}개 파일 생성 완료")

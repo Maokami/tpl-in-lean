@@ -141,8 +141,15 @@ simp [Assert.fv, IntExp.fv]
 - **새 `axiom` 선언** — 마찬가지다.
 - **진술을 약하게 고쳐서 통과시키기** — 통과해도 배운 것이 없다.
   정말 진술이 틀렸다고 생각하면 그렇게 적고 PR 로 올려라.
-- **`Reynolds/Exercises/` 를 직접 고치기** — 그 트리는 `scripts/gen-exercises.py` 가 생성한다.
-  힌트를 고치고 싶으면 그 스크립트의 `BLANKS` 표를 고쳐라.
+- **교재 변경 PR에서 `Reynolds/Exercises/` 를 직접 고치기** — 그 트리는
+  `scripts/gen-exercises.py` 가 생성한다. 힌트를 고치고 싶으면 그 스크립트의 `BLANKS`
+  표를 고쳐라. 자신의 `study(...)` 풀이 브랜치에서는 `sorry` 자리에 증명을 써야 한다.
+
+풀이 브랜치에서 `python3 scripts/gen-exercises.py` 를 실행하지 마라. 생성기가 완성본을
+기준으로 Exercises 전체를 다시 쓰므로 채워 둔 증명이 사라진다. 풀이 PR의 CI는 생성 파일
+일치 검사를 건너뛰고 Exercises 파일만 바뀌었는지 확인한다. `main`의 교재 수정이 들어와
+충돌하면 자신의 증명을 보관한 뒤 새 진술·힌트를 받아들이고, 해당 `sorry` 자리에 증명을
+다시 적용한다.
 
 ---
 
