@@ -65,13 +65,28 @@ def IntExp.fv : IntExp V → Finset V
 진술에서 `σ σ'` 를 `∀` 로 묶어 둔 이유는 아래 `coincidence_assert` 에서 드러난다.
 정수 식에는 결합자가 없어 여기서는 티가 안 나지만, 양화사 케이스에서는 귀납 가설을
 `σ`, `σ'` 가 아니라 `σ[v := n]`, `σ'[v := n]` 에 적용해야 한다.
+
+채점 연습이 아니다. 아래 `coincidence_assert` (명제 1.1b) 와 `Substitution.lean` 의
+`substitution_assert` (명제 1.3) 가 둘 다 이 결과를 직접 쓰므로, 완성된 채로 준다
+(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "Prop 1.1a" 2]
 theorem coincidence_intExp :
     ∀ (e : IntExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' := by
-  -- 힌트: `intro e` 다음 `induction e with` 로 케이스를 나눈다.
-  -- `bin` 케이스에서 `Finset` 합집합 소속을 어떻게 쪼갤지 생각해 볼 것.
-  sorry
+  intro e
+  induction e with
+  | num n => intro _ _ _; rfl
+  | var v =>
+      -- 변수는 자기 자신이 자유 변수이므로 가설이 곧 결론이다.
+      intro _ _ h; exact h v (by simp [IntExp.fv])
+  | neg e ih =>
+      -- FV(-e) = FV(e) 이므로 가설을 그대로 물려준다.
+      intro σ σ' h; simp [IntExp.eval, ih σ σ' h]
+  | bin op e₀ e₁ ih₀ ih₁ =>
+      -- FV(e₀ op e₁) = FV(e₀) ∪ FV(e₁). 양쪽에 각각 귀납 가설을 쓴다.
+      intro σ σ' h
+      have h₀ := ih₀ σ σ' fun w hw => h w (by simp [IntExp.fv, hw])
+      have h₁ := ih₁ σ σ' fun w hw => h w (by simp [IntExp.fv, hw])
+      simp [IntExp.eval, h₀, h₁]
 
 /-! ## 단언의 자유 변수 — 여기서 결합이 등장한다 -/
 

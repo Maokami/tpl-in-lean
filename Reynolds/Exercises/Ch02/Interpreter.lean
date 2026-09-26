@@ -119,18 +119,47 @@ theorem Option.bind_le_bind {α β : Type u} {x x' : Option α} {f f' : α → O
 `while`이 아닌 절은 부분 명령의 귀납 가설로 처리한다. `wh` 절에서는 연료 귀납을 한 번 더
 사용한다. 연료가 하나 늘면 본체와 이어지는 반복 양쪽의 연료가 늘고, `bind`가 두 결과를
 함께 올린다.
+
+채점 연습이 아니다. `Comm.run_stable`이 이 결과를 바로 쓰고, `Sugar.lean`의
+`forV2_diverges`(§2.6)가 그 `Comm.run_stable`을 거쳐 이것에 의존한다. 완성된 채로 준다
+(연습 독립성 원칙, `AGENTS.md` §1-9).
 -/
-@[exercise "§2.4 run-mono" 2]
 theorem Comm.run_le_succ : ∀ (c : Comm V) (n : ℕ) (σ : State V),
     c.run n σ ≤ c.run (n + 1) σ := by
-  -- 먼저 볼 것: 바로 위의 `Option.bind_le_bind`. `seq` 와 `wh` 절이 그것으로 돈다.
-  -- 힌트 1: 명령에 대한 구조적 귀납. `skip` 과 `newvar` 는 DSL 이 키워드로 만들었으니
-  --         분기 이름을 `«skip»`, `«newvar»` 로 써야 한다.
-  -- 힌트 2: `run` 은 연료도 매칭하므로 자유 변수 연료로는 저절로 줄지 않는다.
-  --         분기마다 `simp only [Comm.run]` 이나 `rw [Comm.run]` 으로 방정식을 펴라.
-  -- 힌트 3: `wh` 절 안에서 연료에 대한 귀납을 겹친다. 0 은 `none ⊑ 무엇이든`.
-  sorry
-
+  intro c
+  induction c with
+  | assign v e => intro n σ; simp [Comm.run]
+  | «skip» => intro n σ; simp [Comm.run]
+  | seq c₀ c₁ ih₀ ih₁ =>
+      intro n σ
+      simp only [Comm.run]
+      exact Option.bind_le_bind (ih₀ n σ) fun τ => ih₁ n τ
+  | ite b c₀ c₁ ih₀ ih₁ =>
+      intro n σ
+      simp only [Comm.run]
+      by_cases hb : ⟦b⟧ᵇ σ
+      · simp only [if_pos hb]; exact ih₀ n σ
+      · simp only [if_neg hb]; exact ih₁ n σ
+  | «newvar» v e c ih =>
+      intro n σ
+      simp only [Comm.run]
+      rcases hc : c.run n (σ[v := ⟦e⟧ₑ σ]) with _ | τ
+      · simp [restore]
+      · have hstep := ih n (σ[v := ⟦e⟧ₑ σ])
+        rw [hc] at hstep
+        simp only [Option.some_le_iff] at hstep
+        rw [hstep]
+  | wh b c ihc =>
+      intro n
+      induction n with
+      | zero => intro σ; simp [Comm.run]
+      | succ n ihn =>
+          intro σ
+          rw [Comm.run, Comm.run]
+          by_cases hb : ⟦b⟧ᵇ σ
+          · simp only [if_pos hb]
+            exact Option.bind_le_bind (ihc (n + 1) σ) fun τ => ihn τ
+          · simp [if_neg hb]
 
 /-- 단조성의 쓰기 좋은 꼴. `some`은 연료를 아무리 늘려도 그대로다. -/
 theorem Comm.run_stable {c : Comm V} {n m : ℕ} {σ σ' : State V}
@@ -199,8 +228,9 @@ theorem Comm.run_sound {c : Comm V} :
 /-! ## 4. 적합성의 완전성 방향
 
 표시적 의미가 답하면 어떤 유한 연료가 그 답을 재현한다. `wh` 절에서
-`⟦while⟧ = fix F`이므로 `fix`에 대한 성질을 증명해야 하고, 그 도구가 `Fixpoint.lean`의
-Scott 귀납법이다.
+`⟦while⟧ = fix F`이므로 `fix`에 대한 성질을 증명해야 하고, 그 도구가 Scott 귀납법이다.
+`Fixpoint.lean`의 `scott_induction`(채점 연습)이 아니라 `Eval.lean`의
+`whileF_scott_induction`을 쓴다 (연습 독립성 원칙, `AGENTS.md` §1-9).
 
 성질 `P w`: "`w`가 답하면 어떤 연료의 `run`이 재현한다".
 
@@ -253,7 +283,7 @@ theorem Comm.run_complete {c : Comm V} :
       -- Scott 귀납법. `⟦while⟧ = fix (whileF b ⟦c⟧)`이므로 성질을 `fix`로 옮긴다.
       have key : ∀ σ σ', fix (whileF b c.eval) (whileF_monotone b c.eval) σ = some σ'
           → ∃ n, (Comm.wh b c).run n σ = some σ' := by
-        refine scott_induction (whileF_monotone b c.eval)
+        refine whileF_scott_induction b c.eval
           (P := fun w => ∀ σ σ', w σ = some σ' → ∃ n, (Comm.wh b c).run n σ = some σ')
           (fun d hd σ σ' hlub => ?_) (fun σ σ' h => by simp at h) (fun w hw σ σ' h => ?_)
         · -- 허용 가능성. 평평해서 극한의 `some`은 어느 단계의 `some`이다.
