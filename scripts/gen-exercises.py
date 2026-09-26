@@ -1463,6 +1463,57 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.10 최약 사전조건 · 완전성
+    (
+        "Ch03/Wlp.lean",
+        "theorem wlp_wh_greatest",
+        "-- ANCHOR_END: wlpWhGreatest",
+        """theorem wlp_wh_greatest {b : BoolExp V} {c : Comm V} {Q X : State V → Prop}
+    (hX : ∀ σ, X σ → (⟦b⟧ᵇ σ = false ∧ Q σ) ∨ (⟦b⟧ᵇ σ = true ∧ wlp c X σ)) :
+    ∀ σ, X σ → wlp (.wh b c) Q σ := by
+  -- 먼저 볼 것: `Soundness.lean` 의 `wh_sound` 를 풀었다면 같은 증명이다.
+  --            §2.4 `scott_induction`, §3.1 `Sat.admissible` · `Sat.bot`.
+  -- 힌트 1: 목표는 정의상 `Sat X (fix (whileF b ⟦c⟧ᶜ) (whileF_monotone b ⟦c⟧ᶜ)) Q` 다 (`change`).
+  -- 힌트 2: `scott_induction … (P := fun w => Sat X w Q)` 의 한 바퀴에서 `hX σ hx` 로 나눈다.
+  --         조건이 거짓이면 그 자리에서 `Q`, 참이면 본체가 끝난 상태에서 `X` 가 되어 가설로 넘긴다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Wlp.lean",
+        "theorem wp_sound",
+        "-- ANCHOR_END: wpSound",
+        """theorem wp_sound [HasFresh V] (c : Comm V) :
+    ∀ q p, Comm.wp c q = some p → Hoare p c q := by
+  -- 먼저 볼 것: `Hoare` 의 생성자들, `Hoare.strengthen`, `Annot.lean` 의 `ite_pre_then` ·
+  --            `ite_pre_else` · `newvar_pre`. `Annot.vcg_sound` 와 같은 모양이다.
+  -- 힌트 1: `induction c` — 각 절에서 `simp only [Comm.wp] at h` 로 계산을 펼친다.
+  -- 힌트 2: `Option` 이 `none` 인 경우는 `h` 가 모순이다. `rcases h₀ : Comm.wp c₀ q with _ | p₀`
+  --         처럼 이름을 붙여 나누고 `simp only [Option.bind_some, Option.map_some,
+  --         Option.some.injEq] at h` 로 `p` 를 드러낸다.
+  -- 힌트 3: `newvar` 는 `by_cases hv : v ∈ q.fv ∨ v ∈ e.fv` 로 나눈다. 결합자는 `∀` 가 가둔다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Wlp.lean",
+        "theorem wp_weakest",
+        "-- ANCHOR_END: wpWeakest",
+        """theorem wp_weakest [HasFresh V] (c : Comm V) :
+    ∀ q p, Comm.wp c q = some p → ∀ σ, wlp c ⟦q⟧ₐ σ → ⟦p⟧ₐ σ := by
+  -- 먼저 볼 것: `substitution_single` (명제 1.4), `boolExp_eval_iff`,
+  --            `coincidence_assert` · `coincidence_intExp` (명제 1.1), `restore`.
+  -- 힌트 1: `induction c`. 각 절에서 `wlp` 가 주는 "끝나면 `q`" 를 안쪽 명령의 `wlp` 로 옮겨
+  --         귀납 가설에 넘긴다. 순차 합성은 가운데 상태 `ρ` 를, 조건은 `if_pos`/`if_neg` 를 쓴다.
+  -- 힌트 2: `newvar` — `∀ n, σ[v := n] v = ⟦e⟧ (σ[v := n]) → …` 에서 `n = ⟦e⟧ σ` 다
+  --         (`v ∉ FV(e)`). 안쪽이 끝난 상태 `ρ` 에서 `q` 를 얻으려면, 바깥이 끝난 상태
+  --         `ρ[v := σ v]` 에서의 `q` 를 명제 1.1 로 옮긴다 (`v ∉ FV(q)`).
+  sorry
+
+""",
+    ),
 ]
 
 
