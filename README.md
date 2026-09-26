@@ -169,7 +169,7 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | §1.1 구체 구문 · DSL | [`Notation.lean`](./Reynolds/Answers/Ch01/Notation.lean) | [#2](../../pull/2) | [`ch01-ex01-ex04`](../../tree/ch01-ex01-ex04) |
 | §1.1 실현 · 연습 1.3 | [`Realizations.lean`](./Reynolds/Answers/Ch01/Realizations.lean) | [#2](../../pull/2) | 〃 |
 | 연습 1.1 · 1.2 · 1.4 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) | [#2](../../pull/2) | 〃 |
-| §1.4 연습 1.4(a)–(c) 동시 치환 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) · [학습 안내](./manual/Manual/Ch01.lean) | 이 PR | `ch01-ex04-substitution` (병합 후) |
+| §1.4 연습 1.4(a)–(c) 동시 치환 | [`Ex.lean`](./Reynolds/Answers/Ch01/Ex.lean) · [학습 안내](./manual/Manual/Ch01.lean) | [#50](../../pull/50) | `ch01-ex04-substitution` (병합 후) |
 | 연습 1.5 · 1.6 합 식 | [`Ex/Summation.lean`](./Reynolds/Answers/Ch01/Ex/Summation.lean) | [#3](../../pull/3) | [`ch01-ex05-ex06`](../../tree/ch01-ex05-ex06) |
 | 정의를 왜 이렇게 쓰나 | [`Design.lean`](./Reynolds/Answers/Ch01/Design.lean) | [#7](../../pull/7) | [`ch01-design`](../../tree/ch01-design) |
 
