@@ -58,18 +58,10 @@ EXERCISES = ROOT / "Reynolds" / "Exercises"
 # 마커는 파일 안에서 유일해야 한다.
 BLANKS: list[tuple[str, str, str, str]] = [
     # ── §1.4 자유 변수와 일치 정리
-    (
-        "Ch01/FreeVars.lean",
-        "theorem coincidence_intExp :",
-        "/-! ## 단언의 자유 변수",
-        """theorem coincidence_intExp :
-    ∀ (e : IntExp V) (σ σ' : State V), (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' := by
-  -- 힌트: `intro e` 다음 `induction e with` 로 케이스를 나눈다.
-  -- `bin` 케이스에서 `Finset` 합집합 소속을 어떻게 쪼갤지 생각해 볼 것.
-  sorry
-
-""",
-    ),
+    #
+    # `coincidence_intExp` (명제 1.1a)는 채점 대상이 아니다. `coincidence_assert` 와
+    # `substitution_assert` 가 둘 다 그 결과를 직접 쓰므로, 완성된 채로 준다
+    # (연습 독립성 원칙, `AGENTS.md` §1-9).
     (
         "Ch01/FreeVars.lean",
         "theorem coincidence_assert :",
@@ -494,19 +486,10 @@ BLANKS: list[tuple[str, str, str, str]] = [
 """,
     ),
     # ── §2.3 도메인과 연속 함수
-    (
-        "Ch02/Domain.lean",
-        "theorem Continuous.monotone",
-        "end ContinuousBasic",
-        """theorem Continuous.monotone {f : α → β} (hf : Continuous f) : Monotone f := by
-  -- 힌트 1: `x ⊑ y` 를 보이는 데 필요한 사슬은 `Chain.step hxy` 하나다 (`x, y, y, …`).
-  -- 힌트 2: 그 사슬의 극한이 `y` 임을 먼저 세워라. 극한은 유일하므로
-  --         `Chain.isLUB.unique` 로 보인다. `Chain.range_step` 이 훑는 값을 `{x, y}` 로 준다.
-  -- 힌트 3: 연속성이 주는 `IsLUB` 의 **상계** 부분만 쓰면 끝난다.
-  sorry
-
-""",
-    ),
+    #
+    # `Continuous.monotone` 은 채점 대상이 아니다. `Domain/FunctionSpace.lean` 의
+    # 명제 2.2·2.3(`Cont.lub_continuous`, `Continuous.comp`) 증명이 둘 다 이 결과를
+    # 쓰므로, 완성된 채로 준다.
     (
         "Ch02/Domain.lean",
         "theorem continuous_iff_le",
@@ -599,10 +582,10 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "Ch02/Fixpoint.lean",
         "theorem fix_eq",
         "-- ANCHOR_END: fix_eq",
-        """theorem fix_eq {F : α → α} (hF : Continuous F) :
-    F (fix F hF.monotone) = fix F hF.monotone := by
+        """theorem fix_eq {F : α → α} (hm : Monotone F) (hF : Continuous F) :
+    F (fix F hm) = fix F hm := by
   -- 먼저 볼 것: 바로 위의 `isLUB_shifted`. 밀린 사슬의 극한도 `fix` 라는 사실이 완성되어 있다.
-  -- 힌트 1: `hF (iterChain hF.monotone)`이 `F(fix)`를 "F를 입힌 상"의 극한으로 만든다.
+  -- 힌트 1: `hF (iterChain hm)`이 `F(fix)`를 "F를 입힌 상"의 극한으로 만든다.
   -- 힌트 2: 그 상이 밀린 사슬의 값들과 같음을 `ext`로 보여라.
   --         양방향 모두 `Function.iterate_succ_apply'` 하나로 잇는다.
   -- 힌트 3: 극한은 유일하다 — `IsLUB.unique`.
@@ -651,67 +634,17 @@ BLANKS: list[tuple[str, str, str, str]] = [
 """,
     ),
     # ── §2.4 연료 해석기
-    (
-        "Ch02/Interpreter.lean",
-        "theorem Comm.run_le_succ",
-        "-- ANCHOR_END: Comm.run_le_succ",
-        """theorem Comm.run_le_succ : ∀ (c : Comm V) (n : ℕ) (σ : State V),
-    c.run n σ ≤ c.run (n + 1) σ := by
-  -- 먼저 볼 것: 바로 위의 `Option.bind_le_bind`. `seq` 와 `wh` 절이 그것으로 돈다.
-  -- 힌트 1: 명령에 대한 구조적 귀납. `skip` 과 `newvar` 는 DSL 이 키워드로 만들었으니
-  --         분기 이름을 `«skip»`, `«newvar»` 로 써야 한다.
-  -- 힌트 2: `run` 은 연료도 매칭하므로 자유 변수 연료로는 저절로 줄지 않는다.
-  --         분기마다 `simp only [Comm.run]` 이나 `rw [Comm.run]` 으로 방정식을 펴라.
-  -- 힌트 3: `wh` 절 안에서 연료에 대한 귀납을 겹친다. 0 은 `none ⊑ 무엇이든`.
-  sorry
-
-""",
-    ),
+    #
+    # `Comm.run_le_succ` 는 채점 대상이 아니다. `Comm.run_stable` 과 (그것을 거쳐)
+    # §2.6 `forV2_diverges` 가 이 결과를 쓰므로, 완성된 채로 준다.
     # ── §2.5 자유 변수
-    (
-        "Ch02/FreeVars.lean",
-        "theorem Comm.fa_subset_fv",
-        "-- ANCHOR_END: faSubset",
-        """theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
-  -- 힌트 1: 구조적 귀납. `skip` 과 `newvar` 분기는 `«skip»`, `«newvar»` 로 쓴다.
-  -- 힌트 2: `Finset.union_subset`, `Finset.subset_union_left/right`,
-  --         `Finset.erase_subset_erase` 를 `le_trans` 로 잇는다.
-  sorry
-
-""",
-    ),
-    (
-        "Ch02/FreeVars.lean",
-        "theorem AgreeOn.admissible",
-        "-- ANCHOR_END: agreeAdmissible",
-        """theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
-    {σ σ' : State V} (h : ∀ n, AgreeOn S (d.seq n σ) (d.seq n σ')) :
-    AgreeOn S (d.lub σ) (d.lub σ') := by
-  -- 먼저 볼 것: `Chain.flat_lub_mem_range` 와 `Chain.flat_stabilizes`. 둘 다 완성되어 있다.
-  -- 힌트 1: `Chain.lub_apply` 로 점별 극한으로 바꾸고, 왼쪽 극한을 `rcases` 로 나눈다.
-  -- 힌트 2: `⊥` 갈래 — 모든 단계가 `⊥` 였다는 것을 `le_lub` + `le_none_iff` 로 끌어내고,
-  --         단계별 일치로 오른쪽도 전부 `⊥` 임을 보인다.
-  -- 힌트 3: 상태 갈래 — 두 극한의 결정 시점 `k`, `k'` 를 얻고, `max k k'` 단계에서
-  --         `flat_stabilizes` 로 두 극한값을 함께 읽는다.
-  sorry
-
-""",
-    ),
+    #
+    # `Comm.fa_subset_fv` 와 `AgreeOn.admissible` 은 채점 대상이 아니다. 둘 다 같은 장의
+    # 여러 채점 연습(Ex 2.6·2.8 등)이 직접 쓰므로, 완성된 채로 준다.
     # ── §2.5 치환과 별칭
-    (
-        "Ch02/Substitution.lean",
-        "theorem substitution_boolExp :",
-        "-- ANCHOR_END: boolSubst",
-        """theorem substitution_boolExp :
-    ∀ (b : BoolExp V) (δ : Subst V) (σ σ' : State V),
-      (∀ w ∈ b.fv, σ w = ⟦δ w⟧ₑ σ') → ⟦b /ᵇ δ⟧ᵇ σ' = ⟦b⟧ᵇ σ := by
-  -- 먼저 볼 것: 1장 `substitution_intExp` 의 완성 증명. 절마다 그것을 이어 붙인다.
-  -- 힌트: `cmp` 케이스에서 두 식에 각각 `substitution_intExp` 를 쓴다.
-  --       나머지는 `not`/`bin` 의 귀납 가설이다.
-  sorry
-
-""",
-    ),
+    #
+    # `substitution_boolExp` 도 채점 대상이 아니다. `Comm.substitution_general` 과
+    # Ex 2.8(`Comm.substitution_weak`)이 이 결과를 쓴다.
     (
         "Ch02/Substitution.lean",
         "theorem Comm.subst_id",
@@ -887,8 +820,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "-- ANCHOR_END: diverge",
         """theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
   -- 힌트 1: 이 반복의 함수 연산자는 항등 함수다 — `whileF tru ⟦skip⟧ w = w` 가 `rfl` 로 된다.
-  -- 힌트 2: 그러면 `⊥` 가 전고정점이므로 `fix_least` 가 `⟦diverge⟧ ≤ ⊥` 를 준다.
-  --         사슬을 펼칠 필요가 없다.
+  -- 힌트 2: 그러면 `⊥` 가 전고정점이므로 `whileF_fix_le` 가 `⟦diverge⟧ ≤ ⊥` 를 준다.
+  --         (`fix_least` 자신은 다른 채점 연습이라 대신 쓴다.) 사슬을 펼칠 필요가 없다.
   -- 힌트 3: 함수 공간의 `≤` 는 점별이므로 그 부등식을 `σ` 에 적용한 뒤 `simpa`.
   sorry
 
@@ -994,16 +927,19 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "-- ANCHOR_END: repeatEquiv",
         """theorem repeatEval_eq_repeatSugar (b : BoolExp V) (c : Comm V) :
     repeatEval b c = (repeatSugar b c).eval := by
-  -- \uc774 \uc7a5\uc5d0\uc11c \uac00\uc7a5 \ubcfc \ub9cc\ud55c \uc5f0\uc2b5\uc774\ub2e4. \ucd5c\uc18c\uc131\uc744 \uc591\ucabd\uc5d0\uc11c \ud55c \ubc88\uc529 \uc4f4\ub2e4.
-  -- \uba3c\uc800 \ubcfc \uac83: `fix_least` \uc640 `fix_eq`, \uadf8\ub9ac\uace0 \ubc14\ub85c \uc704 `repeatEval_unwind`.
-  -- \ud78c\ud2b8 1: `le_antisymm` \uc73c\ub85c \ub450 \ubc29\ud5a5\uc744 \ub098\ub208\ub2e4.
-  -- \ud78c\ud2b8 2: `\u2291` \u2014 \uc124\ud0d5 \ucabd \ud568\uc218\uac00 **`repeat` \uc758** \ud480\uae30 \ubc29\uc815\uc2dd\uc744 \ub9cc\uc871\ud568\uc744 \ubcf4\uc774\uba74
-  --         `repeatF` \uc5d0 \ub300\ud55c `fix_least` \uac00 \uacf1\ubc14\ub85c \uc900\ub2e4.
-  -- \ud78c\ud2b8 3: `\u2292` \u2014 \uc774\ubc88\uc5d0\ub294 `while` \ucabd \ucd5c\uc18c\uc131\uc744 \uc4f4\ub2e4. \ud6c4\ubcf4\ub294
-  --         `fun \u03c3' => if \u27e6b\u27e7\u1d47 \u03c3' then some \u03c3' else repeatEval b c \u03c3'` \uc774\uace0,
-  --         \uadf8\uac83\uc774 `whileF (\u00acb) \u27e6c\u27e7` \uc758 \uace0\uc815\uc810\uc784\uc744 \ubcf4\uc774\uba74 \ub41c\ub2e4.
-  -- \ud78c\ud2b8 4: \uc591\ucabd \ubaa8\ub450 \uc870\uac74\uc774 \ucc38\uc778 \uac08\ub798\uc640 \uac70\uc9c3\uc778 \uac08\ub798\uc5d0\uc11c \ub450 \ubc29\uc815\uc2dd\uc774 \uc11c\ub85c\ub97c \uba54\uc6b4\ub2e4.
-  --         `⟦¬b⟧ᵇ σ = !(⟦b⟧ᵇ σ)` \ub294 `rfl` \uc774\ub2e4.
+  -- 이 장에서 가장 볼 만한 연습이다. 최소성을 양쪽에서 한 번씩 쓴다.
+  -- 먼저 볼 것: `repeatF_fix_le` 와 바로 위 `repeatEval_unwind`(`repeatF_fix_unfold` 를 쓴다),
+  --            그리고 `Eval.lean` 의 `whileF_fix_le`.
+  --            (연습 독립성 원칙 때문에 `fix_least`·`fix_eq` 자신이 아니라, `repeatF`·`whileF`
+  --            하나로 좁힌 독립적인 판을 쓴다.)
+  -- 힌트 1: `le_antisymm` 으로 두 방향을 나눈다.
+  -- 힌트 2: `⊑` — 설탕 쪽 함수가 **`repeat` 의** 풀기 방정식을 만족함을 보이면
+  --         `repeatF_fix_le` 가 곧바로 준다.
+  -- 힌트 3: `⊒` — 이번에는 `whileF_fix_le` 를 쓴다. 후보는
+  --         `fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ'` 이고,
+  --         그것이 `whileF (¬b) ⟦c⟧` 의 고정점임을 보이면 된다.
+  -- 힌트 4: 양쪽 모두 조건이 참인 갈래와 거짓인 갈래에서 두 방정식이 서로를 메운다.
+  --         `⟦¬b⟧ᵇ σ = !(⟦b⟧ᵇ σ)` 는 `rfl` 이다.
   sorry
 
 """,
@@ -1046,10 +982,11 @@ BLANKS: list[tuple[str, str, str, str]] = [
   --       (`(dblBody b c).eval σ = Option.bind (s σ) h` 는 `rfl` 이다).
   --
   -- 힌트 1 (`⊒`, 쉬운 쪽): `W` 가 **늘린** 반복의 풀기 방정식을 만족함을 보이면
-  --         `fix_least` 가 끝낸다. `Option.bind_assoc` 로 두 번 훑는 것을 펴고,
-  --         조건이 참인 갈래에서 `hW` 를 한 번 더 쓴다.
+  --         `whileF_fix_le` 가 끝낸다 (연습 독립성 원칙 때문에 `fix_least` 자신이
+  --         아니라 `whileF` 하나로 좁힌 그 독립적인 판을 쓴다). `Option.bind_assoc` 로
+  --         두 번 훑는 것을 펴고, 조건이 참인 갈래에서 `hW` 를 한 번 더 쓴다.
   --
-  -- 힌트 2 (`⊑`, 어려운 쪽): 같은 수를 쓰면 **순환에 빠진다.** `fix_least` 로 환원하면
+  -- 힌트 2 (`⊑`, 어려운 쪽): 같은 수를 쓰면 **순환에 빠진다.** 최소성으로 환원하면
   --         증명하려던 것이 다시 나온다. 근사열을 직접 따라가야 한다.
   -- 힌트 3: 상계를 하나 만든다.
   --           `U σ = if ⟦b⟧ᵇ σ then Option.bind (s σ) W2 else W2 σ`
@@ -1063,7 +1000,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   --         `Option.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
   --         **귀납 가설을 다른 상태에서 쓴다**는 것이 요점이다.
   -- 힌트 6: 극한은 `Chain.lub_le` 로 올린다. 그러면 `W2 ≤ U` 이고,
-  --         거기서 `W2` 가 원래 반복의 전고정점임이 나와 `fix_least` 가 끝낸다.
+  --         거기서 `W2` 가 원래 반복의 전고정점임이 나와 `whileF_fix_le` 가 끝낸다.
   sorry
 
 """,
@@ -1139,12 +1076,18 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem forV4_eval_eq_forV3",
         "-- ANCHOR_END: forV4Eq",
         """theorem forV4_eval_eq_forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
-    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) (hwe₀ : w ∉ e₀.fv) (σ : State V) :
+    (hv : v ∉ c.fa) (hw : w ∉ c.fa) (hvw : v ≠ w) (hwe₀ : w ∉ e₀.fv) (σ : State V)
+    (hexact : (forV3 v w e₀ e₁ c).eval σ
+      = restore w σ (restore v (σ[w := ⟦e₁⟧ₑ σ])
+          (forFold v c (⟦e₁⟧ₑ σ - ⟦e₀⟧ₑ σ + 1).toNat
+            ((σ[w := ⟦e₁⟧ₑ σ])[v := ⟦e₀⟧ₑ σ])))) :
     (forV4 v w e₀ e₁ c).eval σ = (forV3 v w e₀ e₁ c).eval σ := by
   -- 먼저 볼 것: 바로 위 보조정리 셋(`forWhileLt_eq_fold`, `forFold_succ_back`,
-  --            `restore_bind_incr`)과 §2.6 의 `forV3_eq_fold`.
-  -- 힌트 1: 오른쪽은 `forV3_eq_fold` 가 이미 푼다. 왼쪽의 `newvar` 두 겹을
-  --         `Comm.eval_isSemantics.2.2.2.2.2` 로 펴고 `w ∉ FV(e₀)` 로 초기값을 맞춘다.
+  --            `restore_bind_incr`).
+  -- 힌트 1: 오른쪽은 가설 `hexact` — §2.6 의 정확 반복 정리(`forV3_eq_fold`)를 이 자리에
+  --         맞춰 둔 것 — 가 이미 푼다. (`forV3_eq_fold` 자신은 다른 채점 연습이라 직접
+  --         부르지 않는다.) 왼쪽의 `newvar` 두 겹을 `Comm.eval_isSemantics.2.2.2.2.2` 로
+  --         펴고 `w ∉ FV(e₀)` 로 초기값을 맞춘다.
   -- 힌트 2: 안쪽 상태에서 `v` 는 `⟦e₀⟧σ`, `w` 는 `⟦e₁⟧σ` 다
   --         (`State.subst_self`, `State.subst_of_ne`). 조건이 `⟦e₀⟧σ ≤ ⟦e₁⟧σ` 로 읽힌다.
   -- 힌트 3: 구간이 차 있으면 보조정리 A 가 루프를 `(b-a).toNat` 번으로 세고,

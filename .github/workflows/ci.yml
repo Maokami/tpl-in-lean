@@ -69,6 +69,12 @@ jobs:
       - name: Answers 검증
         run: lake exe grade --answers
 
+      - name: 연습 독립성 검사
+        run: lake env lean scripts/check-independence.lean
+
+      - name: 채점 연습 중복 진술 검사
+        run: lake env lean scripts/check-duplicate-exercises.lean
+
       - name: 린터
         run: lake lint
 

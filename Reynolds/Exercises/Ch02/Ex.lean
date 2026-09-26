@@ -186,11 +186,82 @@ theorem repeatF_continuous (b : BoolExp V) (s : State V → SigmaBot V) :
 noncomputable def repeatEval (b : BoolExp V) (c : Comm V) : State V → SigmaBot V :=
   fix (repeatF b c.eval) (repeatF_monotone b c.eval)
 
-/-- (a) 가 풀기 방정식을 만족한다. `fix_eq` 를 상태 하나에서 읽은 것이다. -/
+omit [DecidableEq V] in
+/--
+연습 독립성(`AGENTS.md` §1-9): `repeat`의 풀기 방정식을 채점 연습 `fix_eq` 없이 직접
+증명한다. `repeatEval_unwind`(채점 연습이 아니다)가 이것을 쓴다.
+
+`fix_eq`의 **일반적인** 진술을 그대로 복사한 보조정리를 두지 않는 이유는, 그러면 그
+복사본이 `fix_eq` 연습 자체를 그대로 닫아버리기 때문이다. 그래서 `Eval.lean`의
+`whileF_fix_unfold`와 같은 방식으로, 대상을 `repeatF` 하나로 좁혀 반복 사슬을 직접
+계산한다 — 갈래를 나누는 순서만 반대다. `whileF`는 조건을 먼저 보고, `repeatF`는 본체
+결과를 먼저 본 뒤 그 값에서 조건을 본다.
+-/
+theorem repeatF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : State V) :
+    fix (repeatF b s) (repeatF_monotone b s) σ
+      = Option.bind (s σ) (fun σ' =>
+          if ⟦b⟧ᵇ σ' then some σ' else fix (repeatF b s) (repeatF_monotone b s) σ') := by
+  have hm := repeatF_monotone b s
+  have hW : ∀ ρ : State V, fix (repeatF b s) hm ρ = ((iterChain hm).apply ρ).lub :=
+    fun ρ => Chain.lub_apply _ ρ
+  rw [hW σ]
+  rcases hs : s σ with _ | τ
+  · -- 본체가 ⊥. 모든 항이 ⊥.
+    have hall : ∀ n, ((iterChain hm).apply σ).seq n = none := by
+      intro n
+      cases n with
+      | zero => rfl
+      | succ n =>
+          change (repeatF b s)^[n + 1] ⊥ σ = none
+          rw [Function.iterate_succ_apply']
+          simp [repeatF, hs]
+    rw [le_antisymm (Chain.lub_le fun n => le_of_eq (hall n)) bot_le]
+    rfl
+  · by_cases hb : ⟦b⟧ᵇ τ
+    · -- 본체가 `τ`이고 조건이 참. `n ≥ 1`인 항은 모두 `some τ`.
+      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = some τ := by
+        intro n
+        change (repeatF b s)^[n + 1] ⊥ σ = some τ
+        rw [Function.iterate_succ_apply']
+        simp [repeatF, hs, hb]
+      have hge : some τ ≤ ((iterChain hm).apply σ).lub := by
+        rw [← hstep 0]; exact ((iterChain hm).apply σ).le_lub 1
+      have hle : ((iterChain hm).apply σ).lub ≤ some τ := by
+        refine Chain.lub_le fun n => ?_
+        cases n with
+        | zero => exact bot_le
+        | succ n => exact le_of_eq (hstep n)
+      rw [le_antisymm hle hge]
+      change some τ = if ⟦b⟧ᵇ τ then some τ else fix (repeatF b s) hm τ
+      rw [if_pos hb]
+    · -- 본체가 `τ`이고 조건이 거짓. 이 사슬은 `τ`에서 시작한 반복 사슬을 한 칸 민 것과 같다.
+      have hshift : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = ((iterChain hm).apply τ).seq n := by
+        intro n
+        change (repeatF b s)^[n + 1] ⊥ σ = (repeatF b s)^[n] ⊥ τ
+        rw [Function.iterate_succ_apply']
+        simp [repeatF, hs, hb]
+      have h0 : ((iterChain hm).apply σ).seq 0 = none := rfl
+      have hlub : ((iterChain hm).apply σ).lub = ((iterChain hm).apply τ).lub := by
+        refine le_antisymm (Chain.lub_le fun n => ?_) (Chain.lub_le fun n => ?_)
+        · cases n with
+          | zero => rw [h0]; exact bot_le
+          | succ n => rw [hshift]; exact ((iterChain hm).apply τ).le_lub n
+        · rw [← hshift]; exact ((iterChain hm).apply σ).le_lub (n + 1)
+      rw [hlub]
+      change ((iterChain hm).apply τ).lub = if ⟦b⟧ᵇ τ then some τ else fix (repeatF b s) hm τ
+      rw [if_neg hb, hW τ]
+
+/--
+(a) 가 풀기 방정식을 만족한다. `repeatF_fix_unfold` 를 상태 하나에서 읽은 것이다.
+
+`fix_eq` 가 아니라 `repeatF_fix_unfold` 를 쓰는 이유는 연습 독립성 원칙(`AGENTS.md` §1-9)
+때문이다 — `fix_eq` 자체가 §2.4 의 채점 연습이라, 그것을 부르면 이 파일의 연습 2.2(c)가
+그 연습에도 의존하게 된다.
+-/
 theorem repeatEval_unwind (b : BoolExp V) (c : Comm V) (σ : State V) :
     repeatEval b c σ
       = Option.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ') :=
-  (congrFun (fix_eq (repeatF_continuous b c.eval)) σ).symm
+  repeatF_fix_unfold b c.eval σ
 
 /-! ### (b) 구문 설탕으로 주기 -/
 
@@ -211,6 +282,28 @@ def repeatSugar (b : BoolExp V) (c : Comm V) : Comm V :=
 
 이 장에서 가장 볼 만한 연습이다. 최소성을 **양쪽에서 한 번씩** 쓴다. -/
 
+omit [DecidableEq V] in
+/--
+연습 독립성(`AGENTS.md` §1-9): `repeatF`의 고정점이 전고정점 아래에 있다는 것을 채점
+연습 `fix_least`를 부르지 않고 증명한다. `repeatEval_eq_repeatSugar`(연습 2.2c)의 `⊑`
+방향이 이것을 쓴다.
+
+`fix_least`의 **일반적인** 진술을 그대로 복사한 보조정리를 두지 않는 이유는 바로 위
+`repeatF_fix_unfold`와 같다 — 복사본은 `fix_least` 연습 자체를 곧바로 닫아버린다.
+증명은 그 반복-사슬 귀납과 같은 모양이지만 대상을 `repeatF` 하나로 좁혔다.
+-/
+theorem repeatF_fix_le (b : BoolExp V) (s : State V → SigmaBot V) {w : State V → SigmaBot V}
+    (hw : repeatF b s w ≤ w) :
+    fix (repeatF b s) (repeatF_monotone b s) ≤ w := by
+  refine (iterChain (repeatF_monotone b s)).lub_le fun n => ?_
+  induction n with
+  | zero => exact bot_le
+  | succ n ih =>
+      calc (repeatF b s)^[n + 1] ⊥ = repeatF b s ((repeatF b s)^[n] ⊥) :=
+            Function.iterate_succ_apply' (repeatF b s) n ⊥
+        _ ≤ repeatF b s w := repeatF_monotone b s ih
+        _ ≤ w := hw
+
 /--
 **연습 2.2(c) — 두 정의가 같다.**
 
@@ -218,7 +311,9 @@ def repeatSugar (b : BoolExp V) (c : Comm V) : Comm V :=
 ⟦repeat c until b⟧ = ⟦c; while ¬b do c⟧
 ```
 
-증명이 대칭이라 아름답다. 양쪽 다 `fix_least` 인데, 최소성을 쓰는 고정점이 다르다.
+증명이 대칭이라 아름답다. 양쪽 다 최소성인데, 최소성을 쓰는 고정점이 다르다. (연습
+독립성 원칙 — `AGENTS.md` §1-9 — 때문에 `fix_least` 자신이 아니라, `repeatF`·`whileF`
+전용의 독립적인 판을 쓴다 — 바로 위 `repeatF_fix_le`와 `Eval.lean`의 `whileF_fix_le`다.)
 
 - `⊑` — 설탕 쪽 함수가 **`repeat` 의** 풀기 방정식을 만족함을 보인다. 그러면
   `repeat` 의 최소성이 곧바로 준다.
@@ -235,14 +330,17 @@ def repeatSugar (b : BoolExp V) (c : Comm V) : Comm V :=
 theorem repeatEval_eq_repeatSugar (b : BoolExp V) (c : Comm V) :
     repeatEval b c = (repeatSugar b c).eval := by
   -- 이 장에서 가장 볼 만한 연습이다. 최소성을 양쪽에서 한 번씩 쓴다.
-  -- 먼저 볼 것: `fix_least` 와 `fix_eq`, 그리고 바로 위 `repeatEval_unwind`.
+  -- 먼저 볼 것: `repeatF_fix_le` 와 바로 위 `repeatEval_unwind`(`repeatF_fix_unfold` 를 쓴다),
+  --            그리고 `Eval.lean` 의 `whileF_fix_le`.
+  --            (연습 독립성 원칙 때문에 `fix_least`·`fix_eq` 자신이 아니라, `repeatF`·`whileF`
+  --            하나로 좁힌 독립적인 판을 쓴다.)
   -- 힌트 1: `le_antisymm` 으로 두 방향을 나눈다.
   -- 힌트 2: `⊑` — 설탕 쪽 함수가 **`repeat` 의** 풀기 방정식을 만족함을 보이면
-  --         `repeatF` 에 대한 `fix_least` 가 곱바로 준다.
-  -- 힌트 3: `⊒` — 이번에는 `while` 쪽 최소성을 쓴다. 후보는
+  --         `repeatF_fix_le` 가 곧바로 준다.
+  -- 힌트 3: `⊒` — 이번에는 `whileF_fix_le` 를 쓴다. 후보는
   --         `fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ'` 이고,
   --         그것이 `whileF (¬b) ⟦c⟧` 의 고정점임을 보이면 된다.
-  -- 힌트 4: 양쪽 모두 조건이 참인 갈래와 거짃인 갈래에서 두 방정식이 서로를 메운다.
+  -- 힌트 4: 양쪽 모두 조건이 참인 갈래와 거짓인 갈래에서 두 방정식이 서로를 메운다.
   --         `⟦¬b⟧ᵇ σ = !(⟦b⟧ᵇ σ)` 는 `rfl` 이다.
   sorry
 
