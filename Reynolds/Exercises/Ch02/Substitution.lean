@@ -7,7 +7,7 @@ module
 
 public import Reynolds.Exercises.Ch02.FreeVars
 public import Reynolds.Answers.Ch02.Notation
-public import Reynolds.Exercises.Ch01.Substitution
+public import Reynolds.Answers.Ch01.Substitution
 
 /-!
 # §2.5 치환 (2) — 명령의 치환과 별칭
@@ -52,7 +52,7 @@ Reynolds §2.5 후반부에 대응한다. `FreeVars.lean` 이 전반부다.
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

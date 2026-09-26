@@ -70,7 +70,7 @@ Reynolds 연습 2.8 에 대응한다.
 
 namespace Reynolds.Exercises.Ch02.Ex
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Exercises.Ch02
 
 universe u
 

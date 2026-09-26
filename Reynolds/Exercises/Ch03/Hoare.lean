@@ -38,7 +38,7 @@ Reynolds 는 결과 규칙을 둘로 나눈다 — 전제 강화와 결론 약�
 
 namespace Reynolds.Exercises.Ch03
 
-open Reynolds Reynolds.Exercises.Ch01 Reynolds.Exercises.Ch02
+open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 
 universe u
 

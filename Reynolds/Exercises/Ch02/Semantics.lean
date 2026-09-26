@@ -6,11 +6,13 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Exercises.Ch02.Syntax
-public import Reynolds.Exercises.Ch01.Semantics
+public import Reynolds.Answers.Ch01.Semantics
+public import Reynolds.Answers.Ch02.DenoteBool
 public import Reynolds.Meta.Exercise
 -- `#guard` 는 컴파일 시점에 계산한다 (AGENTS.md §10).
 public meta import Reynolds.Exercises.Ch02.Syntax
-public meta import Reynolds.Exercises.Ch01.Semantics
+public meta import Reynolds.Answers.Ch01.Semantics
+public meta import Reynolds.Answers.Ch02.DenoteBool
 
 /-!
 # §2.2 표시적 의미론 — `while`의 풀기 방정식
@@ -56,46 +58,12 @@ set_option linter.hashCommand false
 
 @[expose] public section
 
-/-! ## 불 값으로 가는 확장은 1장 이름공간에 둔다
-
-`Cmp` 와 `LogOp` 는 1장 타입이다. 확장을 2장 이름공간에 두면 `c.denoteBool` 같은 점 표기가
-안 되므로, 타입이 사는 곳에 맞춰 1장 이름공간에 넣는다. 파일과 이름공간이 갈리지만
-같은 타입에 대한 연산을 한 이름 아래 모으는 쪽이 읽기에 낫다. -/
-
-namespace Reynolds.Exercises.Ch01
-
-/-- 비교 기호의 뜻, `Bool` 판. 1장 `Cmp.denote` 의 계산되는 짝이다. -/
-def Cmp.denoteBool : Cmp → Int → Int → Bool
-  | .eq, a, b => a == b
-  | .ne, a, b => a != b
-  | .lt, a, b => a < b
-  | .le, a, b => a ≤ b
-  | .gt, a, b => a > b
-  | .ge, a, b => a ≥ b
-
-/-- 논리 기호의 뜻, `Bool` 판. -/
-def LogOp.denoteBool : LogOp → Bool → Bool → Bool
-  | .and, a, b => a && b
-  | .or,  a, b => a || b
-  | .imp, a, b => !a || b
-  | .iff, a, b => a == b
-
-/-- 비교의 두 뜻이 맞물린다. -/
-theorem Cmp.denoteBool_iff (c : Cmp) (a b : Int) :
-    c.denoteBool a b = true ↔ c.denote a b := by
-  cases c <;> simp [Cmp.denote, Cmp.denoteBool]
-
-/-- 논리 연산의 두 뜻이 맞물린다. 전제는 부분식에 대한 귀납 가설로 들어온다. -/
-theorem LogOp.denoteBool_iff (op : LogOp) {a b : Bool} {p q : Prop}
-    (hp : a = true ↔ p) (hq : b = true ↔ q) :
-    op.denoteBool a b = true ↔ op.denote p q := by
-  cases op <;> cases a <;> cases b <;> simp_all [LogOp.denote, LogOp.denoteBool]
-
-end Reynolds.Exercises.Ch01
+/-! 불 값으로 가는 비교·논리 연산 `Cmp.denoteBool` · `LogOp.denoteBool` 은
+`DenoteBool.lean` 에 있다 (1장 이름공간에 두는 이유도 거기). -/
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

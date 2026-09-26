@@ -45,7 +45,7 @@ Reynolds는 의미 방정식과 최소 고정점 논의를 같은 절에서 전�
 
 namespace Reynolds.Exercises.Ch02
 
-open Reynolds Reynolds.Exercises.Ch01
+open Reynolds Reynolds.Answers.Ch01
 
 universe u
 

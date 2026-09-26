@@ -6,7 +6,9 @@ Answers 가 진리의 원천이고, Exercises 는 여기서 기계적으로 만�
 
 하는 일은 셋이다.
 
-1. 이름공간을 `Reynolds.Answers.Ch01` → `Reynolds.Exercises.Ch01` 로 바꾼다
+1. **그 파일이 속한 장의** 이름공간만 `Reynolds.Answers.ChNN` → `Reynolds.Exercises.ChNN` 로
+   바꾼다. 앞 장은 Answers 를 그대로 가리킨다 (`DESIGN.md` §3.1 의존 방향 규칙,
+   `AGENTS.md` §1-8). 앞 장의 `sorry` 가 이 장의 채점을 오염시키지 않게 하려는 것이다
 2. `-- ANCHOR` 마커를 제거한다 (문서는 Answers 만 인용한다. AGENTS.md §3.1)
 3. `BLANKS` 표에 적힌 증명을 `sorry` 와 힌트로 교체한다
 
@@ -28,6 +30,7 @@ Lean 은 다른 모듈의 증명 항을 볼 수 없어서 "본인 sorry" 와 "�
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 
 # Exercises 로 복제하지 않고 Answers 쪽을 그대로 쓰는 모듈.
@@ -40,7 +43,10 @@ import sys
 # 쓰면 Exercises 의 정의로 해석된다.
 # `Ch02/Domain/Flat.lean` — `Option` 은 루트 타입이라 순서 인스턴스를 복제하면
 # 같은 타입에 두 벌이 등록된다 (구문 범주가 전역인 것과 같은 사정).
-SHARED = {"Ch01/Notation.lean", "Ch02/Notation.lean", "Ch02/Domain/Flat.lean"}
+# `Ch02/DenoteBool.lean` — 1장 이름공간(`Reynolds.Answers.Ch01`)에 선언을 더한다. Exercises 는
+# 앞 장의 Answers 를 import 하므로 (아래 `transform`), 복제하면 같은 이름이 두 벌 생긴다.
+SHARED = {"Ch01/Notation.lean", "Ch02/Notation.lean", "Ch02/Domain/Flat.lean",
+          "Ch02/DenoteBool.lean"}
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 ANSWERS = ROOT / "Reynolds" / "Answers"
@@ -1295,7 +1301,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
     ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
   -- 먼저 볼 것: `substitution_single` (명제 1.4) 와 식 판 `substitution_intExp`,
-  --            `coincidence_assert` (명제 1.1), `Assert.eval_ex` · `Assert.eval_and` · `Assert.eval_eq`.
+  --            `coincidence_assert` (명제 1.1),
+  --            `Assert.eval_ex` · `Assert.eval_and` · `Assert.eval_eq`.
   -- 힌트 1: 대입 뒤 상태는 `σ[v := ⟦e⟧ₑ σ]` 다. `∃ v₀` 의 증인은 옛 값 `σ v` 다.
   -- 힌트 2: `p/v→v₀` 쪽 — `substitution_single` 로 뜻으로 옮기면 `p` 를 "`v` 에 옛 값을 도로
   --         넣은 상태" 에서 묻는다. 그 상태는 `p` 가 보는 변수들에서 `σ` 와 같다 (`h₀`, `h₂`).
@@ -1459,11 +1466,20 @@ BLANKS: list[tuple[str, str, str, str]] = [
 ]
 
 
-def transform(text: str, blanks: list[tuple[str, str, str]]) -> str:
-    """이름공간 치환 · ANCHOR 제거 · 증명 비우기."""
-    # 장 번호를 하드코딩하지 않는다. 모듈 이름은 점(.)으로 쓰므로 슬래시 경로
-    # (`Reynolds/Answers/…`, 산문에서 완성본을 가리킬 때 쓴다)는 건드리지 않는다.
-    out = text.replace("Reynolds.Answers.", "Reynolds.Exercises.")
+CHAPTER_REF = re.compile(r"Reynolds\.(Answers|Exercises)\.(Ch\d\d)\b")
+
+
+def transform(text: str, blanks: list[tuple[str, str, str]], chapter: str) -> str:
+    """이름공간 치환 · ANCHOR 제거 · 증명 비우기.
+
+    `chapter` 는 이 파일이 속한 장(`"Ch03"` 등)이다. 그 장만 Exercises 로 옮기고, 앞 장은
+    Answers 를 그대로 가리키게 둔다. 앞 장의 Exercises 에는 `sorry` 가 있으므로, 그것을
+    import 하면 이 장의 올바른 풀이도 "`sorry` 에 기댄다" 로 채점된다.
+    """
+    # 모듈 이름은 점(.)으로 쓰므로 슬래시 경로(`Reynolds/Answers/…`, 산문에서 완성본을
+    # 가리킬 때 쓴다)는 건드리지 않는다.
+    out = CHAPTER_REF.sub(
+        lambda m: f"Reynolds.Exercises.{m[2]}" if m[2] == chapter else m[0], text)
     # 공유 모듈은 Answers 쪽을 그대로 가리키게 되돌린다.
     for shared in SHARED:
         mod = "Reynolds.Exercises." + shared.removesuffix(".lean").replace("/", ".")
@@ -1477,6 +1493,10 @@ def transform(text: str, blanks: list[tuple[str, str, str]]) -> str:
         except ValueError as exc:  # pragma: no cover - 마커가 어긋나면 즉시 알려야 한다
             raise SystemExit(f"마커를 찾지 못했다: {start!r} … {end!r}\n  {exc}") from exc
         out = out[:a] + stub + out[b:]
+    # 다른 장의 Exercises 를 가리키는 곳이 남으면 의존 방향 규칙 위반이다.
+    for m in CHAPTER_REF.finditer(out):
+        if m[1] == "Exercises" and m[2] != chapter:
+            raise SystemExit(f"{chapter} 가 다른 장의 Exercises 를 가리킨다: {m[0]}")
     return "\n".join(line for line in out.split("\n") if "-- ANCHOR" not in line)
 
 
@@ -1492,7 +1512,9 @@ def build() -> dict[pathlib.Path, str]:
         if str(rel) in SHARED:
             continue
         # ANCHOR 제거 뒤 마커 위치가 밀리므로, 파일별 blanks 를 그대로 넘긴다.
-        result[EXERCISES / rel] = transform(src.read_text(), per_file.get(str(rel), []))
+        chapter = rel.parts[0].removesuffix(".lean")
+        result[EXERCISES / rel] = transform(
+            src.read_text(), per_file.get(str(rel), []), chapter)
     return result
 
 
