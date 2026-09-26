@@ -12,6 +12,9 @@ public import Reynolds.Answers.Ch03.Assign
 public import Reynolds.Answers.Ch03.Annot
 public import Reynolds.Answers.Ch03.Total
 public import Reynolds.Answers.Ch03.Derived
+public import Reynolds.Answers.Ch03.Semantic
+public import Reynolds.Answers.Ch03.Examples.Fib
+public import Reynolds.Answers.Ch03.Examples.FastExp
 
 /-!
 # 3장 «명세와 그 증명» — 완성본 (Answers)
@@ -33,6 +36,9 @@ public import Reynolds.Answers.Ch03.Derived
 5. `Annot.lean` — §3.4 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
 6. `Total.lean` — §3.5 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
 7. `Derived.lean` — §3.7 상수 규칙, 연언·선언, ∃ 규칙, 치환 규칙 (연습 2.8 의 약한 조건)
+8. `Semantic.lean` — §3.8 준비: 의미 단언 위의 규칙 (대입은 치환 대신 상태 갱신)
+9. `Examples/Fib.lean` — §3.8 피보나치 — 불변식에 `Nat.fib`
+10. `Examples/FastExp.lean` — §3.9 빠른 거듭제곱 — 불변식에 거듭제곱, `÷`·`rem`
 
 ## 책과의 차이
 

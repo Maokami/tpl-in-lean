@@ -1419,6 +1419,43 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §3.8 · §3.9 예제
+    (
+        "Ch03/Examples/Fib.lean",
+        "theorem fibBody_ok",
+        "-- ANCHOR_END: fibBodyOk",
+        """theorem fibBody_ok :
+    PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
+  -- 먼저 볼 것: Mathlib 의 `Nat.fib_add_two`, 이 파일 위의 `fibInit_ok`.
+  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Option.some.inj hτ`.
+  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `some (…)` 로 계산된다.
+  -- 힌트 2: 조건 `hb` 를 `simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool]` 로 `σ "k" ≠ σ "n"` 로.
+  -- 힌트 3: 새 증인은 `m + 1`. 다섯 조각을 `simp [State.subst_def, Function.update, IntExp.eval,
+  --         IntOp.denote, hk, hf, hg, Nat.fib_add_two]` 와 `omega` 로.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Examples/FastExp.lean",
+        "theorem expBody_ok",
+        "-- ANCHOR_END: expBodyOk",
+        """theorem expBody_ok :
+    PartialCorrectS (fun σ => expInv σ ∧ ⟦⟪ k > 0 ⟫ᵇ⟧ᵇ σ = true)
+      (.ite ⟪ k rem 2 = 1 ⟫ᵇ expOdd expEven) expInv := by
+  -- 먼저 볼 것: `Semantic.lean` 의 `PartialCorrectS.ite`, Mathlib 의 `pow_succ` · `pow_two` ·
+  --            `pow_mul` · `Nat.two_mul_div_two_of_even` · `Nat.even_iff`.
+  -- 힌트 1: `refine PartialCorrectS.ite ?_ ?_` 로 두 갈래를 나눈다. 각 갈래는 반복이 없어
+  --         `obtain rfl := Option.some.inj hτ` 로 결과 상태가 드러난다.
+  -- 힌트 2: 조건들을 `simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk]` 로
+  --         `m` 에 대한 사실(`m % 2 = 1 ∧ 0 < m`, 또는 `m % 2 = 0`)로 바꾼다 (`omega`).
+  -- 힌트 3: 홀수 갈래 — 증인 `m - 1`. `m = j + 1` 로 쓰면 `y · x · x^j = y · x^(j+1)`.
+  -- 힌트 4: 짝수 갈래 — 증인 `m / 2`. `(x · x)^(m/2) = x^(2 · (m/2)) = x^m`.
+  -- 힌트 5: 등식은 먼저 `key` 로 따로 증명하고 `simpa [State.subst_def, Function.update, …] using key`.
+  sorry
+
+""",
+    ),
 ]
 
 
