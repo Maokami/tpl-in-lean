@@ -305,7 +305,7 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
     Hoare p c q → ｛p｝c｛q｝ := by
   intro h
   induction h with
-  | «skip» p => exact skip_sound p
+  | skip p => exact skip_sound p
   | assign q v e => exact assign_sound q v e
   | seq _ _ ih₀ ih₁ => exact seq_sound ih₀ ih₁
   | ite _ _ ih₀ ih₁ => exact ite_sound ih₀ ih₁
