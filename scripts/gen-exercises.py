@@ -1523,6 +1523,65 @@ BLANKS: list[tuple[str, str, str, str]] = [
 ]
 
 
+BLANKS += [
+    (
+        "Ch02/Domain/LiftingLaws.lean", "theorem map_unique", "-- ANCHOR_END: map_unique",
+        """theorem map_unique (f : α → β) (g : Flat α → Flat β)
+    (hbot : g .none = .none) (hval : ∀ a, g (.some a) = .some (f a)) :
+    g = Flat.map f := by
+  -- `funext x` 뒤 입력의 두 생성자를 나눈다. 두 가설을 각각 어디에 쓰는가?
+  sorry
+""",
+    ),
+    (
+        "Ch02/Domain/LiftingLaws.lean", "theorem sourceLift_unique",
+        "-- ANCHOR_END: sourceLift_unique",
+        """theorem sourceLift_unique [Bot β] (f : α → β) (g : Flat α → β)
+    (hbot : g .none = ⊥) (hval : ∀ a, g (.some a) = f a) :
+    g = sourceLift f := by
+  -- 바닥을 이미 가진 공역에서도 입력은 여전히 두 경우뿐이다.
+  sorry
+""",
+    ),
+    (
+        "Ch02/Domain/LiftingLaws.lean", "theorem map_comp", "-- ANCHOR_END: map_comp",
+        """theorem map_comp (f : α → β) (g : β → γ) :
+    Flat.map (g ∘ f) = Flat.map g ∘ Flat.map f := by
+  -- 입력 바닥과 입력 값에서 두 합성을 직접 계산한다.
+  sorry
+""",
+    ),
+    (
+        "Ch02/Domain/LiftingLaws.lean", "theorem sourceLift_comp_map",
+        "-- ANCHOR_END: sourceLift_comp_map",
+        """theorem sourceLift_comp_map [Bot γ] (f : α → β) (g : β → γ) :
+    sourceLift (g ∘ f) = sourceLift g ∘ Flat.map f := by
+  -- 중간 타입은 Flat β, 마지막 공역은 γ다. 두 입력 경우에서 타입을 따라간다.
+  sorry
+""",
+    ),
+    (
+        "Ch02/Domain/LiftingLaws.lean", "theorem sourceLift_comp_strict",
+        "-- ANCHOR_END: sourceLift_comp_strict",
+        """theorem sourceLift_comp_strict [Bot β] [Bot γ] (g : α → β) (h : β → γ)
+    (hstrict : h ⊥ = ⊥) : sourceLift (h ∘ g) = h ∘ sourceLift g := by
+  -- 바닥 입력에서만 hstrict가 필요하다. 오른쪽의 h ⊥와 왼쪽의 ⊥를 비교한다.
+  sorry
+""",
+    ),
+    (
+        "Ch02/SumApproximation.lean", "theorem sumApprox_eq (", "-- ANCHOR_END: sumApprox_eq",
+        """theorem sumApprox_eq (n : ℕ) (σ : State String) :
+    sumApprox n σ = if 0 ≤ σ "x" ∧ σ "x" < (n : Int) then .some (sumResult σ) else .none := by
+  -- `induction n generalizing σ`: 본체를 실행하면 귀납 가설의 상태도 바뀐다.
+  -- `sumF`, `sumApprox`와 `Function.iterate_succ_apply'`로 한 단계를 연다.
+  -- `sumResult_step`이 합산 산술을, `sumResult_zero`가 종료 분기를 정리한다.
+  -- x ≠ 0에서 0 ≤ x-1 < n ↔ 0 ≤ x < n+1인 이유를 확인한다.
+  sorry
+""",
+    ),
+]
+
 CHAPTER_REF = re.compile(r"Reynolds\.(Answers|Exercises)\.(Ch\d\d)\b")
 
 
