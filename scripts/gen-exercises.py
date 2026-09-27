@@ -254,72 +254,78 @@ BLANKS: list[tuple[str, str, str, str]] = [
     ),
 # ── 연습 1.1 · 1.2 (전부 서로 독립이다)
     (
-        "Ch01/Ex.lean", "theorem e11a_correct", "/-- 1.1(b)",
-        """theorem e11a_correct (σ : State String) :
-    (⟦e11a⟧ₐ σ ↔ ∃ n : Int, 0 < n ∧ n < 2) := by
-  -- 힌트: `simp [e11a, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]`
+        "Ch01/Ex.lean", "noncomputable def e11aAnswer", "/-- Reynolds 연습 1.1(b)",
+        """noncomputable def e11aAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ 1 ≤ intervalCount lo hi} := by
+  -- `refine ⟨fun lo hi => ⟪ … ⟫ₐ, ?_⟩`로 단언을 직접 쓴다.
+  -- 힌트: `Finset.one_le_card`로 원소 수 명세를 존재 명제로 바꾼다.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e11b_correct", "/-- 1.1(c)",
-        """theorem e11b_correct (σ : State String) :
-    (⟦e11b⟧ₐ σ ↔ ∀ m n : Int, (0 < m ∧ m < 2) ∧ (0 < n ∧ n < 2) → m = n) := by
+        "Ch01/Ex.lean", "noncomputable def e11bAnswer", "/-- Reynolds 연습 1.1(c)",
+        """noncomputable def e11bAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ intervalCount lo hi ≤ 1} := by
+  -- 단언을 직접 쓰고 `Finset.card_le_one`과 연결한다.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e11c_correct", "/--\n1.1(d)",
-        """theorem e11c_correct (σ : State String) :
-    (⟦e11c⟧ₐ σ ↔ ∃ m n : Int, m ≠ n ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3)) := by
+        "Ch01/Ex.lean", "noncomputable def e11cAnswer", "/-- Reynolds 연습 1.1(d)",
+        """noncomputable def e11cAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ 2 ≤ intervalCount lo hi} := by
+  -- 단언을 직접 쓴다. 힌트: `Finset.one_lt_card_iff`.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e11d_correct", "/-! ## 연습 1.2",
-        """theorem e11d_correct (σ : State String) :
-    (⟦e11d⟧ₐ σ ↔ ∀ l m n : Int,
-      (0 < l ∧ l < 3) ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3) →
-        (l = m ∨ l = n ∨ m = n)) := by
+        "Ch01/Ex.lean", "noncomputable def e11dAnswer", "/-! ## 연습 1.2",
+        """noncomputable def e11dAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ intervalCount lo hi ≤ 2} := by
+  -- 단언을 직접 쓴다. 힌트: `Finset.two_lt_card_iff`와 `not_lt`.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e12a_correct", "/-- 1.2(b)",
-        """theorem e12a_correct (σ : State String) :
-    (⟦e12a⟧ₐ σ ↔ σ "a" ∣ σ "b") := by
-  -- 힌트: `dvd_def` 가 `a ∣ b ↔ ∃ c, b = a * c` 다. `IntOp.denote` 도 펼쳐야 한다.
+        "Ch01/Ex.lean", "noncomputable def e12aAnswer", "/-- Reynolds 연습 1.2(b)",
+        """noncomputable def e12aAnswer : NatAnswer (fun σ => σ "a" ∣ σ "b") := by
+  -- `refine ⟨⟪ … ⟫ₐ, rfl, ?_⟩`: 구문을 쓰고 허용 구문 검사와 의미를 증명한다.
+  -- 힌트: `dvd_def`, `evalNat`. 양화된 변수도 자연수다.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e12b_correct", "/--\n1.2(c)",
-        """theorem e12b_correct (σ : State String) :
-    (⟦e12b⟧ₐ σ ↔ (σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")) := by
+        "Ch01/Ex.lean", "noncomputable def e12bAnswer", "/--\nReynolds 연습 1.2(c)",
+        """noncomputable def e12bAnswer :
+    NatAnswer (fun σ => σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c") := by
+  -- 단언을 직접 쓴다. 다른 연습의 답을 쓰지 않아도 풀 수 있다.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e12c_correct", "/--\n1.2(d)",
-        """theorem e12c_correct (σ : State String) :
-    (⟦e12c⟧ₐ σ ↔
-      ((σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")
-        ∧ ∀ d : Int, (d ∣ σ "b" ∧ d ∣ σ "c") → d ≤ σ "a")) := by
+        "Ch01/Ex.lean", "noncomputable def e12cAnswer", "/--\nReynolds 연습 1.2(d)",
+        """noncomputable def e12cAnswer :
+    NatAnswer (fun σ => GreatestCommonDivisor (σ "a") (σ "b") (σ "c")) := by
+  -- 공약수라는 조건과 모든 공약수보다 크거나 같다는 조건을 단언으로 쓴다.
+  -- `GreatestCommonDivisor`, `IsGreatest`, `upperBounds`를 펼쳐 비교한다.
   sorry
 
 """,
     ),
     (
-        "Ch01/Ex.lean", "theorem e12d_correct", "/-! ## 연습 1.4",
-        """theorem e12d_correct (σ : State String) :
-    (⟦e12d⟧ₐ σ ↔
-      (σ "p" > 1 ∧ ∀ d : Int, (d > 0 ∧ d ∣ σ "p") → (d = 1 ∨ d = σ "p"))) := by
+        "Ch01/Ex.lean", "noncomputable def e12dAnswer", "/-! ## 연습 1.4",
+        """noncomputable def e12dAnswer : NatAnswer (fun σ => Nat.Prime (σ "p")) := by
+  -- 단언을 직접 쓴다. `Nat.prime_def`로 의미 명세를 펼친다.
   sorry
 
 """,
@@ -361,13 +367,13 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── 연습 1.3 (접두사 자유성은 완성본으로 주고 단사성만 비운다)
+    # ── 연습 1.3 (구문 세계와 접두사 자유성은 완성 자료)
     (
-        "Ch01/Realizations.lean", "theorem IntExp.toPrefix_injective",
-        "/-! ## 접두 표기의 구문 세계",
-        """theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
-  -- 먼저 볼 것: 바로 위 `toPrefix_prefixFree` (완성본).
-  -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.
+        "Ch01/Realizations/Constructors.lean", "theorem prefixConstructors_injective",
+        "end Reynolds.Exercises.Ch01",
+        """theorem prefixConstructors_injective : PrefixConstructorsInjective := by
+  -- `constructor`로 생성자별 목표를 연다. 목록 등식은 `congrArg Subtype.val`로 얻는다.
+  -- 이항 생성자에서 연결 위치를 복원할 때 두 `toPrefix_prefixFree` 보조정리를 쓴다.
   sorry
 
 """,
