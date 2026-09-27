@@ -20,6 +20,7 @@ public import Reynolds.Exercises.Ch01.Design
 public import Reynolds.Exercises.Ch01.Background
 public import Reynolds.Exercises.Ch01.Depth.Algebra
 public import Reynolds.Exercises.Ch01.Depth.CategoryBridge
+public import Reynolds.Exercises.Ch01.Depth.LogicFold
 public import Reynolds.Exercises.Ch01.Depth.SignatureFunctor
 public import Reynolds.Exercises.Ch01.Depth.TermMonad
 
@@ -43,4 +44,5 @@ public import Reynolds.Exercises.Ch01.Depth.TermMonad
 13. `Depth/SignatureFunctor.lean` — 심화 B (선택). 시그니처 함자와 Lambek
 14. `Depth/TermMonad.lean` — 심화 A (선택). 치환과 bind
 15. `Depth/CategoryBridge.lean` — 심화 C (선택). 두 정렬 대수의 범주와 Mathlib 초기성
+16. `Depth/LogicFold.lean` — 심화 A (선택). 의미·자유 변수의 두 정렬 접기
 -/

@@ -860,7 +860,7 @@ file := "ch01-exercise-list"
 number := false
 %%%
 
-1장에는 채점되는 연습이 36개 있다. 책 연습문제와 본문 명제가 섞여 있고,
+1장에는 채점되는 연습이 37개 있다. 책 연습문제와 본문 명제가 섞여 있고,
 아래는 [읽는 순서](--tag--ch01-order)와 같은 차례로 늘어놓은 것이다.
 
 * `Validity.lean` — §1.3 건전성과 규칙. *3개*
@@ -868,7 +868,7 @@ number := false
 * `Realizations/Constructors.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.4. *12개*
 * `Ex/Summation.lean`·`Ex/Summation/` — 책 연습 1.5 · 1.6. *7개*
 * `Design.lean` — 정의 선택과 정리의 성립. *3개*
-* `Depth/` — 심화 트랙. *6개*
+* `Depth/` — 심화 트랙. *7개*
 
 본문 명제를 건너뛰면 책 연습에서 쓸 재료가 없다.
 
@@ -944,15 +944,81 @@ theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
 `∀x. p`와 이름을 바꾼 구문을 동일시하는 α-동치나 치환 법칙을 말하지 않는다.
 범주론 용어를 배우지 않아도 열 조건과 `∃!`만으로 이 연습을 읽을 수 있다.
 
+# 선택 심화: 의미와 자유 변수는 어떤 접기인가
+%%%
+tag := "ch01-logic-fold"
+%%%
+
+Reynolds §1.2 pp.10–11은 생성자마다 주어진 의미 방정식이 정수 식과 단언의 의미를
+함께 유일하게 정한다고 설명한다. 앞 절의 추상적인 목표 대수에 실제 해석을 넣어 보자.
+정수 식은 상태에서 정수를 얻는 함수로, 단언은 상태에서 명제를 얻는 함수로 옮긴다.
+비교 연산은 정수 함수 둘을 받아 명제 함수를 만든다.
+
+```anchor logicEvalAlg (module := Reynolds.Answers.Ch01.Depth.LogicFold)
+def logicEvalAlg (V : Type u) [DecidableEq V] : LogicAlg V where
+  E := State V → Int
+  A := State V → Prop
+  num n := fun _ => n
+  var x := fun σ => σ x
+  eneg f := fun σ => -f σ
+  ebin op f g := fun σ => op.denote (f σ) (g σ)
+  tru := fun _ => True
+  fls := fun _ => False
+  cmp c f g := fun σ => c.denote (f σ) (g σ)
+  anot p := fun σ => ¬ p σ
+  abin op p q := fun σ => op.denote (p σ) (q σ)
+  quant
+    | .all, x, p => fun σ => ∀ n : Int, p (σ[x := n])
+    | .ex, x, p => fun σ => ∃ n : Int, p (σ[x := n])
+```
+
+양화사의 본문은 여러 갱신 상태에서 해석된다. 따라서 본문을 접은 결과에는 상태 하나의
+진릿값 대신 상태 전체를 입력받는 함수가 들어간다. Lean에서는 책의 진릿값을 `Prop`으로
+표현한다. 예를 들어 `∃x. x = 7`은 바깥 상태가 `x`에 어떤 값을 주더라도 참이다.
+
+다음 한 문제는 단언의 구조적 귀납법으로 푼다. 비교 분기에서는 완성된
+`IntExp.eval_eq_foldE`를 사용하고, 양화 분기에서는 본문에 대한 함수 등식을 쓴다.
+초기성 문제 A1.3을 먼저 풀 필요는 없다.
+
+```anchor Assert.eval_eq_foldA (module := Reynolds.Answers.Ch01.Depth.LogicFold)
+@[exercise "심화 A1.4" 2]
+theorem Assert.eval_eq_foldA {V : Type u} [DecidableEq V] (p : Assert V) :
+    p.eval = (logicEvalAlg V).foldA p := by
+```
+
+초기성 정리에 이 목표 대수를 넣으면 의미 방정식을 만족하는 함수 쌍이 기존 해석과
+같다는 귀결을 얻는다. 이 유일한 접기를 catamorphism이라고도 부른다.
+아래 정리는 초기성을 이용한 제공 자료이며 별도의 채점 문제가 아니다.
+
+```anchor logicEval_unique (module := Reynolds.Answers.Ch01.Depth.LogicFold)
+theorem logicEval_unique {V : Type u} [DecidableEq V]
+    (h : (IntExp V → State V → Int) × (Assert V → State V → Prop))
+    (hh : (logicEvalAlg V).IsHom h) : h = (IntExp.eval, Assert.eval) := by
+```
+
+§1.4 pp.15–16의 자유 변수 방정식도 같은 방식으로 읽는다. `logicFvAlg`는 두 반송자를
+모두 `Finset V`로 두고, 비교와 이항 연산에서 합집합을 취하며, 양화사에서는 결합 이름을
+지운다. 이 방정식의 유일한 해석 쌍은 `IntExp.fv`와 `Assert.fv`다.
+
+```anchor logicFv_unique (module := Reynolds.Answers.Ch01.Depth.LogicFold)
+theorem logicFv_unique {V : Type u} [DecidableEq V]
+    (h : (IntExp V → Finset V) × (Assert V → Finset V))
+    (hh : (logicFvAlg V).IsHom h) : h = (IntExp.fv, Assert.fv) := by
+```
+
+자유 변수 집합은 구문을 따라 계산한다. `x - x`의 값은 늘 0이지만 자유 변수 집합에는
+`x`가 남는다. 이 선택 보충은 책의 구문 지향 정의를 대수로 연결하며, 의미의 최소 의존
+집합이나 α-동치까지 다루지는 않는다.
+
 # 선택 심화: 같은 초기성을 Mathlib으로 읽기
 %%%
 tag := "ch01-category-bridge"
 %%%
 
-앞 절의 `∃!`를 이해했다면, 범주론에서 말하는 초기 대상도 읽을 수 있다.
+두 정렬 초기성의 `∃!`를 이해했다면, 범주론에서 말하는 초기 대상도 읽을 수 있다.
 범주(category)는 대상과 대상 사이의 사상, 그리고 사상을 이어 붙이는 합성을 갖춘다.
 여기서 대상은 `LogicAlg`, 사상은 연산을 보존하는 함수 쌍이다.
-앞 절에서는 사상의 출발점이 늘 구문이었지만, 이제 출발점도 임의의 대수로 둔다.
+초기성 정리에서는 사상의 출발점이 늘 구문이었지만, 이제 출발점도 임의의 대수로 둔다.
 
 예를 들어 `f : L ⟶ M`은 정수 식 반송자의 함수 `f.e`와 단언 반송자의 함수 `f.a`를
 갖는다. 비교 연산의 보존 조건은 `f.a (L.cmp c x y) = M.cmp c (f.e x) (f.e y)`다.
@@ -974,7 +1040,7 @@ instance category : Category (LogicAlg.{u, u} V) where
   assoc _ _ _ := Hom.ext rfl rfl
 ```
 
-여기서는 변수 타입과 두 반송자를 모두 같은 `Type u`에 둔다. 따라서 앞 절에서
+여기서는 변수 타입과 두 반송자를 모두 같은 `Type u`에 둔다. 따라서
 서로 다른 우주의 목표 대수도 허용했던 `LogicAlg.initial`을 이 범주의 대상들에
 한정해서 사용한다. `syntaxAlg V`는 정수 식과 단언 자체를 반송자로 갖는 대수다.
 
@@ -986,7 +1052,7 @@ noncomputable def syntaxIsInitial (V : Type u) : IsInitial (syntaxAlg V) :=
 
 `IsInitial (syntaxAlg V)`는 각 목표로 가는 사상을 고르는 자료와 그 유일성 증명을
 포함한다. 그 자료가 주어지면 `h.to L`로 사상을 얻고, `h.hom_ext`로 두 사상의
-등식을 얻는다. 다음 연습은 이 두 API를 앞 절의 함수 쌍 언어로 옮기는 문제다.
+등식을 얻는다. 다음 연습은 이 두 API를 `LogicAlg.IsHom`의 함수 쌍 언어로 옮기는 문제다.
 초기성을 가설로 주므로 A1.3을 아직 풀지 않았어도 시작할 수 있다.
 
 ```anchor LogicAlg.uniqueHom_of_isInitial (module := Reynolds.Answers.Ch01.Depth.CategoryBridge)
@@ -1001,7 +1067,7 @@ theorem uniqueHom_of_isInitial (h : IsInitial (syntaxAlg V)) (L : LogicAlg.{u, u
 `IsInitial` 자료가 있다는 것을 명제로 표현한다.
 
 이 선택 심화는 이름을 그대로 보존하는 원시 구문의 범주에 머문다. α-동치로 나눈
-구문의 초기성, 치환의 법칙, 일반 함자의 대수에 대한 Lambek 정리는 별도로 다룬다.
+구문의 초기성, 치환의 법칙, 일반 함자의 대수에 대한 Lambek 정리는 선택 후속 주제다.
 본문의 1장 학습은 이 파일 없이도 이어갈 수 있다.
 
 # 더 읽을거리
