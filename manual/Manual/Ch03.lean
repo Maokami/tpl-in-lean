@@ -9,6 +9,7 @@ import Manual.Ch03.Rules
 import Manual.Ch03.Annot
 import Manual.Ch03.Derived
 import Manual.Ch03.Examples
+import Manual.Ch03.Limits
 import Manual.Ch03.Wlp
 
 open Verso.Genre Manual
@@ -96,6 +97,9 @@ number := false
 채울 자리만 `sorry`로 비어 있다. Exercises 트리는 앞 장의 _완성본_을 가져다 쓰므로 1·2장을
 풀지 않아도 3장을 풀 수 있다.
 
+책 §3.8(pp.74–76)의 실제 한계는 {ref "ch03-book-limits"}[복잡한 점과 한계]에서 읽는다.
+유령 변수와 산술·오류 모델의 경계를 다루며, 최약 사전조건과 완전성은 별도 보충 주제다.
+
 {include 1 Manual.Ch03.Spec}
 
 {include 1 Manual.Ch03.Rules}
@@ -105,5 +109,7 @@ number := false
 {include 1 Manual.Ch03.Derived}
 
 {include 1 Manual.Ch03.Examples}
+
+{include 1 Manual.Ch03.Limits}
 
 {include 1 Manual.Ch03.Wlp}
