@@ -270,4 +270,55 @@ example : TotalCorrectS (fun σ => 0 ≤ σ "n") Examples.fibProg
 example : PartialCorrectS (fun σ => 0 ≤ σ "n") Examples.fibProg
     (fun τ => τ "f" = Nat.fib (τ "n").toNat) := Examples.fib_correct
 
+-- §3.3 SP/WC와 §3.5 구조 규칙: 서로 다른 두 사후조건을 실제로 유지한다.
+example : Hoare (⟪ x = 0 ∨ x = 1 ⟫ₐ) .skip (⟪ x = 0 ∨ x = 1 ⟫ₐ) :=
+  Hoare.disj (Hoare.skip _) (Hoare.skip _)
+
+example : HoareT (⟪ x = 0 ∨ x = 1 ⟫ₐ) .skip (⟪ x = 0 ∨ x = 1 ⟫ₐ) :=
+  HoareT.disj (HoareT.skip _) (HoareT.skip _)
+
+example : Hoare (⟪ x = 0 ∧ y = 1 ⟫ₐ) .skip (⟪ x = 0 ∧ y = 1 ⟫ₐ) :=
+  Hoare.conj (Hoare.skip _) (Hoare.skip _)
+
+example : HoareT (⟪ x = 0 ∧ y = 1 ⟫ₐ) .skip (⟪ x = 0 ∧ y = 1 ⟫ₐ) :=
+  HoareT.conj (HoareT.skip _) (HoareT.skip _)
+
+-- 기존 conseq 호출은 SP 뒤 WC로 그대로 작동한다.
+example : Hoare (⟪ x = 0 ⟫ₐ) .skip (⟪ x ≤ 1 ⟫ₐ) := by
+  refine Hoare.conseq (Stronger.refl _) (Hoare.skip _) ?_
+  intro σ h
+  simp only [Assert.eval, IntExp.eval, Cmp.denote] at h ⊢
+  omega
+
+example : HoareT (⟪ x = 0 ⟫ₐ) .skip (⟪ x ≤ 1 ⟫ₐ) := by
+  refine HoareT.conseq (Stronger.refl _) (HoareT.skip _) ?_
+  intro σ h
+  simp only [Assert.eval, IntExp.eval, Cmp.denote] at h ⊢
+  omega
+
+-- CSP는 발산하는 명령에도 적용된다. 같은 전체 명세는 거짓이다.
+example : Hoare (⟪ x = 0 ⟫ₐ) diverge (⟪ x = 0 ⟫ₐ) :=
+  Hoare.constancy (by simp [diverge, Comm.fa])
+
+example : ¬ TotalCorrect (⟪ x = 0 ⟫ₐ) diverge (⟪ x = 0 ⟫ₐ) := by
+  intro h
+  obtain ⟨τ, ht, _⟩ := h (State.const 0) rfl
+  simp [eval_diverge] at ht
+
+-- CSP/CST의 조건은 읽기 집합이 아니라 쓰기 집합이다: y := x는 x를 읽어도 된다.
+example : Hoare (⟪ x = 0 ⟫ₐ) ⟪ y := x ⟫ᶜ (⟪ x = 0 ⟫ₐ) :=
+  Hoare.constancy (by simp [Comm.fa, Assert.fv, IntExp.fv])
+
+example : HoareT ((⟪ y = 0 ⟫ₐ /["y" := IntExp.num 0]) ⋀ ⟪ x = 2 ⟫ₐ)
+    ⟪ y := 0 ⟫ᶜ (⟪ y = 0 ∧ x = 2 ⟫ₐ) :=
+  HoareT.constancy (by simp [Comm.fa, Assert.fv, IntExp.fv]) (HoareT.assign _ "y" _)
+
+example : Hoare ((⟪ y = 0 ⟫ₐ /["y" := IntExp.num 0]) ⋀ ⟪ x = 2 ⟫ₐ)
+    ⟪ y := 0 ⟫ᶜ (⟪ y = 0 ∧ x = 2 ⟫ₐ) :=
+  Hoare.frame (by simp [Comm.fa, Assert.fv, IntExp.fv]) (Hoare.assign _ "y" _)
+
+-- 쓰기와 단언의 자유 변수가 겹치면 CSP의 조건은 성립하지 않는다.
+example : ¬ Disjoint (⟪ x := 1 ⟫ᶜ : Comm String).fa (⟪ x = 0 ⟫ₐ).fv := by
+  simp [Comm.fa, Assert.fv, IntExp.fv]
+
 end

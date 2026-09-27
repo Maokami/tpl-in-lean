@@ -135,11 +135,11 @@ file := "ch03-total"
 number := false
 %%%
 
-전체 정확성 체계는 `while` 규칙만 다르다. 끝난다는 것을 말하려면 한 바퀴마다 _줄어드는
-양_, 곧 변항(variant)이 있어야 한다.
+전체 정확성 체계는 반복에 WHT를, 상수 규칙에 종료 전제가 있는 CST를 쓴다.
+반복이 끝난다는 것을 말하려면 한 바퀴마다 _줄어드는 양_, 곧 변항(variant)이 있어야 한다.
 
 ```anchor hoareT (module := Reynolds.Answers.Ch03.Total)
-/-- 전체 정확성의 추론 체계. `wh` 만 `Hoare` 와 다르다. -/
+/-- 전체 정확성의 추론 체계. 반복에는 WHT를, 상수 규칙에는 종료 전제가 있는 CST를 쓴다. -/
 inductive HoareT [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   | skip (p : Assert V) : HoareT p .skip p
   | assign (q : Assert V) (v : V) (e : IntExp V) :
@@ -162,9 +162,22 @@ inductive HoareT [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
   | rename {p q : Assert V} {c c' : Comm V} :
       Comm.PrefixRename c c' → HoareT p c q → HoareT p c' q
-  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
-  | conseq {p p' q q' : Assert V} {c : Comm V} :
-      Stronger p' p → HoareT p c q → Stronger q q' → HoareT p' c q'
+  /-- SP (§3.3 p.59). 사전조건을 강화한다. -/
+  | strengthen {p p' q : Assert V} {c : Comm V} :
+      Stronger p' p → HoareT p c q → HoareT p' c q
+  /-- WC (§3.3 p.59). 사후조건을 약화한다. -/
+  | weaken {p q q' : Assert V} {c : Comm V} :
+      HoareT p c q → Stronger q q' → HoareT p c q'
+  /-- CA (§3.5 p.68). 같은 명령의 두 명세를 연언으로 합친다. -/
+  | conj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      HoareT p₀ c q₀ → HoareT p₁ c q₁ → HoareT (p₀ ⋀ p₁) c (q₀ ⋀ q₁)
+  /-- DA (§3.5 p.68). 서로 다른 사후조건도 선언으로 합친다. -/
+  | disj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      HoareT p₀ c q₀ → HoareT p₁ c q₁ →
+      HoareT (.bin .or p₀ p₁) c (.bin .or q₀ q₁)
+  /-- CST (§3.5 p.68). 전제의 종료 보장에 변하지 않는 단언을 덧붙인다. -/
+  | constancy {p q r : Assert V} {c : Comm V} (hr : Disjoint c.fa r.fv) :
+      HoareT p c q → HoareT (p ⋀ r) c (q ⋀ r)
 ```
 
 `z`는 본체 실행 전의 `e` 값을 기억하는 _유령 변수_다. 명세에는 나오지만 명령에는

@@ -13,7 +13,8 @@ public import Reynolds.Answers.Ch03.Spec
 Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP), 전체 반복(WHT), 변수 선언(DC), 이름 바꾸기(RN)를 다룬다.
 
 ## 이 파일에서 다루는 것
-부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD를 각각 한 연습으로 증명한다.
+부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD·SP·WC·CA·DA·CST를 독립 연습으로 증명한다.
+CSP는 종료 전제가 없는 부분 정확성 규칙으로 증명한다.
 WHP는 Scott 귀납법, WHT는 변항의 자연수 상계에 대한 귀납법으로 증명한다. 구문 규칙의 건전성은 이 정리들의 따름정리다.
 
 ## 핵심 아이디어
@@ -277,6 +278,117 @@ theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
   intro σ hi
   exact key ((E σ).toNat + 1) σ hi (by omega)
 -- ANCHOR_END: whtSound
+
+-- ANCHOR: spSound
+-- ANCHOR: stmtSpSound
+/-- SP (§3.3 p.59). 더 강한 사전조건에서 원래 사전조건을 얻는다. -/
+@[exercise "§3.3 sp-sound" 1]
+theorem sp_sound {P P' Q : State V → Prop} {c : Comm V}
+    (hp : ∀ σ, P' σ → P σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P' c Q) ∧
+    (TotalCorrectS P c Q → TotalCorrectS P' c Q)
+-- ANCHOR_END: stmtSpSound
+    := by
+  exact ⟨fun h σ hp' => h σ (hp σ hp'), fun h σ hp' => h σ (hp σ hp')⟩
+-- ANCHOR_END: spSound
+
+-- ANCHOR: wcSound
+-- ANCHOR: stmtWcSound
+/-- WC (§3.3 p.59). 종료 상태에서 사후조건의 함의를 적용한다. -/
+@[exercise "§3.3 wc-sound" 1]
+theorem wc_sound {P Q Q' : State V → Prop} {c : Comm V}
+    (hq : ∀ σ, Q σ → Q' σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P c Q') ∧
+    (TotalCorrectS P c Q → TotalCorrectS P c Q')
+-- ANCHOR_END: stmtWcSound
+    := by
+  constructor
+  · exact fun h σ hp τ ht => hq τ (h σ hp τ ht)
+  · intro h σ hp
+    obtain ⟨τ, ht, hQ⟩ := h σ hp
+    exact ⟨τ, ht, hq τ hQ⟩
+-- ANCHOR_END: wcSound
+
+-- ANCHOR: caSound
+-- ANCHOR: stmtCaSound
+/-- CA (§3.5 p.68). 두 전체 명세의 종료 상태는 같은 명령의 결과이므로 같다. -/
+@[exercise "§3.5 ca-sound" 2]
+theorem ca_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ))
+-- ANCHOR_END: stmtCaSound
+    := by
+  constructor
+  · exact fun h₀ h₁ σ hp τ ht => ⟨h₀ σ hp.1 τ ht, h₁ σ hp.2 τ ht⟩
+  · intro h₀ h₁ σ hp
+    obtain ⟨τ₀, ht₀, hq₀⟩ := h₀ σ hp.1
+    obtain ⟨τ₁, ht₁, hq₁⟩ := h₁ σ hp.2
+    obtain rfl := Flat.some.inj (ht₀.symm.trans ht₁)
+    exact ⟨τ₀, ht₀, hq₀, hq₁⟩
+-- ANCHOR_END: caSound
+
+-- ANCHOR: daSound
+-- ANCHOR: stmtDaSound
+/-- DA (§3.5 p.68). 사전조건의 어느 성분이 참인지에 따라 그 명세를 사용한다. -/
+@[exercise "§3.5 da-sound" 1]
+theorem da_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ))
+-- ANCHOR_END: stmtDaSound
+    := by
+  constructor
+  · intro h₀ h₁ σ hp τ ht
+    rcases hp with hp | hp
+    · exact Or.inl (h₀ σ hp τ ht)
+    · exact Or.inr (h₁ σ hp τ ht)
+  · intro h₀ h₁ σ hp
+    rcases hp with hp | hp
+    · obtain ⟨τ, ht, hq⟩ := h₀ σ hp
+      exact ⟨τ, ht, Or.inl hq⟩
+    · obtain ⟨τ, ht, hq⟩ := h₁ σ hp
+      exact ⟨τ, ht, Or.inr hq⟩
+-- ANCHOR_END: daSound
+
+-- ANCHOR: cspSound
+-- ANCHOR: stmtCspSound
+/-- CSP (§3.5 p.68). 명령이 쓰지 않는 자유 변수의 단언은 종료 시 보존된다.
+명세 전제는 없으며, 발산해도 부분 정확성에는 문제가 없다. -/
+@[exercise "§3.5 csp-sound" 2]
+theorem csp_sound {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) :
+    PartialCorrect p c p
+-- ANCHOR_END: stmtCspSound
+    := by
+  intro σ hpσ τ ht
+  exact (coincidence_assert p σ τ fun w hw =>
+    (Comm.eval_agree_outside_fa c σ τ ht w (Finset.disjoint_right.mp hp hw)).symm).mp hpσ
+-- ANCHOR_END: cspSound
+
+-- ANCHOR: cstSound
+-- ANCHOR: stmtCstSound
+/-- CST (§3.5 p.68). 전체 명세 전제에서 종료 상태를 얻고, 쓰이지 않는 단언을 보존한다.
+부분 판도 함께 증명한다. 두 성분 모두 다른 연습의 답 없이 풀 수 있다. -/
+@[exercise "§3.5 cst-sound" 2]
+theorem cst_sound {P Q : State V → Prop} {r : Assert V} {c : Comm V}
+    (hr : Disjoint c.fa r.fv) :
+    (PartialCorrectS P c Q →
+      PartialCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) ∧
+    (TotalCorrectS P c Q →
+      TotalCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ))
+-- ANCHOR_END: stmtCstSound
+    := by
+  have preserve (σ τ : State V) (ht : c.eval σ = .some τ) (h : r.eval σ) : r.eval τ :=
+    (coincidence_assert r σ τ fun w hw =>
+      (Comm.eval_agree_outside_fa c σ τ ht w (Finset.disjoint_right.mp hr hw)).symm).mp h
+  constructor
+  · exact fun h σ hp τ ht => ⟨h σ hp.1 τ ht, preserve σ τ ht hp.2⟩
+  · intro h σ hp
+    obtain ⟨τ, ht, hq⟩ := h σ hp.1
+    exact ⟨τ, ht, hq, preserve σ τ ht hp.2⟩
+-- ANCHOR_END: cstSound
 
 namespace PartialCorrectS
 

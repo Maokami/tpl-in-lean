@@ -14,7 +14,7 @@ public import Reynolds.Answers.Ch03.Hoare
 
 ## 규칙마다 독립이다
 
-AS·SQ·CD·WHP·DC·RN은 `Semantic.lean`에서 각각 독립된 의미 판 연습으로 증명한다.
+AS·SQ·CD·SP·WC·CA·DA·CSP·CST·WHP·DC·RN은 `Semantic.lean`에서 각각 독립된 의미 판 연습으로 증명한다.
 이 파일의 구문 판은 그 결과를 구문 단언에 적용한다. 기존 합성형 선언 API도 제공한다.
 각 규칙이 앞 장의 어느 정리를 쓰는지는 다음과 같다.
 
@@ -146,7 +146,11 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
   | dc s hq _ ih =>
     exact (dc_sound s _ _ _ _ _ (Assert.eval_update_of_notMem hq)).1 ih
   | rename hr _ ih => exact (rn_sound _ _ hr).1 ih
-  | conseq hp _ hq ih => exact PartialCorrect.conseq hp ih hq
+  | strengthen hp _ ih => exact (sp_sound hp).1 ih
+  | weaken _ hq ih => exact (wc_sound hq).1 ih
+  | conj _ _ ih₀ ih₁ => exact ca_sound.1 ih₀ ih₁
+  | disj _ _ ih₀ ih₁ => exact da_sound.1 ih₀ ih₁
+  | constancy hp => exact csp_sound hp
 -- ANCHOR_END: sound
 
 /-- `Hoare.lean` 의 두 유도가 이제 타당한 명세가 된다. §2.5 의 `swap_ok` 를 계산 없이 다시

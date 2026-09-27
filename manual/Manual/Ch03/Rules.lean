@@ -66,9 +66,21 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
   | rename {p q : Assert V} {c c' : Comm V} :
       Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
-  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
-  | conseq {p p' q q' : Assert V} {c : Comm V} :
-      Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
+  /-- SP (§3.3 p.59). 사전조건을 강화한다. -/
+  | strengthen {p p' q : Assert V} {c : Comm V} :
+      Stronger p' p → Hoare p c q → Hoare p' c q
+  /-- WC (§3.3 p.59). 사후조건을 약화한다. -/
+  | weaken {p q q' : Assert V} {c : Comm V} :
+      Hoare p c q → Stronger q q' → Hoare p c q'
+  /-- CA (§3.5 p.68). 같은 명령의 두 명세를 연언으로 합친다. -/
+  | conj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ → Hoare (p₀ ⋀ p₁) c (q₀ ⋀ q₁)
+  /-- DA (§3.5 p.68). 서로 다른 사후조건도 선언으로 합친다. -/
+  | disj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ →
+      Hoare (.bin .or p₀ p₁) c (.bin .or q₀ q₁)
+  /-- CSP (§3.5 p.68). 쓰이지 않는 변수의 단언은 종료한 실행에서 보존된다. -/
+  | constancy {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) : Hoare p c p
 ```
 
 규칙 몇 개에 눈여겨볼 점이 있다.
@@ -92,6 +104,71 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   전제 `Stronger p' p`는 `∀ σ, ⟦p'⟧ σ → ⟦p⟧ σ`다. 단언 사이의 함의가 _타당하다_는 의미적
   사실이고, 1장의 `Proof`로 증명했다는 뜻이 아니다. Hoare 논리는 단언 논리를 _오라클_로
   쓴다. 완전성을 말할 때 "단언의 타당성에 상대적으로"라는 단서가 붙는 이유다(§3.10).
+
+SP와 WC는 각각 생성자이고, `conseq`는 두 규칙을 이어 만든 제공 정리다.
+다음 여섯 연습은 서로의 풀이에 의존하지 않는다.
+
+```anchor stmtSpSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- SP (§3.3 p.59). 더 강한 사전조건에서 원래 사전조건을 얻는다. -/
+@[exercise "§3.3 sp-sound" 1]
+theorem sp_sound {P P' Q : State V → Prop} {c : Comm V}
+    (hp : ∀ σ, P' σ → P σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P' c Q) ∧
+    (TotalCorrectS P c Q → TotalCorrectS P' c Q)
+```
+
+```anchor stmtWcSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- WC (§3.3 p.59). 종료 상태에서 사후조건의 함의를 적용한다. -/
+@[exercise "§3.3 wc-sound" 1]
+theorem wc_sound {P Q Q' : State V → Prop} {c : Comm V}
+    (hq : ∀ σ, Q σ → Q' σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P c Q') ∧
+    (TotalCorrectS P c Q → TotalCorrectS P c Q')
+```
+
+```anchor stmtCaSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- CA (§3.5 p.68). 두 전체 명세의 종료 상태는 같은 명령의 결과이므로 같다. -/
+@[exercise "§3.5 ca-sound" 2]
+theorem ca_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ))
+```
+
+```anchor stmtDaSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- DA (§3.5 p.68). 사전조건의 어느 성분이 참인지에 따라 그 명세를 사용한다. -/
+@[exercise "§3.5 da-sound" 1]
+theorem da_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ))
+```
+
+```anchor stmtCspSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- CSP (§3.5 p.68). 명령이 쓰지 않는 자유 변수의 단언은 종료 시 보존된다.
+명세 전제는 없으며, 발산해도 부분 정확성에는 문제가 없다. -/
+@[exercise "§3.5 csp-sound" 2]
+theorem csp_sound {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) :
+    PartialCorrect p c p
+```
+
+```anchor stmtCstSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- CST (§3.5 p.68). 전체 명세 전제에서 종료 상태를 얻고, 쓰이지 않는 단언을 보존한다.
+부분 판도 함께 증명한다. 두 성분 모두 다른 연습의 답 없이 풀 수 있다. -/
+@[exercise "§3.5 cst-sound" 2]
+theorem cst_sound {P Q : State V → Prop} {r : Assert V} {c : Comm V}
+    (hr : Disjoint c.fa r.fv) :
+    (PartialCorrectS P c Q →
+      PartialCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) ∧
+    (TotalCorrectS P c Q →
+      TotalCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ))
+```
+
+CA의 전체 판에서는 두 전제가 내놓은 종료 상태가 같은 명령의 결과임을 쓴다.
+DA는 사전조건의 선언을 나눈다. CSP와 CST는 `Comm.eval_agree_outside_fa`와
+`coincidence_assert`로 쓰이지 않는 변수의 단언을 옮긴다. CST의 종료 상태는 전제가 준다.
 
 첫 유도는 대입 공리 하나와 결과 규칙 하나다.
 
@@ -228,7 +305,7 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
     Hoare p c q → ｛p｝c｛q｝ := by
   intro h
   induction h with
-  | skip p => exact skip_sound p
+  | «skip» p => exact skip_sound p
   | assign q v e => exact assign_sound q v e
   | seq _ _ ih₀ ih₁ => exact seq_sound ih₀ ih₁
   | ite _ _ ih₀ ih₁ => exact ite_sound ih₀ ih₁
@@ -236,7 +313,11 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
   | dc s hq _ ih =>
     exact (dc_sound s _ _ _ _ _ (Assert.eval_update_of_notMem hq)).1 ih
   | rename hr _ ih => exact (rn_sound _ _ hr).1 ih
-  | conseq hp _ hq ih => exact PartialCorrect.conseq hp ih hq
+  | strengthen hp _ ih => exact (sp_sound hp).1 ih
+  | weaken _ hq ih => exact (wc_sound hq).1 ih
+  | conj _ _ ih₀ ih₁ => exact ca_sound.1 ih₀ ih₁
+  | disj _ _ ih₀ ih₁ => exact da_sound.1 ih₀ ih₁
+  | constancy hp => exact csp_sound hp
 ```
 
 # 대입 공리는 왜 거꾸로인가
