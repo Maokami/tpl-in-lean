@@ -1476,16 +1476,15 @@ BLANKS: list[tuple[str, str, str, str]] = [
     # ── §3.8 · §3.9 예제
     (
         "Ch03/Examples/Fib.lean",
-        "theorem fibBody_ok",
+        "theorem fib_step",
         "-- ANCHOR_END: fibBodyOk",
-        """theorem fibBody_ok :
-    PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
-  -- 먼저 볼 것: Mathlib 의 `Nat.fib_add_two`, 이 파일 위의 `fibInit_ok`.
-  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Flat.some.inj hτ`.
-  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `Flat.some (…)` 로 계산된다.
-  -- 힌트 2: 조건 `hb` 를 `simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool]` 로 `σ "k" ≠ σ "n"` 로.
-  -- 힌트 3: 새 증인은 `m + 1`. 다섯 조각을 `simp [State.subst_def, Function.update, IntExp.eval,
-  --         IntOp.denote, hk, hf, hg, Nat.fib_add_two]` 와 `omega` 로.
+        """theorem fib_step (σ : State String)
+    (h : fibInv σ ∧ ⟦⟪k ≠ n⟫ᵇ⟧ᵇ σ = true) :
+    fibInv (fibStep σ) ∧ (fibStep σ) "n" - (fibStep σ) "k" < σ "n" - σ "k" := by
+  -- `fibInv`의 증인 m은 k−1이다. 다음 상태의 증인을 정한다.
+  -- `Nat.fib_add_two`로 연속한 피보나치 수를 연결한다.
+  -- `State.subst_def`로 갱신을 펼치면 변항의 감소는 정수 산술이다.
+  -- 이 연습은 미완성 DC·WHP·WHT 정리를 사용하지 않는다.
   sorry
 
 """,

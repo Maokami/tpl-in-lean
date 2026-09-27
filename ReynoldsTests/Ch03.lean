@@ -248,4 +248,26 @@ example : PartialCorrectS (fun _ : State String => True)
   change diverge.eval (σ["x" := 0]) = .some τ at ht
   simp [eval_diverge] at ht
 
+/-! §3.6: 출력만 맞아도 지역 변수 복원을 빠뜨린 프로그램일 수 있다. -/
+
+/-- 지역 변수의 복원을 관찰할 수 있도록 서로 다른 기존 값을 넣은 입력. -/
+def fibInput (n : Int) : State String :=
+  (State.const 19)["n" := n]["k" := (-7 : Int)]["g" := (23 : Int)]["t" := (-11 : Int)]
+
+/-- 결과, 입력, 세 지역 변수의 최종 값을 한 번에 관찰한다. -/
+def fibObserved (n : Int) : Flat (Int × Int × Int × Int × Int) :=
+  (Examples.fibProg.run 100 (fibInput n)).map
+    (fun σ => (σ "f", σ "n", σ "k", σ "g", σ "t"))
+
+#guard fibObserved 0 == .some (0, 0, -7, 23, -11)
+#guard fibObserved 1 == .some (1, 1, -7, 23, -11)
+#guard fibObserved 2 == .some (1, 2, -7, 23, -11)
+#guard fibObserved 10 == .some (55, 10, -7, 23, -11)
+
+example : TotalCorrectS (fun σ => 0 ≤ σ "n") Examples.fibProg
+    (fun τ => τ "f" = Nat.fib (τ "n").toNat) := Examples.fib_total_correct
+
+example : PartialCorrectS (fun σ => 0 ≤ σ "n") Examples.fibProg
+    (fun τ => τ "f" = Nat.fib (τ "n").toNat) := Examples.fib_correct
+
 end

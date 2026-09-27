@@ -86,69 +86,92 @@ AS·SQ·CD는 각각 부분 정확성과 전체 정확성을 한 연습에서 �
 기존 `§3.6 newvar-sound`를 이 문제로 옮기고, 독립적인 `§3.5 rn-sound`를 추가했다.
 두 진술과 초기값·그림자 이름의 예는 앞의 규칙 절에 있다. 현재 3장 채점 항목은 20개다.
 
-# 피보나치
+# §3.6 피보나치
 %%%
 tag := "ch03-fib"
 file := "ch03-fib"
 number := false
 %%%
 
+책 pp.69–71의 프로그램은 입력 `n`이 0인 경우를 먼저 처리한다. 그 밖에는
+`k = 1`, `f = 1`, `g = 0`에서 시작한다. 반복문에 들어갈 때 `f`는
+`fib k`이고 `g`는 그 앞 수 `fib (k−1)`다. 임시 변수 `t`가 옛 `g`를
+기억하므로, `g := f; f := f+t`가 두 수를 한 칸 앞으로 옮긴다.
+
 ```anchor fibProg (module := Reynolds.Answers.Ch03.Examples.Fib)
-/-- 초기화 — 불변식을 세운다. -/
-def fibInit : Comm String := ⟪ k := 0; f := 0; g := 1 ⟫ᶜ
+/-- `t`에 옛 `g`를 보관한 뒤 두 피보나치 수와 인덱스를 갱신한다. -/
+def fibBody : Comm String :=
+  .newvar "t" (.var "g") ⟪ g := f; f := f + t; k := k + 1 ⟫ᶜ
 
-/-- 한 바퀴 — `f, g := g, f + g` 를 임시 변수 `t` 로 하고 `k` 를 하나 늘린다. -/
-def fibBody : Comm String := ⟪ t := f + g; f := g; g := t; k := k + 1 ⟫ᶜ
+/-- 책 §3.6의 프로그램. `k`, `g`, `t`의 선언 범위가 프로그램에 드러난다. -/
+def fibProg : Comm String :=
+  .ite ⟪ n = 0 ⟫ᵇ ⟪ f := 0 ⟫ᶜ
+    (.newvar "k" (.num 1) (.newvar "g" (.num 0)
+      (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody))))
 
-/-- 피보나치 프로그램. 주석 명세의 두 조각을 그대로 잇는다. -/
-def fibProg : Comm String := .seq fibInit (.wh ⟪ k ≠ n ⟫ᵇ fibBody)
-
-/-- 불변식 `0 ≤ k ≤ n ∧ f = fib k ∧ g = fib (k+1)`. `k` 를 자연수 `m` 으로 붙든다. -/
+/-- 책의 `f = fib k ∧ g = fib (k−1) ∧ k ≤ n`에 도달 가능 조건 `1 ≤ k`를 더한다. -/
 def fibInv (σ : State String) : Prop :=
-  ∃ m : ℕ, σ "k" = m ∧ m ≤ (σ "n").toNat ∧ 0 ≤ σ "n" ∧
-    σ "f" = Nat.fib m ∧ σ "g" = Nat.fib (m + 1)
+  ∃ m : ℕ, σ "k" = (m + 1 : ℕ) ∧ m + 1 ≤ (σ "n").toNat ∧ 0 ≤ σ "n" ∧
+    σ "f" = Nat.fib (m + 1) ∧ σ "g" = Nat.fib m
 ```
 
-불변식은 `k`를 자연수 `m`으로 붙들어 둔다. 그러면 `fib`의 인자에 `Int.toNat`이 끼지 않고,
-한 바퀴 뒤에는 `m + 1`이 된다. 한 바퀴의 핵심은 `Nat.fib_add_two` 한 줄이다.
+`k`, `g`, `t`는 각각 선언 범위가 끝나면 원래 값으로 돌아간다. 따라서
+프로그램의 결과로 관찰할 값은 `f`이며, 입력 `n`과 호출 전의 지역 변수 값은 보존된다.
 
-```anchor fibBodyOk (module := Reynolds.Answers.Ch03.Examples.Fib)
-/--
-**한 바퀴가 불변식을 지킨다.**
+책은 정수 전체에 정의한 피보나치 함수를 쓴다. 여기서는 Mathlib의 `Nat.fib`를
+쓰므로, 반복 상태에 항상 성립하는 `1 ≤ k`를 불변식에 추가했다.
+`fibInv`의 증인 `m`은 `k−1`이다. 예를 들어 `m = 2`라면
+`k = 3`, `f = 2`, `g = 1`이고 다음 상태는 `k = 4`, `f = 3`, `g = 2`다.
 
-조건 `k ≠ n` 과 `k ≤ n` 에서 `k + 1 ≤ n`. 새 `f` 는 옛 `g = fib (m+1)`, 새 `g` 는 옛
-`f + g = fib m + fib (m+1) = fib (m+2)` (`Nat.fib_add_two`).
--/
-@[exercise "§3.8 fib-body" 2]
-theorem fibBody_ok :
-    PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
-  intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ
-  obtain rfl := Flat.some.inj hτ
-  have hne : σ "k" ≠ σ "n" := by
-    simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
-  refine ⟨m + 1, ?_, ?_, ?_, ?_, ?_⟩ <;>
-    simp [State.subst_def, Function.update, IntExp.eval, IntOp.denote, hk, hf, hg,
-      Nat.fib_add_two] <;> omega
+## 한 단계의 산술
+
+`fibStep σ`는 지역 선언을 도입하기 전 네 대입
+`t := g; g := f; f := f+t; k := k+1`의 결과다. 선택 연습 하나에서
+불변식 보존과 변항 감소를 함께 확인한다. `fibInv`와 `fibStep`의 정의,
+`Nat.fib_add_two`만으로 풀 수 있어 다른 규칙 연습을 먼저 끝낼 필요가 없다.
+
+```anchor stmtFibStep (module := Reynolds.Answers.Ch03.Examples.Fib)
+/-- §3.6의 산술 의무. 한 단계가 불변식을 보존하면서 변항 `n−k`를 줄인다. -/
+@[exercise "§3.6 fib-step" 2]
+theorem fib_step (σ : State String)
+    (h : fibInv σ ∧ ⟦⟪k ≠ n⟫ᵇ⟧ᵇ σ = true) :
+    fibInv (fibStep σ) ∧ (fibStep σ) "n" - (fibStep σ) "k" < σ "n" - σ "k"
 ```
 
-루프가 끝난 자리에서는 조건이 거짓이므로 `k = n`이고, 불변식이 곧 사후조건이 된다.
+조건 `k ≠ n`과 불변식의 `k ≤ n`이 함께 있어야 다음 인덱스도 `n` 이하가 된다.
+`n−k`는 한 바퀴마다 1만큼 줄어든다. 피보나치 등식에는 `Nat.fib_add_two`를,
+인덱스와 변항의 부등식에는 정수 산술을 적용한다.
 
-```anchor fibCorrect (module := Reynolds.Answers.Ch03.Examples.Fib)
-/-- **피보나치 프로그램은 옳다.** 끝나면 `f = fib n`. 루프가 끝난 자리에서 `k = n` 이다. -/
+## 부분 정확성에서 전체 정확성으로
+
+부분 정확성의 조립은 다음과 같다. 직선 대입 계산 뒤 DC로 `t`를 지역화한다.
+WHP가 불변식이 보존되는 반복문을 만들고, 종료 조건 `k = n`이 결과를 준다.
+초기화를 앞에 붙인 뒤에는 `k := 1`을 접두 명령으로 남겨 둔 채 DC로 `g`를
+지역화한다. 다음 DC가 `k`를 지역화하고, CD가 `n = 0`인 가지와 합친다.
+이 순서가 책 p70에서 DC를 두 번 적용하는 이유를 보여 준다.
+
+```anchor stmtFibCorrect (module := Reynolds.Answers.Ch03.Examples.Fib)
+/-- §3.6의 부분 정확성. WHP·DC·CD를 조립하면 종료한 결과는 `fib n`이다. -/
 theorem fib_correct :
-    PartialCorrectS (fun σ => 0 ≤ σ "n") fibProg fun τ => τ "f" = Nat.fib (τ "n").toNat := by
-  refine PartialCorrectS.seq fibInit_ok
-    (PartialCorrectS.conseq (fun _ h => h) (PartialCorrectS.wh fibBody_ok) ?_)
-  rintro τ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩
-  have heq : τ "k" = τ "n" := by
-    simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
-  rw [hf]
-  congr
-  omega
+    PartialCorrectS (fun σ => 0 ≤ σ "n") fibProg
+      (fun τ => τ "f" = Nat.fib (τ "n").toNat)
 ```
 
-증명과 별도로, 파일의 `#guard`가 프로그램을 2장의 연료 해석기로 실제로 돌려 `fib 10 = 55`를
-확인한다.
+전체 정확성에서는 같은 본체가 종료하며 `n−k`를 줄인다는 사실을 사용한다.
+불변식은 활성 반복 상태에서 `n−k ≥ 0`을 보장하므로 WHT를 적용할 수 있다.
+이후 초기화·DC·CD의 조립 순서는 같다. 다음 정리에는 종료를 별도로 가정하지 않는다.
+
+```anchor stmtFibTotalCorrect (module := Reynolds.Answers.Ch03.Examples.Fib)
+/-- §3.6의 전체 정확성. 변항 `n−k`에 WHT를 적용하므로 종료 가정이 필요 없다. -/
+theorem fib_total_correct :
+    TotalCorrectS (fun σ => 0 ≤ σ "n") fibProg
+      (fun τ => τ "f" = Nat.fib (τ "n").toNat)
+```
+
+정답의 전체 증명은 Answers 폴더의 `Ch03/Examples/Fib.lean`에서,
+직접 풀 한 지점은 Exercises 폴더의 같은 파일에 있는
+`§3.6 fib-step`에서 확인한다. 실행 회귀 검사는 `n = 0, 1, 2, 10`의 결과와
+`k`, `g`, `t`의 복원을 함께 확인한다.
 
 # 빠른 거듭제곱
 %%%

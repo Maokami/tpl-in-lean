@@ -8,41 +8,30 @@ module
 public import Reynolds.Exercises.Ch03.Semantic
 public import Reynolds.Exercises.Ch03.Derived
 public import Mathlib.Data.Nat.Fib.Basic
--- `#guard`는 컴파일 시점에 계산한다 (AGENTS.md §10).
 public meta import Reynolds.Answers.Ch02.Interpreter
 public meta import Reynolds.Answers.Ch02.Notation
 public meta import Reynolds.Answers.Ch02.Semantics
 public meta import Reynolds.Prelude
 
 /-!
-# §3.8 예제 — 피보나치
+# §3.6 피보나치: 지역 변수와 종료
 
-```
-{ n ≥ 0 }
-k := 0 ; f := 0 ; g := 1 ;
-{ 0 ≤ k ≤ n ∧ f = fib k ∧ g = fib (k+1) }        -- 불변식
-while k ≠ n do
-  t := f + g ; f := g ; g := t ; k := k + 1
-{ f = fib n }
-```
-
-## 왜 의미 단언인가
-
-`fib` 는 단언 언어에 없다. "`f`·`g` 가 연속한 두 피보나치 수다" 를 `∃` 와 산술로 풀어 쓸 수는
-있지만 — 유한 수열을 정수 하나로 부호화하는 괴델의 β-함수가 필요하다 — 길고 읽을 수 없다.
-그래서 불변식을 **의미 단언**으로 쓴다. Mathlib 의 `Nat.fib` 를 그대로 부른다.
-
-이것이 §3.10 의 요점을 미리 보여 준다. **명세를 적는 언어가 프로그램을 적는 언어보다
-풍부해야 한다.** Reynolds 가 단언에 수학 기호를 자유롭게 쓰는 그 자유가, 형식화에서는
-"단언 = Lean 의 술어" 라는 선택에서 나온다.
-
-## 불변식의 모양
-
-`k` 를 자연수 `m` 으로 붙들어 둔다 (`σ k = m`). 그러면 `fib` 의 인자가 `Int.toNat` 없이
-`m` 이고, 한 바퀴 뒤에는 `m + 1` 이다. 한 바퀴의 핵심은 `Nat.fib_add_two` 한 줄이다.
+Reynolds pp.69–71의 프로그램을 부분 정확성과 전체 정확성으로 검증한다.
+`n = 0`을 먼저 처리하고, 나머지 경우에는 연속한 두 피보나치 수를 유지한다.
+`k`, `g`, `t`는 지역 변수다. 실행이 끝나면 각 선언 전의 값으로 돌아간다.
 
 ## 읽는 순서
-`Semantic.lean` → 이 파일 → `FastExp.lean`.
+
+`Semantic.lean`의 DC·WHP·WHT → `fib_step`의 산술 의무 → `fib_correct`와
+`fib_total_correct`의 조립 순서로 읽는다. `FastExp.lean`은 다음 예제다.
+
+## 책과의 차이
+
+책은 정수 전체에서 정의한 `fib`를 쓴다. 여기서는 `Nat.fib`를 쓰고,
+도달 가능한 반복 상태에 맞춰 `1 ≤ k`를 불변식에 추가한다. 증인 `m`으로
+`k = m+1`, `g = fib m`을 나타내므로 음수 인덱스가 생기지 않는다.
+`fib`를 담기 위해 단언은 Lean 술어로 쓴다. AS·SQ·DC·CD·WHP·WHT의 의미 판을
+조립하며, 책의 RAS·MSQ에 해당하는 직선 계산은 별도 보조정리로 묶는다.
 -/
 
 @[expose] public section
@@ -51,58 +40,136 @@ namespace Reynolds.Exercises.Ch03.Examples
 
 open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02 Reynolds.Exercises.Ch03
 
-/-- 초기화 — 불변식을 세운다. -/
-def fibInit : Comm String := ⟪ k := 0; f := 0; g := 1 ⟫ᶜ
+/-- `t`에 옛 `g`를 보관한 뒤 두 피보나치 수와 인덱스를 갱신한다. -/
+def fibBody : Comm String :=
+  .newvar "t" (.var "g") ⟪ g := f; f := f + t; k := k + 1 ⟫ᶜ
 
-/-- 한 바퀴 — `f, g := g, f + g` 를 임시 변수 `t` 로 하고 `k` 를 하나 늘린다. -/
-def fibBody : Comm String := ⟪ t := f + g; f := g; g := t; k := k + 1 ⟫ᶜ
+/-- 책 §3.6의 프로그램. `k`, `g`, `t`의 선언 범위가 프로그램에 드러난다. -/
+def fibProg : Comm String :=
+  .ite ⟪ n = 0 ⟫ᵇ ⟪ f := 0 ⟫ᶜ
+    (.newvar "k" (.num 1) (.newvar "g" (.num 0)
+      (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody))))
 
-/-- 피보나치 프로그램. 주석 명세의 두 조각을 그대로 잇는다. -/
-def fibProg : Comm String := .seq fibInit (.wh ⟪ k ≠ n ⟫ᵇ fibBody)
-
-/-- 불변식 `0 ≤ k ≤ n ∧ f = fib k ∧ g = fib (k+1)`. `k` 를 자연수 `m` 으로 붙든다. -/
+/-- 책의 `f = fib k ∧ g = fib (k−1) ∧ k ≤ n`에 도달 가능 조건 `1 ≤ k`를 더한다. -/
 def fibInv (σ : State String) : Prop :=
-  ∃ m : ℕ, σ "k" = m ∧ m ≤ (σ "n").toNat ∧ 0 ≤ σ "n" ∧
-    σ "f" = Nat.fib m ∧ σ "g" = Nat.fib (m + 1)
+  ∃ m : ℕ, σ "k" = (m + 1 : ℕ) ∧ m + 1 ≤ (σ "n").toNat ∧ 0 ≤ σ "n" ∧
+    σ "f" = Nat.fib (m + 1) ∧ σ "g" = Nat.fib m
 
--- 실행해 본다. `fib 10 = 55`.
-set_option linter.hashCommand false
-#guard (fibProg.run 100 ((State.const 0)["n" := (10 : Int)])).map (fun σ => σ "f") == Flat.some 55
+/-- 지역 선언을 도입하기 전, 책 RAS 단계의 네 대입이 만드는 상태. -/
+def fibStep (σ : State String) : State String :=
+  σ["t" := σ "g"]["g" := σ "f"]["f" := σ "f" + σ "g"]["k" := σ "k" + 1]
 
-/-- 초기화가 불변식을 세운다. 대입 셋을 정의대로 계산한다. -/
-theorem fibInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") fibInit fibInv := by
-  intro σ hn τ hτ
-  obtain rfl := Flat.some.inj hτ
-  refine ⟨0, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [State.subst_def, Function.update, IntExp.eval, hn]
-
-/--
-**한 바퀴가 불변식을 지킨다.**
-
-조건 `k ≠ n` 과 `k ≤ n` 에서 `k + 1 ≤ n`. 새 `f` 는 옛 `g = fib (m+1)`, 새 `g` 는 옛
-`f + g = fib m + fib (m+1) = fib (m+2)` (`Nat.fib_add_two`).
--/
-@[exercise "§3.8 fib-body" 2]
-theorem fibBody_ok :
-    PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
-  -- 먼저 볼 것: Mathlib 의 `Nat.fib_add_two`, 이 파일 위의 `fibInit_ok`.
-  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Flat.some.inj hτ`.
-  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `Flat.some (…)` 로 계산된다.
-  -- 힌트 2: 조건 `hb` 를 `simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool]` 로 `σ "k" ≠ σ "n"` 로.
-  -- 힌트 3: 새 증인은 `m + 1`. 다섯 조각을 `simp [State.subst_def, Function.update, IntExp.eval,
-  --         IntOp.denote, hk, hf, hg, Nat.fib_add_two]` 와 `omega` 로.
+/-- §3.6의 산술 의무. 한 단계가 불변식을 보존하면서 변항 `n−k`를 줄인다. -/
+@[exercise "§3.6 fib-step" 2]
+theorem fib_step (σ : State String)
+    (h : fibInv σ ∧ ⟦⟪k ≠ n⟫ᵇ⟧ᵇ σ = true) :
+    fibInv (fibStep σ) ∧ (fibStep σ) "n" - (fibStep σ) "k" < σ "n" - σ "k" := by
+  -- `fibInv`의 증인 m은 k−1이다. 다음 상태의 증인을 정한다.
+  -- `Nat.fib_add_two`로 연속한 피보나치 수를 연결한다.
+  -- `State.subst_def`로 갱신을 펼치면 변항의 감소는 정수 산술이다.
+  -- 이 연습은 미완성 DC·WHP·WHT 정리를 사용하지 않는다.
   sorry
 
 
-/-- **피보나치 프로그램은 옳다.** 끝나면 `f = fib n`. 루프가 끝난 자리에서 `k = n` 이다. -/
-theorem fib_correct :
-    PartialCorrectS (fun σ => 0 ≤ σ "n") fibProg fun τ => τ "f" = Nat.fib (τ "n").toNat := by
-  refine PartialCorrectS.seq fibInit_ok
-    (PartialCorrectS.conseq (fun _ h => h) (PartialCorrectS.wh fibBody_ok) ?_)
-  rintro τ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩
-  have heq : τ "k" = τ "n" := by
+private theorem totalPartial {P Q : State String → Prop} {c : Comm String}
+    (h : TotalCorrectS P c Q) : PartialCorrectS P c Q := by
+  intro σ hp τ ht
+  obtain ⟨ρ, hr, hq⟩ := h σ hp
+  have : ρ = τ := Flat.some.inj (hr.symm.trans ht)
+  simpa [this] using hq
+
+private theorem totalConseq {P P' Q Q' : State String → Prop} {c : Comm String}
+    (hp : ∀ σ, P σ → P' σ) (h : TotalCorrectS P' c Q')
+    (hq : ∀ σ, Q' σ → Q σ) : TotalCorrectS P c Q := by
+  intro σ hσ
+  obtain ⟨τ, ht, hτ⟩ := h σ (hp σ hσ)
+  exact ⟨τ, ht, hq τ hτ⟩
+
+/-- RAS의 계산 결과에 DC를 적용한다. 사후조건은 임시 변수 `t`를 보지 않는다. -/
+theorem fibBody_total (old : Int) : TotalCorrectS
+    (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true ∧ σ "n" - σ "k" = old)
+    fibBody (fun σ => fibInv σ ∧ σ "n" - σ "k" < old) := by
+  apply (dc_sound [] _ _ "t" (.var "g") ⟪ g := f; f := f + t; k := k + 1 ⟫ᶜ
+    (by intro σ z; simp [fibInv])).2
+  intro σ ⟨hi, hb, he⟩
+  refine ⟨fibStep σ, ?_, ?_⟩
+  · rfl
+  · simpa [he] using fib_step σ ⟨hi, hb⟩
+
+/-- WHP가 요구하는 본체 부분 정확성. 감소 정보와 종료 정보는 이 경로에서 쓰지 않는다. -/
+theorem fibBody_ok :
+    PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
+  intro σ h τ ht
+  exact (totalPartial (fibBody_total (σ "n" - σ "k")) σ ⟨h.1, h.2, rfl⟩ τ ht).1
+
+private def fibPost (σ : State String) : Prop := σ "f" = Nat.fib (σ "n").toNat
+
+private theorem fibExit (σ : State String)
+    (h : fibInv σ ∧ ⟦⟪k ≠ n⟫ᵇ⟧ᵇ σ = false) : fibPost σ := by
+  obtain ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ := h
+  have he : σ "k" = σ "n" := by
     simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
-  rw [hf]
-  congr
+  have hm : m + 1 = (σ "n").toNat := by omega
+  simpa [fibPost, hm] using hf
+
+private theorem fibInit_total : TotalCorrectS (fun σ => 0 < σ "n")
+    ⟪ k := 1; g := 0; f := 1 ⟫ᶜ fibInv := by
+  intro σ hn
+  refine ⟨σ["k" := (1 : Int)]["g" := (0 : Int)]["f" := (1 : Int)], rfl, 0, ?_⟩
+  simp [State.subst_def, Function.update]
+  omega
+
+private theorem fibZero_total : TotalCorrectS
+    (fun σ => 0 ≤ σ "n" ∧ ⟦⟪ n = 0 ⟫ᵇ⟧ᵇ σ = true) ⟪ f := 0 ⟫ᶜ fibPost := by
+  intro σ h
+  have hn : σ "n" = 0 := by
+    simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using h.2
+  refine ⟨σ["f" := (0 : Int)], rfl, ?_⟩
+  simp [fibPost, hn]
+
+/-- §3.6의 부분 정확성. WHP·DC·CD를 조립하면 종료한 결과는 `fib n`이다. -/
+theorem fib_correct :
+    PartialCorrectS (fun σ => 0 ≤ σ "n") fibProg
+      (fun τ => τ "f" = Nat.fib (τ "n").toNat)
+    := by
+  apply PartialCorrectS.ite (totalPartial fibZero_total)
+  have loop : PartialCorrectS fibInv (.wh ⟪ k ≠ n ⟫ᵇ fibBody) fibPost :=
+    PartialCorrectS.conseq (fun _ h => h) (PartialCorrectS.wh fibBody_ok) fibExit
+  have straight := PartialCorrectS.seq (totalPartial fibInit_total) loop
+  -- 책 p70의 DC 두 단계: k 대입을 접두부에 둔 채 g를 지역화하고, 이어 k를 지역화한다.
+  have hg := (dc_sound [⟪ k := 1 ⟫ᶜ] (fun σ => 0 < σ "n") fibPost
+    "g" (.num 0) (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody))
+    (by intro σ z; simp [fibPost])).1 straight
+  have hk := (dc_sound [] (fun σ => 0 < σ "n") fibPost "k" (.num 1)
+    (.newvar "g" (.num 0) (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody)))
+    (by intro σ z; simp [fibPost])).1 hg
+  apply PartialCorrectS.conseq ?_ hk (fun _ h => h)
+  intro σ ⟨hn, hb⟩
+  have hne : σ "n" ≠ 0 := by
+    simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
+  omega
+
+/-- §3.6의 전체 정확성. 변항 `n−k`에 WHT를 적용하므로 종료 가정이 필요 없다. -/
+theorem fib_total_correct :
+    TotalCorrectS (fun σ => 0 ≤ σ "n") fibProg
+      (fun τ => τ "f" = Nat.fib (τ "n").toNat)
+    := by
+  apply cd_sound.2 fibZero_total
+  have loop : TotalCorrectS fibInv (.wh ⟪ k ≠ n ⟫ᵇ fibBody) fibPost := by
+    apply totalConseq (fun _ h => h) (TotalCorrectS.wh fibBody_total ?_) fibExit
+    intro σ ⟨m, hk, hle, hn, hf, hg⟩ _
+    omega
+  have straight := sq_sound.2 fibInit_total loop
+  have hg := (dc_sound [⟪ k := 1 ⟫ᶜ] (fun σ => 0 < σ "n") fibPost
+    "g" (.num 0) (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody))
+    (by intro σ z; simp [fibPost])).2 straight
+  have hk := (dc_sound [] (fun σ => 0 < σ "n") fibPost "k" (.num 1)
+    (.newvar "g" (.num 0) (.seq ⟪ f := 1 ⟫ᶜ (.wh ⟪ k ≠ n ⟫ᵇ fibBody)))
+    (by intro σ z; simp [fibPost])).2 hg
+  apply totalConseq ?_ hk (fun _ h => h)
+  intro σ ⟨hn, hb⟩
+  have hne : σ "n" ≠ 0 := by
+    simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
   omega
 
 end Reynolds.Exercises.Ch03.Examples
