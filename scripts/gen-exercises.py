@@ -1206,6 +1206,23 @@ BLANKS: list[tuple[str, str, str, str]] = [
     # ── §3.1 명세의 뜻
     (
         "Ch03/Spec.lean",
+        "theorem total_admissible",
+        "-- ANCHOR_END: totalAdmissible",
+        """theorem total_admissible (P Q : State V → Prop) :
+    (∀ d : Chain (State V → SigmaBot V),
+      (∀ n σ, P σ → ∃ τ, d.seq n σ = Flat.some τ ∧ Q τ) →
+      ∀ σ, P σ → ∃ τ, d.lub σ = Flat.some τ ∧ Q τ) ∧
+    ((∃ σ, P σ) →
+      ¬ (∀ σ, P σ → ∃ τ, (⊥ : State V → SigmaBot V) σ = Flat.some τ ∧ Q τ)) := by
+  -- 힌트 1: 상태 σ를 고정하고 `(d.apply σ).flat_lub_mem_range`에서 극한과 같은 항을 찾는다.
+  -- 힌트 2: 그 항의 종료 증인과 `Chain.lub_apply`를 쓴다.
+  -- 힌트 3: 바닥에서는 사전조건의 증인 하나가 `Flat.none = Flat.some τ`라는 모순을 준다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Spec.lean",
         "theorem TotalCorrect.toPartial",
         "-- ANCHOR_END: totalToPartial",
         """theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
@@ -1278,6 +1295,26 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (hbody : PartialCorrectS (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true) c I) :
     PartialCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false) := by
   -- 힌트: Sat.admissible·Sat.bot과 Scott 귀납법을 쓴다. 한 바퀴에서는 본체의 종료 여부를 나눈다.
+  sorry
+
+""",
+    ),
+
+    (
+        "Ch03/Semantic.lean",
+        "theorem TotalCorrectS.wh",
+        "-- ANCHOR_END: whtSound",
+        """theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
+    {b : BoolExp V} {c : Comm V}
+    (hbody : ∀ n : Int, TotalCorrectS
+      (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true ∧ E σ = n) c (fun σ => I σ ∧ E σ < n))
+    (hnonneg : ∀ σ, I σ → ⟦b⟧ᵇ σ = true → 0 ≤ E σ) :
+    TotalCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false) := by
+  -- 먼저 볼 것: `Comm.eval_isSemantics.2.2.2.2.1`, `Flat.bind_some`.
+  -- 힌트 1: `E σ < n`인 상태의 종료를 `n : Nat`에 대한 귀납으로 보인다.
+  -- 힌트 2: 조건이 거짓이면 즉시 종료한다. 참이면 비음수 조건과 엄격한 감소를 쓴다.
+  -- 힌트 3: 본체 실행 전의 값을 `hbody (E σ)`에 넣는다. 마지막에는 상계
+  --         `(E σ).toNat + 1`을 택한다. `omega`로 정수 부등식을 정리할 수 있다.
   sorry
 
 """,
@@ -1360,33 +1397,6 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.5 전체 정확성
-    (
-        "Ch03/Total.lean",
-        "theorem whT_sound",
-        "-- ANCHOR_END: whTSound",
-        """theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z : V}
-    (hzi : z ∉ i.fv) (hzb : z ∉ b.fv) (hzc : z ∉ c.fv) (hze : z ∉ e.fv)
-    (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e))
-    (hbody : ［i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)］c［i ⋀ .cmp .lt e (.var z)］) :
-    ［i］(Comm.wh b c)［i ⋀ .not b.toAssert］ := by
-  -- 먼저 볼 것: §2.8 `countLoop_eval` 의 측도 귀납, §2.5 의 `Comm.coincidence_general` (명제
-  --            2.6(a)) 와 `Comm.eval_agree_outside_fa` (명제 2.6(b)), `Comm.fa_subset_fv`,
-  --            `BoolExp.fv_coincidence`, 이 파일 위의 `BoolExp.fv_toAssert`.
-  -- 힌트 1: `Comm.eval_isSemantics.2.2.2.2.1` 로 풀기 방정식 `whileEq` 를 꺼낸다.
-  -- 힌트 2: "`⟦e⟧ σ < n` 인 모든 `σ` 에서 끝난다" 를 `n : Nat` 에 대한 귀납으로. 마지막에
-  --         `n := (⟦e⟧ σ).toNat + 1` 을 넣는다 (`omega`).
-  -- 힌트 3: `n = 0` — 조건이 참이면 `hnonneg` 와 모순, 거짓이면 그 자리에서 끝.
-  -- 힌트 4: `n + 1`, 조건 참 — 본체를 `σ[z := ⟦e⟧ₑ σ]` 에서 돌린다 (`hbody`). 사전조건 세 조각은
-  --         명제 1.1 (`coincidence_assert` · `coincidence_intExp` · `BoolExp.fv_coincidence`).
-  --         끝난 상태 `ρ` 에서 `ρ z = ⟦e⟧ σ` (명제 2.6(b)) 이므로 측도가 줄어 귀납 가설이 든다.
-  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = Flat.some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
-  --         `S := (Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv` 에 적용하면 결과가 `S` 에서
-  --         일치하고, 사후조건은 `S` 만 본다 (`coincidence_assert`).
-  sorry
-
-""",
-    ),
     # ── §3.7 더 많은 규칙
     (
         "Ch03/Derived.lean",
@@ -1410,7 +1420,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq : v ∉ q.fv)
     (h : ｛p｝c｛q｝) : ｛Assert.quant .ex v p｝c｛q｝ := by
   -- 먼저 볼 것: §2.5 의 `Comm.coincidence_general` (명제 2.6(a)) 과 `AgreeOn`,
-  --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean` 의 `whT_sound` 끝부분이 같은 수법이다.
+  --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean`의 `whT_sound` 안에서
+  --            본체 결과를 전달할 때도 같은 수법을 쓴다.
   -- 힌트 1: 증인 `n` 을 꺼낸다. 전제는 `σ[v := n]` 에서 쓸 수 있다.
   -- 힌트 2: `S := c.fv ∪ q.fv` 에 명제 2.6(a) 를 쓰면 `⟦c⟧ σ` 와 `⟦c⟧ (σ[v := n])` 가 `S` 에서
   --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `Flat.none` 쪽은 모순으로 닫는다.

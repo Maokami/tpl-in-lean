@@ -96,6 +96,28 @@ theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V
 시작 조건이 성립하지 않으므로, 전체 정확성의 `while` 규칙은 종료까지 보이는 측도를
 사용해 정초 귀납으로 증명한다(§3.5).
 
+이 두 주장을 하나의 연습으로 확인한다. 첫 성분은 모든 사슬 항의 종료 증인에서
+극한의 종료 증인을 얻는다. 둘째 성분의 `∃ σ, P σ`는 필요하다. 사전조건을 만족하는
+상태가 없으면 바닥 함수에서도 전체 정확성이 공허하게 참이기 때문이다.
+
+```anchor stmtTotalAdmissible (module := Reynolds.Answers.Ch03.Spec)
+omit [DecidableEq V] in
+/--
+전체 정확성도 사슬의 극한에서 보존된다. 그러나 사전조건을 만족하는 상태가 있으면
+바닥 함수는 종료 결과를 줄 수 없다. 따라서 이 극한 보존만으로 Scott 귀납법을 쓸 수 없다.
+
+**책과의 차이**: §3.1의 명세 의미를 평평한 상태 변환기에 적용하는 보충 연습이다.
+책이 명시한 전체 정확성의 위쪽 닫힘에 더해, 극한 보존과 바닥에서의 실패를 함께 확인한다.
+-/
+@[exercise "§3.1 total-admissible" 2]
+theorem total_admissible (P Q : State V → Prop) :
+    (∀ d : Chain (State V → SigmaBot V),
+      (∀ n σ, P σ → ∃ τ, d.seq n σ = Flat.some τ ∧ Q τ) →
+      ∀ σ, P σ → ∃ τ, d.lub σ = Flat.some τ ∧ Q τ) ∧
+    ((∃ σ, P σ) →
+      ¬ (∀ σ, P σ → ∃ τ, (⊥ : State V → SigmaBot V) σ = Flat.some τ ∧ Q τ))
+```
+
 # 명령의 명세
 %%%
 tag := "ch03-spec-defs"

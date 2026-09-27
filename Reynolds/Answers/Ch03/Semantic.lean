@@ -10,11 +10,11 @@ public import Reynolds.Answers.Ch03.Spec
 /-!
 # §3.3–§3.5 의미 단언 위의 규칙
 
-Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP)을 다룬다.
+Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP), 전체 반복(WHT)을 다룬다.
 
 ## 이 파일에서 다루는 것
 부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD를 각각 한 연습으로 증명한다.
-WHP는 Scott 귀납법으로 증명한다. 구문 규칙의 건전성은 이 정리들의 따름정리다.
+WHP는 Scott 귀납법, WHT는 변항의 자연수 상계에 대한 귀납법으로 증명한다. 구문 규칙의 건전성은 이 정리들의 따름정리다.
 
 ## 핵심 아이디어
 의미 단언은 `State V → Prop`다. 대입은 사후조건을 갱신된 상태에서 묻는다.
@@ -135,6 +135,54 @@ theorem PartialCorrectS.wh {I : State V → Prop} {b : BoolExp V} {c : Comm V}
       exact hw ρ (hbody σ ⟨hi, hb⟩ ρ hc) τ hτ
 
 -- ANCHOR_END: whpSound
+
+-- ANCHOR: whtSound
+-- ANCHOR: stmtWhtSound
+/--
+WHT (§3.4). 본체가 불변식을 보존하고 정수 변항을 엄격히 줄이면 반복이 종료한다.
+변항의 비음수 조건은 불변식과 반복 조건이 참인 상태에만 요구한다.
+마지막 실행 뒤 조건이 거짓이면 변항은 음수여도 된다.
+
+**책과의 차이**: 책 p64의 유령 변수 대신 본체 실행 전의 값을 `n : Int`로 고정한다.
+구문 단언의 유령 변수 규칙은 `Total.lean`에서 이 정리의 따름정리로 얻는다.
+-/
+@[exercise "§3.4 wht-sound" 3]
+theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
+    {b : BoolExp V} {c : Comm V}
+    (hbody : ∀ n : Int, TotalCorrectS
+      (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true ∧ E σ = n) c (fun σ => I σ ∧ E σ < n))
+    (hnonneg : ∀ σ, I σ → ⟦b⟧ᵇ σ = true → 0 ≤ E σ) :
+    TotalCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
+-- ANCHOR_END: stmtWhtSound
+    := by
+  have whileEq : ∀ σ : State V, ⟦Comm.wh b c⟧ᶜ σ
+      = if ⟦b⟧ᵇ σ then Flat.bind (⟦c⟧ᶜ σ) ⟦Comm.wh b c⟧ᶜ else Flat.some σ :=
+    fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
+  have stop : ∀ σ, I σ → ⟦b⟧ᵇ σ = false →
+      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ I τ ∧ ⟦b⟧ᵇ τ = false := by
+    intro σ hi hb
+    exact ⟨σ, by rw [whileEq, hb]; rfl, hi, hb⟩
+  -- 자연수 상계를 하나씩 줄인다. 변항 자체는 정수로 둔다.
+  have key : ∀ (n : Nat) (σ : State V), I σ → E σ < n →
+      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ I τ ∧ ⟦b⟧ᵇ τ = false := by
+    intro n
+    induction n with
+    | zero =>
+      intro σ hi hlt
+      cases hb : ⟦b⟧ᵇ σ
+      · exact stop σ hi hb
+      · have h0 := hnonneg σ hi hb
+        omega
+    | succ n ih =>
+      intro σ hi hlt
+      cases hb : ⟦b⟧ᵇ σ
+      · exact stop σ hi hb
+      · obtain ⟨ρ, hρ, hiρ, hdec⟩ := hbody (E σ) σ ⟨hi, hb, rfl⟩
+        obtain ⟨τ, hτ, hpost⟩ := ih ρ hiρ (by omega)
+        exact ⟨τ, by rw [whileEq, hb, if_pos rfl, hρ]; exact hτ, hpost⟩
+  intro σ hi
+  exact key ((E σ).toNat + 1) σ hi (by omega)
+-- ANCHOR_END: whtSound
 
 namespace PartialCorrectS
 

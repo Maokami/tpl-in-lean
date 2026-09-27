@@ -106,7 +106,8 @@ theorem disj_sound {p₀ p₁ q : Assert V} {c : Comm V}
 theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq : v ∉ q.fv)
     (h : ｛p｝c｛q｝) : ｛Assert.quant .ex v p｝c｛q｝ := by
   -- 먼저 볼 것: §2.5 의 `Comm.coincidence_general` (명제 2.6(a)) 과 `AgreeOn`,
-  --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean` 의 `whT_sound` 끝부분이 같은 수법이다.
+  --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean`의 `whT_sound` 안에서
+  --            본체 결과를 전달할 때도 같은 수법을 쓴다.
   -- 힌트 1: 증인 `n` 을 꺼낸다. 전제는 `σ[v := n]` 에서 쓸 수 있다.
   -- 힌트 2: `S := c.fv ∪ q.fv` 에 명제 2.6(a) 를 쓰면 `⟦c⟧ σ` 와 `⟦c⟧ (σ[v := n])` 가 `S` 에서
   --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `Flat.none` 쪽은 모순으로 닫는다.

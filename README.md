@@ -216,6 +216,7 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | §3.1 명세의 뜻 | [`Spec.lean`](./Reynolds/Answers/Ch03/Spec.lean) | [#37](../../pull/37) | [`ch03-s01`](../../tree/ch03-s01) |
 | §3.2–3.3 추론 규칙 · 건전성 · 대입 공리의 방향 | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Soundness.lean`](./Reynolds/Answers/Ch03/Soundness.lean) · [`Assign.lean`](./Reynolds/Answers/Ch03/Assign.lean) | [#38](../../pull/38) | [`ch03-s02-s03`](../../tree/ch03-s02-s03) |
 | §3.3–3.5 의미 단언 규칙 · AS/SQ/CD/WHP | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [학습 안내](./manual/Manual/Ch03/Examples.lean) | [#51](../../pull/51) | `ch03-semantic-foundation` (병합 후) |
+| §3.4 의미 WHT · §3.1 전체 정확성의 극한 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [학습 안내](./manual/Manual/Ch03/Annot.lean) | [#56](../../pull/56) | `ch03-semantic-wht` (병합 후) |
 | §3.4–3.5 주석 명세 · 검증 조건 · 전체 정확성 `while` | [`Annot.lean`](./Reynolds/Answers/Ch03/Annot.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) | [#39](../../pull/39) | [`ch03-s04-s05`](../../tree/ch03-s04-s05) |
 | §3.7 상수 · 연언 · ∃ · 치환 규칙 | [`Derived.lean`](./Reynolds/Answers/Ch03/Derived.lean) | [#40](../../pull/40) | [`ch03-s07`](../../tree/ch03-s07) |
 | §3.8–3.9 예제 — 피보나치 · 빠른 거듭제곱 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) · [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#41](../../pull/41) | [`ch03-s08-s09`](../../tree/ch03-s08-s09) |

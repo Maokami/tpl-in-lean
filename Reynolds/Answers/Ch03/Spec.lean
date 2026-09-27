@@ -120,6 +120,36 @@ theorem Sat.admissible (P Q : State V → Prop) (d : Chain (State V → SigmaBot
   intro σ hσ
   exact sat_admissible Q σ d (fun n => h n σ hσ)
 
+-- ANCHOR: totalAdmissible
+-- ANCHOR: stmtTotalAdmissible
+omit [DecidableEq V] in
+/--
+전체 정확성도 사슬의 극한에서 보존된다. 그러나 사전조건을 만족하는 상태가 있으면
+바닥 함수는 종료 결과를 줄 수 없다. 따라서 이 극한 보존만으로 Scott 귀납법을 쓸 수 없다.
+
+**책과의 차이**: §3.1의 명세 의미를 평평한 상태 변환기에 적용하는 보충 연습이다.
+책이 명시한 전체 정확성의 위쪽 닫힘에 더해, 극한 보존과 바닥에서의 실패를 함께 확인한다.
+-/
+@[exercise "§3.1 total-admissible" 2]
+theorem total_admissible (P Q : State V → Prop) :
+    (∀ d : Chain (State V → SigmaBot V),
+      (∀ n σ, P σ → ∃ τ, d.seq n σ = Flat.some τ ∧ Q τ) →
+      ∀ σ, P σ → ∃ τ, d.lub σ = Flat.some τ ∧ Q τ) ∧
+    ((∃ σ, P σ) →
+      ¬ (∀ σ, P σ → ∃ τ, (⊥ : State V → SigmaBot V) σ = Flat.some τ ∧ Q τ))
+-- ANCHOR_END: stmtTotalAdmissible
+    := by
+  constructor
+  · intro d h σ hp
+    -- 상태 하나에서 극한은 사슬의 어느 항이다. 그 항의 종료 증인을 쓴다.
+    obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
+    obtain ⟨τ, hτ, hq⟩ := h k σ hp
+    exact ⟨τ, by rw [Chain.lub_apply, ← hk]; exact hτ, hq⟩
+  · rintro ⟨σ, hp⟩ h
+    obtain ⟨τ, hτ, _⟩ := h σ hp
+    simp at hτ
+-- ANCHOR_END: totalAdmissible
+
 /-! ## 3. 명령에 대한 명세 -/
 
 -- ANCHOR: spec
