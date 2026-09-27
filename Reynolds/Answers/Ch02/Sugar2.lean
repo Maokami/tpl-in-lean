@@ -82,8 +82,8 @@ variable {V : Type u} [DecidableEq V]
 `Comm.eval` 을 쓰므로 계산되지는 않는다.
 -/
 noncomputable def forFold (v : V) (c : Comm V) : Nat → State V → SigmaBot V
-  | 0,     σ => some σ
-  | n + 1, σ => Option.bind (c.eval σ) (fun σ' => forFold v c n (σ'[v := σ' v + 1]))
+  | 0,     σ => Flat.some σ
+  | n + 1, σ => Flat.bind (c.eval σ) (fun σ' => forFold v c n (σ'[v := σ' v + 1]))
 -- ANCHOR_END: forFold
 
 /-! ## 2. 정확 반복 정리
@@ -118,15 +118,15 @@ theorem forWhile_eq_fold (v w : V) (c : Comm V)
   -- `while` 한 바퀴를 펼치는 방정식. §2.2 의 명세에서 그대로 온다.
   have whileEq : ∀ σ : State V, (forWhile v (.var w) c).eval σ
       = if ⟦(.cmp .le (.var v) (.var w) : BoolExp V)⟧ᵇ σ
-        then Option.bind ((forBody v c).eval σ) (forWhile v (.var w) c).eval
-        else some σ := fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
+        then Flat.bind ((forBody v c).eval σ) (forWhile v (.var w) c).eval
+        else Flat.some σ := fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
   -- 조건은 두 변수의 비교다.
   have hBeval : ∀ σ : State V,
       ⟦(.cmp .le (.var v) (.var w) : BoolExp V)⟧ᵇ σ = decide (σ v ≤ σ w) :=
     fun _ => rfl
   -- 본체는 `c` 를 돌린 뒤 `v` 를 올린다.
   have bodyEq : ∀ σ : State V, (forBody v c).eval σ
-      = Option.bind (c.eval σ) (fun σ'' => some (σ''[v := σ'' v + 1])) :=
+      = Flat.bind (c.eval σ) (fun σ'' => Flat.some (σ''[v := σ'' v + 1])) :=
     fun _ => rfl
   intro m
   induction m with
@@ -215,11 +215,11 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 
 -- 제약을 지키는 본문: 구간 [1,3] 을 세 번 돈다.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3) countingBody).run 8 (State.const 0)).map
-        (fun σ => σ "s") == some 3
+        (fun σ => σ "s") == Flat.some 3
 
 -- 제약을 어기는 본문: 같은 구간인데 두 번만 돈다. i 가 1 → 3 → 7 로 뛴다.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
-        (fun σ => σ "s") == some 2
+        (fun σ => σ "s") == Flat.some 2
 
 /--
 **제약을 어기면 반복 횟수가 구간 크기와 다르다.**
@@ -229,19 +229,19 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 막는 가정이고, 여기서는 그 가정이 깨져 있다 (`"i" ∈ doublingBody.fa`).
 
 `while` 이 있으므로 `run` 으로 계산한 뒤 `run_sound` 로 표시적 의미에 옮긴다.
-결과 상태를 손으로 적지 않으려고 `Option.map` 으로 `s` 만 뽑아 본다.
+결과 상태를 손으로 적지 않으려고 `Flat.map` 으로 `s` 만 뽑아 본다.
 -/
 @[exercise "§2.6 for-broken" 2]
 theorem forV3_broken_by_assigning_control :
     "i" ∈ doublingBody.fa ∧
-      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = some τ
+      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = Flat.some τ
         ∧ τ "s" = 2 := by
   refine ⟨by simp [doublingBody, Comm.fa], ?_⟩
   have h : ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
-      (fun σ => σ "s") = some 2 := by
+      (fun σ => σ "s") = Flat.some 2 := by
     simp [forV3, forWhile, forBody, incr, doublingBody, Comm.run, restore,
       BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, State.const]
-  obtain ⟨τ, hτ, hs⟩ := Option.map_eq_some_iff.mp h
+  obtain ⟨τ, hτ, hs⟩ := Flat.map_eq_some_iff.mp h
   exact ⟨τ, Comm.run_sound hτ, hs⟩
 -- ANCHOR_END: broken
 

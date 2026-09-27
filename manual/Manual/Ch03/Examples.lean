@@ -119,7 +119,7 @@ def fibInv (σ : State String) : Prop :=
 theorem fibBody_ok :
     PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
   intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   have hne : σ "k" ≠ σ "n" := by
     simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
   refine ⟨m + 1, ?_, ?_, ?_, ?_, ?_⟩ <;>

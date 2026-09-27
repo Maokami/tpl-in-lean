@@ -78,7 +78,7 @@ example : simulAssign "x" "y" "t" (.var "y") (.var "x")
 **연습 2.1 — 이중 대입의 의미 방정식.**
 
 ```
-⟦v₀, v₁ := e₀, e₁⟧ σ = some σ[v₀ := ⟦e₀⟧σ][v₁ := ⟦e₁⟧σ]
+⟦v₀, v₁ := e₀, e₁⟧ σ = Flat.some σ[v₀ := ⟦e₀⟧σ][v₁ := ⟦e₁⟧σ]
 ```
 
 두 식 모두 **원래 상태** `σ` 에서 평가된다는 것이 요점이다.
@@ -97,7 +97,7 @@ example : simulAssign "x" "y" "t" (.var "y") (.var "x")
 theorem simulAssign_eval (v₀ v₁ t : V) (e₀ e₁ : IntExp V)
     (ht : t ∉ e₀.fv) (htv₀ : t ≠ v₀) (htv₁ : t ≠ v₁) (σ : State V) :
     (simulAssign v₀ v₁ t e₀ e₁).eval σ
-      = some ((σ[v₀ := ⟦e₀⟧ₑ σ])[v₁ := ⟦e₁⟧ₑ σ]) := by
+      = Flat.some ((σ[v₀ := ⟦e₀⟧ₑ σ])[v₁ := ⟦e₁⟧ₑ σ]) := by
   -- `t` 를 깔아도 `e₀` 의 값은 그대로다.
   have he₀ : ⟦e₀⟧ₑ (σ[t := ⟦e₁⟧ₑ σ]) = ⟦e₀⟧ₑ σ := by
     refine coincidence_intExp e₀ _ σ ?_
@@ -117,7 +117,7 @@ theorem simulAssign_eval (v₀ v₁ t : V) (e₀ e₁ : IntExp V)
   simp only [IntExp.eval]
   rw [hlook]
   -- 남은 것은 복원이다. `t` 에 대한 갱신을 앞으로 옮겨 상쇄한다.
-  simp only [restore, Option.map_some, Option.some.injEq, State.subst_def]
+  simp only [restore, Flat.map_some, Flat.some.injEq, State.subst_def]
   rw [Function.update_comm (Ne.symm htv₁), Function.update_comm (Ne.symm htv₀),
     Function.update_idem, Function.update_eq_self]
 -- ANCHOR_END: simulAssign
@@ -130,7 +130,7 @@ Reynolds 가 `v₀ = v₁` 일 때를 정하라고 하는데, 디슈가링을 �
 -/
 theorem simulAssign_eval_self (v t : V) (e₀ e₁ : IntExp V)
     (ht : t ∉ e₀.fv) (htv : t ≠ v) (σ : State V) :
-    (simulAssign v v t e₀ e₁).eval σ = some (σ[v := ⟦e₁⟧ₑ σ]) := by
+    (simulAssign v v t e₀ e₁).eval σ = Flat.some (σ[v := ⟦e₁⟧ₑ σ]) := by
   rw [simulAssign_eval v v t e₀ e₁ ht htv htv σ]
   simp [State.subst_def, Function.update_idem]
 
@@ -142,7 +142,8 @@ theorem simulAssign_eval_self (v t : V) (e₀ e₁ : IntExp V)
 풀기 방정식은 이렇다.
 
 ```
-⟦repeat c until b⟧ σ = ⟦c⟧ σ >>= fun σ' => if ⟦b⟧ σ' then some σ' else ⟦repeat c until b⟧ σ'
+⟦repeat c until b⟧ σ = Flat.bind (⟦c⟧ σ)
+  (fun σ' => if ⟦b⟧ σ' then Flat.some σ' else ⟦repeat c until b⟧ σ')
 ```
 
 양변에 같은 구가 나오므로 §2.2 에서 `while` 이 겪은 일을 그대로 겪는다 — 정의가 되지
@@ -159,7 +160,7 @@ theorem simulAssign_eval_self (v t : V) (e₀ e₁ : IntExp V)
 -/
 def repeatF (b : BoolExp V) (s : State V → SigmaBot V)
     (w : State V → SigmaBot V) : State V → SigmaBot V :=
-  fun σ => Option.bind (s σ) (fun σ' => if ⟦b⟧ᵇ σ' then some σ' else w σ')
+  fun σ => Flat.bind (s σ) (fun σ' => if ⟦b⟧ᵇ σ' then Flat.some σ' else w σ')
 
 omit [DecidableEq V] in
 /-- `repeatF` 는 단조다. `w` 가 자라면 "되돌아간 자리" 만 자란다. -/
@@ -188,10 +189,10 @@ theorem repeatF_continuous (b : BoolExp V) (s : State V → SigmaBot V) :
     unfold repeatF
     rcases hs : s σ with _ | τ
     · simp
-    · change (if ⟦b⟧ᵇ τ then some τ else c.lub τ) ≤ g σ
+    · change (if ⟦b⟧ᵇ τ then Flat.some τ else c.lub τ) ≤ g σ
       by_cases hb : ⟦b⟧ᵇ τ
       · rw [if_pos hb]
-        calc (some τ : SigmaBot V) = repeatF b s (c.seq 0) σ := by simp [repeatF, hs, hb]
+        calc (Flat.some τ : SigmaBot V) = repeatF b s (c.seq 0) σ := by simp [repeatF, hs, hb]
           _ ≤ g σ := (hg ⟨c.seq 0, ⟨0, rfl⟩, rfl⟩) σ
       · rw [if_neg hb]
         change (c.apply τ).lub ≤ g σ
@@ -216,40 +217,40 @@ omit [DecidableEq V] in
 -/
 theorem repeatF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : State V) :
     fix (repeatF b s) (repeatF_monotone b s) σ
-      = Option.bind (s σ) (fun σ' =>
-          if ⟦b⟧ᵇ σ' then some σ' else fix (repeatF b s) (repeatF_monotone b s) σ') := by
+      = Flat.bind (s σ) (fun σ' =>
+          if ⟦b⟧ᵇ σ' then Flat.some σ' else fix (repeatF b s) (repeatF_monotone b s) σ') := by
   have hm := repeatF_monotone b s
   have hW : ∀ ρ : State V, fix (repeatF b s) hm ρ = ((iterChain hm).apply ρ).lub :=
     fun ρ => Chain.lub_apply _ ρ
   rw [hW σ]
   rcases hs : s σ with _ | τ
   · -- 본체가 ⊥. 모든 항이 ⊥.
-    have hall : ∀ n, ((iterChain hm).apply σ).seq n = none := by
+    have hall : ∀ n, ((iterChain hm).apply σ).seq n = Flat.none := by
       intro n
       cases n with
       | zero => rfl
       | succ n =>
-          change (repeatF b s)^[n + 1] ⊥ σ = none
+          change (repeatF b s)^[n + 1] ⊥ σ = Flat.none
           rw [Function.iterate_succ_apply']
           simp [repeatF, hs]
     rw [le_antisymm (Chain.lub_le fun n => le_of_eq (hall n)) bot_le]
     rfl
   · by_cases hb : ⟦b⟧ᵇ τ
-    · -- 본체가 `τ`이고 조건이 참. `n ≥ 1`인 항은 모두 `some τ`.
-      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = some τ := by
+    · -- 본체가 `τ`이고 조건이 참. `n ≥ 1`인 항은 모두 `Flat.some τ`.
+      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = Flat.some τ := by
         intro n
-        change (repeatF b s)^[n + 1] ⊥ σ = some τ
+        change (repeatF b s)^[n + 1] ⊥ σ = Flat.some τ
         rw [Function.iterate_succ_apply']
         simp [repeatF, hs, hb]
-      have hge : some τ ≤ ((iterChain hm).apply σ).lub := by
+      have hge : Flat.some τ ≤ ((iterChain hm).apply σ).lub := by
         rw [← hstep 0]; exact ((iterChain hm).apply σ).le_lub 1
-      have hle : ((iterChain hm).apply σ).lub ≤ some τ := by
+      have hle : ((iterChain hm).apply σ).lub ≤ Flat.some τ := by
         refine Chain.lub_le fun n => ?_
         cases n with
         | zero => exact bot_le
         | succ n => exact le_of_eq (hstep n)
       rw [le_antisymm hle hge]
-      change some τ = if ⟦b⟧ᵇ τ then some τ else fix (repeatF b s) hm τ
+      change Flat.some τ = if ⟦b⟧ᵇ τ then Flat.some τ else fix (repeatF b s) hm τ
       rw [if_pos hb]
     · -- 본체가 `τ`이고 조건이 거짓. 이 사슬은 `τ`에서 시작한 반복 사슬을 한 칸 민 것과 같다.
       have hshift : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = ((iterChain hm).apply τ).seq n := by
@@ -257,7 +258,7 @@ theorem repeatF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : St
         change (repeatF b s)^[n + 1] ⊥ σ = (repeatF b s)^[n] ⊥ τ
         rw [Function.iterate_succ_apply']
         simp [repeatF, hs, hb]
-      have h0 : ((iterChain hm).apply σ).seq 0 = none := rfl
+      have h0 : ((iterChain hm).apply σ).seq 0 = Flat.none := rfl
       have hlub : ((iterChain hm).apply σ).lub = ((iterChain hm).apply τ).lub := by
         refine le_antisymm (Chain.lub_le fun n => ?_) (Chain.lub_le fun n => ?_)
         · cases n with
@@ -265,7 +266,7 @@ theorem repeatF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : St
           | succ n => rw [hshift]; exact ((iterChain hm).apply τ).le_lub n
         · rw [← hshift]; exact ((iterChain hm).apply σ).le_lub (n + 1)
       rw [hlub]
-      change ((iterChain hm).apply τ).lub = if ⟦b⟧ᵇ τ then some τ else fix (repeatF b s) hm τ
+      change ((iterChain hm).apply τ).lub = if ⟦b⟧ᵇ τ then Flat.some τ else fix (repeatF b s) hm τ
       rw [if_neg hb, hW τ]
 
 /--
@@ -277,7 +278,7 @@ theorem repeatF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : St
 -/
 theorem repeatEval_unwind (b : BoolExp V) (c : Comm V) (σ : State V) :
     repeatEval b c σ
-      = Option.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ') :=
+      = Flat.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then Flat.some σ' else repeatEval b c σ') :=
   repeatF_fix_unfold b c.eval σ
 -- ANCHOR_END: repeatF
 
@@ -352,10 +353,10 @@ theorem repeatEval_eq_repeatSugar (b : BoolExp V) (c : Comm V) :
     repeatEval b c = (repeatSugar b c).eval := by
   -- 설탕 쪽을 풀어 둔다. `W` 가 안쪽 `while` 의 뜻이다.
   set W : State V → SigmaBot V := (Comm.wh (.not b) c).eval with hW
-  have hsugar : (repeatSugar b c).eval = fun σ => Option.bind (c.eval σ) W := rfl
+  have hsugar : (repeatSugar b c).eval = fun σ => Flat.bind (c.eval σ) W := rfl
   -- `while` 의 풀기 방정식. 조건이 `¬b` 임에 주의.
   have hWeq : ∀ σ : State V, W σ
-      = if ⟦(.not b : BoolExp V)⟧ᵇ σ then Option.bind (c.eval σ) W else some σ :=
+      = if ⟦(.not b : BoolExp V)⟧ᵇ σ then Flat.bind (c.eval σ) W else Flat.some σ :=
     fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
   -- 조건의 값을 `b` 로 바꿔 읽는다.
   have hnot : ∀ σ : State V, ⟦(.not b : BoolExp V)⟧ᵇ σ = !(⟦b⟧ᵇ σ) := fun _ => rfl
@@ -364,27 +365,29 @@ theorem repeatEval_eq_repeatSugar (b : BoolExp V) (c : Comm V) :
   · -- `⊑` — 설탕 쪽이 `repeat` 의 고정점이므로 최소성이 준다.
     refine repeatF_fix_le b c.eval (le_of_eq ?_)
     funext σ
-    change Option.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then some σ' else Option.bind (c.eval σ') W)
-        = Option.bind (c.eval σ) W
+    change Flat.bind (c.eval σ) (fun σ' =>
+        if ⟦b⟧ᵇ σ' then Flat.some σ' else Flat.bind (c.eval σ') W)
+        = Flat.bind (c.eval σ) W
     rcases hs : c.eval σ with _ | τ
     · simp
-    · change (if ⟦b⟧ᵇ τ then some τ else Option.bind (c.eval τ) W) = W τ
+    · change (if ⟦b⟧ᵇ τ then Flat.some τ else Flat.bind (c.eval τ) W) = W τ
       rw [hWeq τ, hnot τ]
       by_cases hb : ⟦b⟧ᵇ τ <;> simp [hb]
   · -- `⊒` — `repeat` 쪽으로 만든 함수가 `while` 의 고정점이므로 `while` 의 최소성이 준다.
-    have hWle : W ≤ fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ' := by
+    have hWle : W ≤ fun σ' => if ⟦b⟧ᵇ σ' then Flat.some σ' else repeatEval b c σ' := by
       refine whileF_fix_le _ _ (le_of_eq ?_)
       funext σ'
       change (if ⟦(.not b : BoolExp V)⟧ᵇ σ' then
-              Option.bind (c.eval σ') (fun σ'' => if ⟦b⟧ᵇ σ'' then some σ'' else repeatEval b c σ'')
-            else some σ')
-          = (if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ')
+              Flat.bind (c.eval σ') (fun σ'' =>
+                if ⟦b⟧ᵇ σ'' then Flat.some σ'' else repeatEval b c σ'')
+            else Flat.some σ')
+          = (if ⟦b⟧ᵇ σ' then Flat.some σ' else repeatEval b c σ')
       rw [hnot σ']
       by_cases hb : ⟦b⟧ᵇ σ' <;> simp [hb, (repeatEval_unwind b c σ').symm]
     intro σ
-    calc Option.bind (c.eval σ) W
-        ≤ Option.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ') :=
-          Option.bind_le_bind (le_refl _) hWle
+    calc Flat.bind (c.eval σ) W
+        ≤ Flat.bind (c.eval σ) (fun σ' => if ⟦b⟧ᵇ σ' then Flat.some σ' else repeatEval b c σ') :=
+          Flat.bind_le_bind (le_refl _) hWle
       _ = repeatEval b c σ := (repeatEval_unwind b c σ).symm
 -- ANCHOR_END: repeatEquiv
 

@@ -36,6 +36,10 @@ public section
 
 open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02 Reynolds.Answers.Ch03
 
+-- 구문 사전조건 계산의 실패 가능성은 실행 결과의 평평한 순서와 독립적이다.
+example : Comm.wp (V := String) .skip .tru = Option.some .tru := rfl
+example : Comm.wp (V := String) (.wh .tru .skip) .tru = Option.none := rfl
+
 -- AS의 두 성분과 구문 대입 API가 같은 명령을 다룬다.
 example : TotalCorrectS (fun _ : State String => True) (.assign "x" (.num 1)) (fun _ => True) :=
   (as_sound (fun _ => True) "x" (.num 1)).2
@@ -68,6 +72,6 @@ example : PartialCorrectS (fun _ : State String => True)
 
 -- 조건이 거짓인 반복은 본체를 실행하지 않는다.
 #guard ((Comm.wh (.cmp .eq (.num 0) (.num 1)) (.assign "x" (.num 9))).run 1
-  (State.const 0)).map (fun σ => σ "x") == some 0
+  (State.const 0)).map (fun σ => σ "x") == Flat.some 0
 
 end

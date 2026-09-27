@@ -40,7 +40,7 @@ file := "ch03-sat"
 number := false
 %%%
 
-명세의 뜻은 새로 만들 것이 없다. 2장의 `⟦c⟧ : State V → Option (State V)`가 이미 있으므로,
+명세의 뜻은 새로 만들 것이 없다. 2장의 `⟦c⟧ : State V → Flat (State V)`가 이미 있으므로,
 그 함수가 단언 둘 사이에서 어떻게 행동하는지 말하면 된다. 알맹이를 상태 변환기 `w` 하나에
 대한 성질로 떼어 둔다.
 
@@ -51,10 +51,10 @@ number := false
 `w σ = ⊥` 면 조건 없이 참이다 — `⊥` 는 모든 사후조건을 만족한다.
 -/
 def Sat (P : State V → Prop) (w : State V → SigmaBot V) (Q : State V → Prop) : Prop :=
-  ∀ σ, P σ → ∀ τ, w σ = some τ → Q τ
+  ∀ σ, P σ → ∀ τ, w σ = Flat.some τ → Q τ
 ```
 
-`w σ = none`이면 조건이 공허하게 참이다. *`⊥`는 모든 사후조건을 만족한다.* 사소해
+`w σ = Flat.none`이면 조건이 공허하게 참이다. *`⊥`는 모든 사후조건을 만족한다.* 사소해
 보이지만 이 장 전체를 떠받치는 사실이다. `while`의 뜻은 `⊥`에서 출발한 근사들의 극한이었고
 (§2.4), 그 출발점이 어떤 명세든 만족하므로 귀납이 시작될 수 있다.
 
@@ -80,7 +80,7 @@ omit [DecidableEq V] in
 관계가 아니라 술어라 더 짧다.
 -/
 theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
-    (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
+    (h : ∀ n τ, d.seq n σ = Flat.some τ → Q τ) : ∀ τ, d.lub σ = Flat.some τ → Q τ := by
   intro τ hτ
   rw [Chain.lub_apply] at hτ
   obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
@@ -88,11 +88,11 @@ theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V
   exact h k τ hτ
 ```
 
-증명의 요점은 §2.3의 평평한 순서다. `Option (State V)`의 사슬은 `none`에서 `some τ` 하나로
+증명의 요점은 §2.3의 평평한 순서다. `Flat (State V)`의 사슬은 `Flat.none`에서 `Flat.some τ` 하나로
 한 번 올라가고 멈춘다. 그래서 극한은 _어느 항과 같고_, 그 항에서 이미 성질이 성립한다.
 
 전체 정확성도 사슬의 극한을 통과한다. 그러나 사전조건을 만족하는 상태가 있으면
-`none`으로만 이루어진 사슬의 첫 항 `⊥`는 전체 정확성을 만족하지 않는다. Scott 귀납법의
+`Flat.none`으로만 이루어진 사슬의 첫 항 `⊥`는 전체 정확성을 만족하지 않는다. Scott 귀납법의
 시작 조건이 성립하지 않으므로, 전체 정확성의 `while` 규칙은 종료까지 보이는 측도를
 사용해 정초 귀납으로 증명한다(§3.5).
 
@@ -113,7 +113,7 @@ def PartialCorrectS (P : State V → Prop) (c : Comm V) (Q : State V → Prop) :
 
 /-- 의미 판 전체 정확성. 끝나야 하고, 끝난 상태가 `Q` 다. -/
 def TotalCorrectS (P : State V → Prop) (c : Comm V) (Q : State V → Prop) : Prop :=
-  ∀ σ, P σ → ∃ τ, ⟦c⟧ᶜ σ = some τ ∧ Q τ
+  ∀ σ, P σ → ∃ τ, ⟦c⟧ᶜ σ = Flat.some τ ∧ Q τ
 
 /-- **부분 정확성** `{ p } c { q }`. Reynolds §3.1. 발산하면 공허하게 참. -/
 def PartialCorrect (p : Assert V) (c : Comm V) (q : Assert V) : Prop :=
@@ -152,7 +152,7 @@ theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q�
     ｛p｝c｛q｝ := by
   intro σ hp τ hτ
   obtain ⟨τ', hτ', hq⟩ := h σ hp
-  obtain rfl := Option.some.inj (hτ.symm.trans hτ')
+  obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
   exact hq
 ```
 
@@ -170,16 +170,16 @@ theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
   · intro h
     refine ⟨fun σ hp τ hτ => ?_, fun σ hp => ?_⟩
     · obtain ⟨τ', hτ', hq⟩ := h σ hp
-      obtain rfl := Option.some.inj (hτ.symm.trans hτ')
+      obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
       exact hq
     · obtain ⟨τ, hτ, _⟩ := h σ hp
       simp [hτ]
   · rintro ⟨hpc, hh⟩ σ hp
-    obtain ⟨τ, hτ⟩ := Option.isSome_iff_exists.mp (hh σ hp)
+    obtain ⟨τ, hτ⟩ := Flat.isSome_iff_exists.mp (hh σ hp)
     exact ⟨τ, hτ, hpc σ hp τ hτ⟩
 ```
 
-두 정리 모두 정의를 펼치면 나오지만, 한 가지를 짚어 둔다. `some τ' = some τ`에서
+두 정리 모두 정의를 펼치면 나오지만, 한 가지를 짚어 둔다. `Flat.some τ' = Flat.some τ`에서
 `τ' = τ`를 얻는 것이 _결정적_ 의미의 성질이라는 점이다. 2장의 명령은 결정적이라 끝나면
 결과가 하나뿐이다. 비결정적 언어(7장)에서는 이 등식이 깨지고, 부분·전체 정확성의 관계도
 다시 따져야 한다.

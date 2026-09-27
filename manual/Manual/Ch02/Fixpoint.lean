@@ -38,7 +38,7 @@ number := false
 -/
 def whileF (b : BoolExp V) (s : State V → SigmaBot V)
     (w : State V → SigmaBot V) : State V → SigmaBot V :=
-  fun σ => if ⟦b⟧ᵇ σ then Option.bind (s σ) w else some σ
+  fun σ => if ⟦b⟧ᵇ σ then Flat.bind (s σ) w else Flat.some σ
 ```
 
 조건 `b`와 본체의 뜻 `s`를 고정하면 `whileF b s`는 함수에서 함수로 가는 연산자다.
@@ -222,9 +222,9 @@ number := false
 `Classical.choice`를 거치므로 계산되지 않는다. 실행은 연료 해석기가 맡는다.
 -/
 noncomputable def Comm.eval : Comm V → State V → SigmaBot V
-  | .assign v e   => fun σ => some (σ[v := ⟦e⟧ₑ σ])
-  | .skip         => fun σ => some σ
-  | .seq c₀ c₁    => fun σ => Option.bind (c₀.eval σ) c₁.eval
+  | .assign v e   => fun σ => Flat.some (σ[v := ⟦e⟧ₑ σ])
+  | .skip         => fun σ => Flat.some σ
+  | .seq c₀ c₁    => fun σ => Flat.bind (c₀.eval σ) c₁.eval
   | .ite b c₀ c₁  => fun σ => if ⟦b⟧ᵇ σ then c₀.eval σ else c₁.eval σ
   | .wh b c       => fix (whileF b c.eval) (whileF_monotone b c.eval)
   | .newvar v e c => fun σ => restore v σ (c.eval (σ[v := ⟦e⟧ₑ σ]))
@@ -255,18 +255,18 @@ number := false
 실행한다. 바깥 반복을 한 번 풀 때 나머지 반복의 연료는 하나 줄지만, 본체에는 현재 연료를
 그대로 준다. 본체에 중첩된 반복이 있으면 그 반복도 유한하게 실행하기 위해서다.
 
-연료가 바닥나면 `none`을 돌려준다. 이 값은 발산과 연료 부족을 구분하지 않는다.
+연료가 바닥나면 `Flat.none`을 돌려준다. 이 값은 발산과 연료 부족을 구분하지 않는다.
 `Comm.eval`과 달리 정의 전체를 계산할 수 있어 `#eval`과 `#guard`에서 사용할 수 있다.
 -/
 def Comm.run : Comm V → ℕ → State V → SigmaBot V
-  | .assign v e,   _, σ => some (σ[v := ⟦e⟧ₑ σ])
-  | .skip,         _, σ => some σ
-  | .seq c₀ c₁,    n, σ => Option.bind (c₀.run n σ) (c₁.run n)
+  | .assign v e,   _, σ => Flat.some (σ[v := ⟦e⟧ₑ σ])
+  | .skip,         _, σ => Flat.some σ
+  | .seq c₀ c₁,    n, σ => Flat.bind (c₀.run n σ) (c₁.run n)
   | .ite b c₀ c₁,  n, σ => if ⟦b⟧ᵇ σ then c₀.run n σ else c₁.run n σ
   | .newvar v e c, n, σ => restore v σ (c.run n (σ[v := ⟦e⟧ₑ σ]))
-  | .wh _ _,       0, _ => none
+  | .wh _ _,       0, _ => Flat.none
   | .wh b c,   n + 1, σ =>
-      if ⟦b⟧ᵇ σ then Option.bind (c.run (n + 1) σ) ((Comm.wh b c).run n) else some σ
+      if ⟦b⟧ᵇ σ then Flat.bind (c.run (n + 1) σ) ((Comm.wh b c).run n) else Flat.some σ
 ```
 
 연료가 부족해 `none`이 나왔다고 해서 프로그램이 발산한다고 결론 내릴 수는 없다.
@@ -294,7 +294,7 @@ number := false
 
 왼쪽은 증명용이고 오른쪽은 실행용이다. `#guard`로 확인한 종료 결과는 건전성 방향을 통해
 `⟦-⟧ᶜ`의 결과가 된다. 반대로 표시적 의미에서 증명한 종료 결과는 충분한 연료의 `run`에서
-재현된다. 이 정리는 `none`에 관한 임의의 성질까지 옮긴다고 주장하지 않는다.
+재현된다. 이 정리는 `Flat.none`에 관한 임의의 성질까지 옮긴다고 주장하지 않는다.
 
 채점 연습이 아니다 — 이 정리의 증명은 `Comm.run_sound`와 `Comm.run_complete`에
 의존한다. 두 보조 정리까지 함께 비우면 한 연습이 다른 미완성 증명에 의존하게 된다
@@ -302,7 +302,7 @@ number := false
 목적이다.
 -/
 theorem Comm.eval_eq_run {c : Comm V} {σ σ' : State V} :
-    c.eval σ = some σ' ↔ ∃ n, c.run n σ = some σ' := by
+    c.eval σ = Flat.some σ' ↔ ∃ n, c.run n σ = Flat.some σ' := by
   constructor
   · exact Comm.run_complete
   · rintro ⟨n, hn⟩

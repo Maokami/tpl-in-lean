@@ -150,7 +150,8 @@ number := false
 %%%
 
 상태 `σ`에서 명령을 실행한 결과는 새 상태일 수도 있고, 결과 상태가 없을 수도 있다.
-이 두 경우를 `Option`으로 표현한다.
+이 두 경우를 전용 귀납 타입 `Flat`으로 표현한다. 평평한 순서는 `Flat`에만 등록하므로
+일반 `Option`의 core 순서는 영향을 받지 않는다.
 
 ````anchor SigmaBot (module := Reynolds.Answers.Ch02.Semantics)
 /--
@@ -160,15 +161,15 @@ number := false
 결과로도 함께 읽지 않는다. Reynolds가 §2.7에서 산술 오류를 추가하면 의미 공간을 다시
 매개변수화해야 하고, 비결정성은 7장에서 멱집합이나 멱영역과 같은 다른 구조를 요구한다.
 
-`Option` 을 쓰는 것이 편의만은 아니다. Reynolds 가 §2.2 에서 손으로 도입하는 확장
+`Flat`은 종료 결과와 바닥을 갖는 전용 귀납 타입이다. Reynolds 가 §2.2 에서 손으로 도입하는 확장
 
 ```
 f⊥⊥ x = if x = ⊥ then ⊥ else f x
 ```
 
-이 정확히 `Option.bind` 다. 아래 `liftBot_eq_bind` 가 그것을 확인한다.
+이 정확히 `Flat.bind` 다. 아래 `liftBot_eq_bind` 가 그것을 확인한다.
 -/
-abbrev SigmaBot (V : Type u) := Option (State V)
+abbrev SigmaBot (V : Type u) := Flat (State V)
 ````
 
 `none`의 뜻은 이 장의 범위에서 좁게 잡혀 있다.
@@ -183,9 +184,9 @@ abbrev SigmaBot (V : Type u) := Option (State V)
   모두 이 값으로 보인다.
 
 이 구분은 §2.7에서 오류를 넣거나 7장에서 비결정성을 넣을 때 다시 확장해야 한다.
-`Option` 하나가 모든 효과를 표현한다고 일반화하면 안 된다.
+`Flat` 하나가 모든 효과를 표현한다고 일반화하면 안 된다.
 
-# 순차 합성은 `Option.bind`다
+# 순차 합성은 `Flat.bind`다
 %%%
 tag := "ch02-bind"
 file := "ch02-bind"
@@ -196,15 +197,15 @@ number := false
 `σ'`에서 `c₁`을 실행하고, `none`이면 `c₁`로 넘어갈 상태가 없다.
 
 ```
-Option.bind none      k = none
-Option.bind (some σ') k = k σ'
+Flat.bind none      k = none
+Flat.bind (some σ') k = k σ'
 ```
 
-Reynolds의 순 확장 `f⊥⊥`가 이 두 식이고, Lean에서는 이미 `Option.bind`로 주어진다.
+Reynolds의 순 확장 `f⊥⊥`가 이 두 식이고, Lean에서는 이미 `Flat.bind`로 주어진다.
 따라서 순차 합성의 의미 방정식은 다음처럼 읽힌다.
 
 ```
-⟦c₀ ; c₁⟧ σ = Option.bind (⟦c₀⟧ σ) ⟦c₁⟧
+⟦c₀ ; c₁⟧ σ = Flat.bind (⟦c₀⟧ σ) ⟦c₁⟧
 ```
 
 이 식은 먼저 실행한 명령의 비종료가 뒤 명령으로 넘어가지 않는다는 점까지 표현한다.
@@ -229,11 +230,11 @@ number := false
 §2.4 에서 이 조건을 만족하는 `Comm.eval` 을 만들고 `Comm.eval_isSemantics` 를 증명한다.
 -/
 def IsSemantics {V : Type u} [DecidableEq V] (m : Comm V → State V → SigmaBot V) : Prop :=
-  (∀ v e σ, m (.assign v e) σ = some (σ[v := ⟦e⟧ₑ σ]))
-  ∧ (∀ σ, m .skip σ = some σ)
-  ∧ (∀ c₀ c₁ σ, m (.seq c₀ c₁) σ = Option.bind (m c₀ σ) (m c₁))
+  (∀ v e σ, m (.assign v e) σ = Flat.some (σ[v := ⟦e⟧ₑ σ]))
+  ∧ (∀ σ, m .skip σ = Flat.some σ)
+  ∧ (∀ c₀ c₁ σ, m (.seq c₀ c₁) σ = Flat.bind (m c₀ σ) (m c₁))
   ∧ (∀ b c₀ c₁ σ, m (.ite b c₀ c₁) σ = if ⟦b⟧ᵇ σ then m c₀ σ else m c₁ σ)
-  ∧ (∀ b c σ, m (.wh b c) σ = if ⟦b⟧ᵇ σ then Option.bind (m c σ) (m (.wh b c)) else some σ)
+  ∧ (∀ b c σ, m (.wh b c) σ = if ⟦b⟧ᵇ σ then Flat.bind (m c σ) (m (.wh b c)) else Flat.some σ)
   ∧ (∀ v e c σ, m (.newvar v e c) σ = restore v σ (m c (σ[v := ⟦e⟧ₑ σ])))
 ```
 
@@ -261,7 +262,7 @@ number := false
 ```anchor unwinding_not_unique (module := Reynolds.Answers.Ch02.Semantics)
 /-- 한 걸음 간 상태. 네 갈래 계산에서 계속 쓴다. -/
 theorem decr_step (f : State String → SigmaBot String) (σ : State String) :
-    Option.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
+    Flat.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
 
 /-- 끝나는 상태에서 한 걸음 가도 여전히 끝나는 상태다. -/
 theorem decrHalts_step {σ : State String} (hh : decrHalts σ) (h0 : σ "x" ≠ 0) :

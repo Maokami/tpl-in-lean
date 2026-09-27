@@ -57,10 +57,10 @@ def forV1 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 @[exercise "§2.6 for-leaks" 1]
 theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = some τ ∧ τ "i" ≠ σ "i" := by
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
   -- 연료 2 로 실행하면 종료하고, 그 결과 상태에서 i = 2 다.
   have hrun : (forV1 "i" (.num 1) (.num 1) .skip).run 2 (State.const 0)
-      = some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
+      = Flat.some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
     simp [forV1, forWhile, forBody, incr, Comm.run, BoolExp.eval, IntExp.eval,
       IntOp.denote, Cmp.denoteBool]
   exact ⟨State.const 0, _, Comm.run_sound hrun, by decide⟩
@@ -102,10 +102,10 @@ Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어
 -/
 @[exercise "§2.6 for-diverges" 2]
 theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = none := by
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
   -- 안쪽 while 은 어떤 상태·연료에서도 종료하지 않는다.
   have hrun : ∀ (n : ℕ) (σ' : State V),
-      (forWhile v (.var v) (.skip : Comm V)).run n σ' = none := by
+      (forWhile v (.var v) (.skip : Comm V)).run n σ' = Flat.none := by
     intro n
     induction n with
     | zero => intro σ'; simp [forWhile, Comm.run]
@@ -115,13 +115,13 @@ theorem forV2_diverges (v : V) (σ : State V) :
         by_cases hb : ⟦(.cmp .le (.var v) (.var v) : BoolExp V)⟧ᵇ σ'
         · simp only [if_pos hb]
           have hbody : (forBody v (.skip : Comm V)).run (n + 1) σ'
-              = some (σ'[v := σ' v + 1]) := by
+              = Flat.some (σ'[v := σ' v + 1]) := by
             simp [forBody, incr, Comm.run, IntExp.eval, IntOp.denote]
           rw [hbody]
           exact ih (σ'[v := σ' v + 1])
         · simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool] at hb
   -- 표시적 의미도 `none`.
-  have heval : ∀ σ', (forWhile v (.var v) (.skip : Comm V)).eval σ' = none := by
+  have heval : ∀ σ', (forWhile v (.var v) (.skip : Comm V)).eval σ' = Flat.none := by
     intro σ'
     rcases h : (forWhile v (.var v) (.skip : Comm V)).eval σ' with _ | τ
     · rfl
@@ -130,7 +130,7 @@ theorem forV2_diverges (v : V) (σ : State V) :
       exact absurd hn (by simp)
   -- `newvar` 는 `none` 을 그대로 내보낸다.
   change restore v σ
-    ((forWhile v (.var v) (.skip : Comm V)).eval (σ[v := ⟦(.num 1 : IntExp V)⟧ₑ σ])) = none
+    ((forWhile v (.var v) (.skip : Comm V)).eval (σ[v := ⟦(.num 1 : IntExp V)⟧ₑ σ])) = Flat.none
   rw [heval]
   simp [restore]
 ```
@@ -207,8 +207,8 @@ number := false
 `Comm.eval` 을 쓰므로 계산되지는 않는다.
 -/
 noncomputable def forFold (v : V) (c : Comm V) : Nat → State V → SigmaBot V
-  | 0,     σ => some σ
-  | n + 1, σ => Option.bind (c.eval σ) (fun σ' => forFold v c n (σ'[v := σ' v + 1]))
+  | 0,     σ => Flat.some σ
+  | n + 1, σ => Flat.bind (c.eval σ) (fun σ' => forFold v c n (σ'[v := σ' v + 1]))
 ```
 
 그러면 정확 반복 정리(`forWhile_eq_fold`)가 이렇게 읽힌다.
@@ -252,11 +252,11 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 
 -- 제약을 지키는 본문: 구간 [1,3] 을 세 번 돈다.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3) countingBody).run 8 (State.const 0)).map
-        (fun σ => σ "s") == some 3
+        (fun σ => σ "s") == Flat.some 3
 
 -- 제약을 어기는 본문: 같은 구간인데 두 번만 돈다. i 가 1 → 3 → 7 로 뛴다.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
-        (fun σ => σ "s") == some 2
+        (fun σ => σ "s") == Flat.some 2
 
 /--
 **제약을 어기면 반복 횟수가 구간 크기와 다르다.**
@@ -266,19 +266,19 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 막는 가정이고, 여기서는 그 가정이 깨져 있다 (`"i" ∈ doublingBody.fa`).
 
 `while` 이 있으므로 `run` 으로 계산한 뒤 `run_sound` 로 표시적 의미에 옮긴다.
-결과 상태를 손으로 적지 않으려고 `Option.map` 으로 `s` 만 뽑아 본다.
+결과 상태를 손으로 적지 않으려고 `Flat.map` 으로 `s` 만 뽑아 본다.
 -/
 @[exercise "§2.6 for-broken" 2]
 theorem forV3_broken_by_assigning_control :
     "i" ∈ doublingBody.fa ∧
-      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = some τ
+      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = Flat.some τ
         ∧ τ "s" = 2 := by
   refine ⟨by simp [doublingBody, Comm.fa], ?_⟩
   have h : ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
-      (fun σ => σ "s") = some 2 := by
+      (fun σ => σ "s") = Flat.some 2 := by
     simp [forV3, forWhile, forBody, incr, doublingBody, Comm.run, restore,
       BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, State.const]
-  obtain ⟨τ, hτ, hs⟩ := Option.map_eq_some_iff.mp h
+  obtain ⟨τ, hτ, hs⟩ := Flat.map_eq_some_iff.mp h
   exact ⟨τ, Comm.run_sound hτ, hs⟩
 ```
 

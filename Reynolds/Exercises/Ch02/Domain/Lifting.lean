@@ -12,7 +12,7 @@ public import Reynolds.Answers.Ch02.Domain.Flat
 /-!
 # §2.3 도메인과 연속 함수 (2) — 리프팅
 
-Reynolds §2.3의 리프팅 `P⊥`에 대응한다. `Semantics.lean`의 `Σ⊥ = Option (State V)`에
+Reynolds §2.3의 리프팅 `P⊥`에 대응한다. `Semantics.lean`의 `Σ⊥ = Flat (State V)`에
 순서를 얹어 도메인으로 만드는 것이 목표다.
 
 ## 어떤 순서인가
@@ -43,8 +43,8 @@ Reynolds의 리프팅은 임의의 프리도메인 `P`에 `⊥`를 더하는 일
 조각이 아니라 결과 전체이므로 서로 비교되면 안 된다. 순서를 아예 받지 않는 평평한 정의가
 그 사고를 원천에서 막는다.
 
-Mathlib의 `WithBot α`도 같은 표현(`Option α`)에 순서를 얹지만, 안쪽 순서를 이어받는
-쪽이라 여기서는 맞지 않는다.
+Mathlib의 `WithBot α`는 `Option α`로 바닥을 더하고 안쪽 순서를 이어받는다.
+여기서는 전용 타입 `Flat α`를 두어, 일반 `Option`의 순서와 계산 결과의 순서를 분리한다.
 
 ## 읽는 순서
 `Domain.lean` → 이 파일 → `Domain/FunctionSpace.lean`
@@ -62,9 +62,8 @@ variable {α : Type u} {β : Type v}
 
 /-! ## 1. 평평한 순서 — 어디에 있나
 
-순서 인스턴스 자체는 `Domain/Flat.lean`에 있다. `Option`이 두 트리가 공유하는
-루트 타입이라, 인스턴스를 이 파일에 두면 연습 트리에 복제되면서 두 벌이 되기 때문이다
-(그쪽 파일 첫머리에 사정을 적어 두었다).
+순서 인스턴스와 결과 타입 `Flat`은 `Domain/Flat.lean`에 있다. 두 트리는 같은 타입과
+순서를 공유하고, 이 파일에서 각 트리의 `Chain`과 `Predomain`에 연결한다.
 
 ```
 x ⊑ y  ⟺  x = ⊥ 이거나 x = y
@@ -82,8 +81,8 @@ x ⊑ y  ⟺  x = ⊥ 이거나 x = y
 이 관찰이 리프팅의 모든 증명을 짧게 만든다. -/
 
 /-- 사슬이 한 번 `some a`가 되면 그 뒤로는 계속 `some a`다. -/
-theorem Chain.flat_stabilizes {c : Chain (Option α)} {n : ℕ} {a : α}
-    (h : c.seq n = some a) : ∀ m, n ≤ m → c.seq m = some a := by
+theorem Chain.flat_stabilizes {c : Chain (Flat α)} {n : ℕ} {a : α}
+    (h : c.seq n = Flat.some a) : ∀ m, n ≤ m → c.seq m = Flat.some a := by
   intro m hnm
   rcases c.mono hnm with h' | h'
   · rw [h] at h'; exact absurd h' (by simp)
@@ -102,14 +101,14 @@ open Classical in
 
 (문서 주석이 선언에 직접 붙어야 해서 `open Classical in`이 이 주석 앞에 있다.)
 -/
-noncomputable instance flatPredomain : Predomain (Option α) where
+noncomputable instance flatPredomain : Predomain (Flat α) where
   lub c :=
-    if h : ∃ n a, c.seq n = some a then some h.choose_spec.choose else none
+    if h : ∃ n a, c.seq n = Flat.some a then Flat.some h.choose_spec.choose else Flat.none
   lub_isLUB c := by
-    by_cases h : ∃ n a, c.seq n = some a
+    by_cases h : ∃ n a, c.seq n = Flat.some a
     · simp only [dif_pos h]
       set A := h.choose_spec.choose with hA
-      have hNA : c.seq h.choose = some A := h.choose_spec.choose_spec
+      have hNA : c.seq h.choose = Flat.some A := h.choose_spec.choose_spec
       constructor
       · -- 상계. 각 항은 아직 `⊥` 이거나 이미 그 값이다.
         rintro _ ⟨m, rfl⟩
@@ -122,7 +121,7 @@ noncomputable instance flatPredomain : Predomain (Option α) where
         intro b hb
         have hb' := hb ⟨h.choose, rfl⟩
         rw [hNA] at hb'
-        simp only [Option.some_le_iff] at hb'
+        simp only [Flat.some_le_iff] at hb'
         rw [hb']
     · -- 값이 한 번도 나오지 않았다. 극한은 `⊥` 다.
       simp only [dif_neg h]
@@ -143,7 +142,7 @@ Reynolds 가 §2.3 에서 지나가며 말하는 사실이다. 평평한 사슬�
 §2.4 에서 `Σ⊥` 로 가는 함수들의 연속성을 확인할 때 이 정리 하나로 끝나는 경우가 많다. -/
 
 /-- 평평한 사슬의 극한은 사슬이 실제로 지나간 값이다. -/
-theorem Chain.flat_lub_mem_range (c : Chain (Option α)) : c.lub ∈ Set.range c.seq := by
+theorem Chain.flat_lub_mem_range (c : Chain (Flat α)) : c.lub ∈ Set.range c.seq := by
   rcases hl : c.lub with _ | a
   · -- 극한이 `⊥` 다. 첫 항도 `⊥` 여야 한다 — 아니면 극한이 `⊥` 위에 있어야 하니까.
     refine ⟨0, ?_⟩
@@ -155,14 +154,14 @@ theorem Chain.flat_lub_mem_range (c : Chain (Option α)) : c.lub ∈ Set.range c
     -- 모든 항이 `some a` 가 아니라면, "some a 가 나온 자리를 none 으로 봐도" 상계가 된다.
     -- 실제로는 더 간단하다: 모든 항이 ⊥ 이거나 some a 인데, some a 인 항이 없다는 뜻이므로
     -- 모든 항이 ⊥ 이고, 그러면 ⊥ 이 상계라서 극한 some a ≤ ⊥ — 모순.
-    have hall : ∀ n, c.seq n = none := by
+    have hall : ∀ n, c.seq n = Flat.none := by
       intro n
       have hn := c.le_lub n
       rw [hl] at hn
       rcases hn with h | h
       · exact h
-      · exact absurd (⟨n, h⟩ : (some a : Option α) ∈ Set.range c.seq) hne
-    have := c.lub_le (b := none) fun n => by rw [hall n]
+      · exact absurd (⟨n, h⟩ : (Flat.some a : Flat α) ∈ Set.range c.seq) hne
+    have := c.lub_le (b := Flat.none) fun n => by rw [hall n]
     rw [hl] at this
     simp at this
 
@@ -187,7 +186,7 @@ theorem Monotone.continuous_of_lub_mem [PartialOrder α] [PartialOrder β] [Pred
 
 
 /-- 평평한 도메인 판. `Σ⊥` 를 정의역으로 갖는 단조 함수는 전부 연속이다. -/
-theorem Monotone.flat_continuous [PartialOrder β] {f : Option α → β} (hf : Monotone f) :
+theorem Monotone.flat_continuous [PartialOrder β] {f : Flat α → β} (hf : Monotone f) :
     Continuous f :=
   Monotone.continuous_of_lub_mem hf Chain.flat_lub_mem_range
 
@@ -198,18 +197,19 @@ theorem Monotone.flat_continuous [PartialOrder β] {f : Option α → β} (hf : 
 | Reynolds | §2.2 에서 | 하는 일 |
 |---|---|---|
 | `ι` | `some` | 값을 `Σ⊥` 로 들여보낸다 |
-| `f⊥⊥` | `liftBot f` = `Option.bind · f` | `⊥` 는 `⊥` 로, 값은 `f` 로 |
+| `f⊥⊥` | `liftBot f` = `Flat.bind · f` | `⊥` 는 `⊥` 로, 값은 `f` 로 |
 
 명제 2.4 의 핵심 주장은 **유일성**이다. `g : Σ⊥ → Σ⊥` 가 순(strict)이고 — `⊥` 를 `⊥` 로
 보내고 — 값에서 `f` 와 같다면, `g` 는 `f⊥⊥` 일 수밖에 없다. 정의역이 `⊥` 아니면 값이라
 다른 자리가 없기 때문이다. -/
 
 /-- `f⊥⊥` 는 순(strict)이다 — `⊥` 를 `⊥` 로 보낸다. -/
-theorem liftBot_none {V : Type u} (f : State V → SigmaBot V) : liftBot f none = none := rfl
+theorem liftBot_none {V : Type u} (f : State V → SigmaBot V) :
+    liftBot f Flat.none = Flat.none := rfl
 
 /-- `f⊥⊥` 는 값에서 `f` 다. -/
 theorem liftBot_some {V : Type u} (f : State V → SigmaBot V) (σ : State V) :
-    liftBot f (some σ) = f σ := rfl
+    liftBot f (Flat.some σ) = f σ := rfl
 
 /--
 **명제 2.4 — `f⊥⊥` 는 `f` 의 유일한 순 확장이다.**
@@ -219,7 +219,7 @@ theorem liftBot_some {V : Type u} (f : State V → SigmaBot V) (σ : State V) :
 -/
 @[exercise "Prop 2.4" 2]
 theorem liftBot_unique {V : Type u} {f : State V → SigmaBot V} {g : SigmaBot V → SigmaBot V}
-    (hstrict : g none = none) (hext : ∀ σ, g (some σ) = f σ) : g = liftBot f := by
+    (hstrict : g Flat.none = Flat.none) (hext : ∀ σ, g (Flat.some σ) = f σ) : g = liftBot f := by
   -- 힌트: `funext x` 뒤 `cases x`. `Σ⊥` 에는 `⊥` 와 값밖에 없다.
   sorry
 
@@ -243,7 +243,7 @@ theorem liftBot_continuous {V : Type u} (f : State V → SigmaBot V) :
 그것까지 있으면 §2.4에서 `while`의 함수 연산자
 
 ```
-F(w) = fun σ => if ⟦b⟧ σ then ⟦c⟧ σ >>= w else some σ
+F(w) = fun σ => if ⟦b⟧ σ then Flat.bind (⟦c⟧ σ) w else Flat.some σ
 ```
 
 가 도메인 위의 연속 함수가 되고, 최소 고정점 정리가 `⟦while b do c⟧` 를 내놓는다. -/

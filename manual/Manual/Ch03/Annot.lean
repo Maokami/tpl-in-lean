@@ -192,11 +192,11 @@ theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z 
     (hbody : ［i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)］c［i ⋀ .cmp .lt e (.var z)］) :
     ［i］(Comm.wh b c)［i ⋀ .not b.toAssert］ := by
   have whileEq : ∀ τ : State V, ⟦Comm.wh b c⟧ᶜ τ
-      = if ⟦b⟧ᵇ τ then Option.bind (⟦c⟧ᶜ τ) ⟦Comm.wh b c⟧ᶜ else some τ :=
+      = if ⟦b⟧ᵇ τ then Flat.bind (⟦c⟧ᶜ τ) ⟦Comm.wh b c⟧ᶜ else Flat.some τ :=
     fun τ => Comm.eval_isSemantics.2.2.2.2.1 _ _ τ
   -- 조건이 거짓이면 그 자리에서 끝난다.
   have stop : ∀ σ, ⟦i⟧ₐ σ → ¬ ⟦b⟧ᵇ σ = true →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := fun σ hi hb =>
+      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := fun σ hi hb =>
     ⟨σ, by rw [whileEq σ, if_neg hb],
       (Assert.eval_and _ _ _).mpr
         ⟨hi, (Assert.eval_not _ _).mpr fun h => hb ((boolExp_eval_iff b σ).mp h)⟩⟩
@@ -205,7 +205,7 @@ theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z 
     (BoolExp.fv_coincidence b σ _ fun w hw =>
       (State.subst_of_ne σ z w _ fun (h : w = z) => hzb (h ▸ hw)).symm).symm
   have key : ∀ (n : Nat) (σ : State V), ⟦i⟧ₐ σ → ⟦e⟧ₑ σ < n →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := by
+      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := by
     intro n
     induction n with
     | zero =>
@@ -238,7 +238,7 @@ theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z 
           exact State.subst_self σ z _
         -- 측도가 줄었다. 귀납 가설이 `ρ` 에서 루프를 끝낸다.
         obtain ⟨τ', hτ', hqτ'⟩ := ih ρ hiρ (by omega)
-        have hloop : ⟦Comm.wh b c⟧ᶜ (σ[z := ⟦e⟧ₑ σ]) = some τ' := by
+        have hloop : ⟦Comm.wh b c⟧ᶜ (σ[z := ⟦e⟧ₑ σ]) = Flat.some τ' := by
           rw [whileEq, if_pos ((hbz σ).trans hb), hρ]
           exact hτ'
         -- `σ` 와 `σ[z := …]` 는 `z` 를 뺀 모든 곳에서 같다. 루프의 결과도 그렇다 (명제 2.6(a)).

@@ -154,7 +154,7 @@ theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z 
   -- 힌트 4: `n + 1`, 조건 참 — 본체를 `σ[z := ⟦e⟧ₑ σ]` 에서 돌린다 (`hbody`). 사전조건 세 조각은
   --         명제 1.1 (`coincidence_assert` · `coincidence_intExp` · `BoolExp.fv_coincidence`).
   --         끝난 상태 `ρ` 에서 `ρ z = ⟦e⟧ σ` (명제 2.6(b)) 이므로 측도가 줄어 귀납 가설이 든다.
-  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
+  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = Flat.some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
   --         `S := (Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv` 에 적용하면 결과가 `S` 에서
   --         일치하고, 사후조건은 `S` 만 본다 (`coincidence_assert`).
   sorry
@@ -174,7 +174,7 @@ theorem newvarT_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
       (State.subst_of_ne σ v w _ fun (hwv : w = v) => he (hwv ▸ hw)).symm
   obtain ⟨ρ, hρ, hqρ⟩ := h _ ((Assert.eval_and _ _ _).mpr ⟨hp', hv⟩)
   refine ⟨ρ[v := σ v], ?_, ?_⟩
-  · change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = some (ρ[v := σ v])
+  · change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some (ρ[v := σ v])
     rw [hρ]; rfl
   · exact (coincidence_assert q ρ (ρ[v := σ v]) fun w hw =>
       (State.subst_of_ne ρ v w _ fun (hwv : w = v) => hq (hwv ▸ hw)).symm).mp hqρ
@@ -200,7 +200,7 @@ theorem HoareT.toPartial [HasFresh V] {p q : Assert V} {c : Comm V} (h : HoareT 
     ｛p｝c｛q｝ := by
   intro σ hp τ hτ
   obtain ⟨τ', hτ', hq⟩ := h.sound σ hp
-  obtain rfl := Option.some.inj (hτ.symm.trans hτ')
+  obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
   exact hq
 
 /-! ## 5. 백까지 세기, 끝난다

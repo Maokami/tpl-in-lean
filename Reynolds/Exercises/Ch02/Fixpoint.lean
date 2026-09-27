@@ -24,7 +24,7 @@ Reynolds §2.4에 대응한다.
 §2.2에서 `while b do c`의 뜻은 다음 방정식의 해여야 했지만, 해가 하나뿐이지는 않았다.
 
 ```
-F(w) = fun σ => if ⟦b⟧ σ then ⟦c⟧ σ >>= w else some σ
+F(w) = fun σ => if ⟦b⟧ σ then Flat.bind (⟦c⟧ σ) w else Flat.some σ
 ```
 
 해는 `F(w) = w`인 고정점이다. §2.3의 정보 순서에서 반복 근사의 극한을 취하면,

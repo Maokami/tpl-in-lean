@@ -77,8 +77,8 @@ theorem unwindsDecr_eval : UnwindsDecr decrLoop.eval := by
   intro σ
   have hw : decrLoop.eval σ
       = if ⟦(.cmp .ne (.var "x") (.num 0) : BoolExp String)⟧ᵇ σ
-        then Option.bind ((Comm.assign "x" (.bin .sub (.var "x") (.num 2))).eval σ) decrLoop.eval
-        else some σ := Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
+        then Flat.bind ((Comm.assign "x" (.bin .sub (.var "x") (.num 2))).eval σ) decrLoop.eval
+        else Flat.some σ := Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
   rw [hw, decrLoop_cond, decrLoop_body_eval]
   by_cases h0 : σ "x" = 0
   · rw [if_neg (by simp [h0]), if_neg (by simp [h0])]
@@ -101,7 +101,7 @@ theorem unwindsDecr_eval : UnwindsDecr decrLoop.eval := by
 -/
 @[exercise "Ex 2.3" 3]
 theorem decrLoop_eval_of_halts :
-    ∀ (σ : State String), decrHalts σ → decrLoop.eval σ = some (σ["x" := (0 : Int)]) := by
+    ∀ (σ : State String), decrHalts σ → decrLoop.eval σ = Flat.some (σ["x" := (0 : Int)]) := by
   -- 먼저 볼 것: 바로 위 `unwindsDecr_eval` (완성본) 과 §2.2 의 `decrHalts_step`,
   --            `decr_step`, `State.subst_subst`, `State.subst_eq_self`.
   -- 힌트 1: 측도는 `(σ "x" / 2).toNat` — 남은 바퀴 수다. 한 바퀴마다 `x` 가 2 씩 줄므로

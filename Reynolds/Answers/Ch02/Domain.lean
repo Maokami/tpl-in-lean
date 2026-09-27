@@ -377,7 +377,7 @@ theorem exists_monotone_not_continuous :
 
 최소 고정점 정리를 명령 의미에 적용하려면 아직 두 가지 인스턴스가 필요하다.
 
-- **리프팅** `P⊥` — `Σ⊥` 를 도메인으로 만드는 구성. `Option` 에 순서를 얹는 일이다.
+- **리프팅** `P⊥` — `Σ⊥` 를 도메인으로 만드는 구성. `Flat` 에 평평한 순서를 주는 일이다.
 - **함수 공간** `P → P'` — `Σ → Σ⊥` 가 도메인이어야 `while` 의 뜻을 그 안에서 찾는다.
 
 `Domain/Lifting.lean` 이 앞의 것을, `Domain/FunctionSpace.lean` 이 뒤의 것을 만든다.

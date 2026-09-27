@@ -44,7 +44,7 @@ Reynolds 연습 2.5 에 대응한다.
 상계로 쓸 함수를 하나 만든다.
 
 ```
-U σ = if ⟦b⟧ᵇ σ then ⟦c⟧ σ >>= W2 else W2 σ
+U σ = if ⟦b⟧ᵇ σ then Flat.bind (⟦c⟧ σ) W2 else W2 σ
 ```
 
 "조건이 참이면 본체를 **한 번만** 돌고 나머지는 늘린 반복에 맡긴다" 는 함수다.
@@ -53,7 +53,7 @@ U σ = if ⟦b⟧ᵇ σ then ⟦c⟧ σ >>= W2 else W2 σ
 귀납이 돌아가는 이유는 보조 등식 하나다.
 
 ```
-(if ⟦b⟧ᵇ σ then ⟦c⟧ σ else some σ) >>= U  =  W2 σ
+Flat.bind (if ⟦b⟧ᵇ σ then ⟦c⟧ σ else Flat.some σ) U = W2 σ
 ```
 
 늘린 본체를 한 번 훑은 뒤 `U` 로 가면 정확히 `W2` 다. 이것이 있으면 귀납 단계가
@@ -94,19 +94,19 @@ def dblBody (b : BoolExp V) (c : Comm V) : Comm V := .seq c (.ite b c .skip)
 
 -- `while x > 0 do x := x-1` 은 3 에서 0 으로 간다.
 #guard ((⟪ while x > 0 do x := x - 1 ⟫ᶜ).run 10 (State.const 3)).map (fun σ => σ "x")
-  == some 0
+  == Flat.some 0
 
 -- 본체를 늘려도 같은 곳에 닿는다. 홀수(3)라서 마지막 바퀴는 `skip` 쪽으로 빠진다.
 #guard ((Comm.wh (.cmp .gt (.var "x") (.num 0))
           (dblBody (.cmp .gt (.var "x") (.num 0))
             (.assign "x" (.bin .sub (.var "x") (.num 1))))).run 10
-        (State.const 3)).map (fun σ => σ "x") == some 0
+        (State.const 3)).map (fun σ => σ "x") == Flat.some 0
 
 -- 단서를 뺀 `c; c` 라면 3 에서 -1 로 지나쳐 버린다. `if` 가 왜 필요한지가 여기 있다.
 #guard ((Comm.wh (.cmp .gt (.var "x") (.num 0))
           (.seq (.assign "x" (.bin .sub (.var "x") (.num 1)))
                 (.assign "x" (.bin .sub (.var "x") (.num 1))))).run 10
-        (State.const 3)).map (fun σ => σ "x") == some (-1)
+        (State.const 3)).map (fun σ => σ "x") == Flat.some (-1)
 
 /-! ## 2. 두 반복이 같다 -/
 
@@ -139,26 +139,26 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
   set W : State V → SigmaBot V := (Comm.wh b c).eval with hWdef
   set W2 : State V → SigmaBot V := (Comm.wh b (dblBody b c)).eval with hW2def
   -- 두 반복의 한 바퀴 방정식.
-  have hW : ∀ σ, W σ = if ⟦b⟧ᵇ σ then Option.bind (s σ) W else some σ :=
+  have hW : ∀ σ, W σ = if ⟦b⟧ᵇ σ then Flat.bind (s σ) W else Flat.some σ :=
     fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
-  have hW2 : ∀ σ, W2 σ = if ⟦b⟧ᵇ σ then Option.bind ((dblBody b c).eval σ) W2 else some σ :=
+  have hW2 : ∀ σ, W2 σ = if ⟦b⟧ᵇ σ then Flat.bind ((dblBody b c).eval σ) W2 else Flat.some σ :=
     fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
   -- 늘린 본체의 뒷부분 — "조건이 아직 참이면 한 번 더".
-  set h : State V → SigmaBot V := fun σ' => if ⟦b⟧ᵇ σ' then s σ' else some σ' with hh
-  have hdbl : ∀ σ, (dblBody b c).eval σ = Option.bind (s σ) h := fun _ => rfl
+  set h : State V → SigmaBot V := fun σ' => if ⟦b⟧ᵇ σ' then s σ' else Flat.some σ' with hh
+  have hdbl : ∀ σ, (dblBody b c).eval σ = Flat.bind (s σ) h := fun _ => rfl
   refine le_antisymm ?_ ?_
   · -- ⊑ : 어려운 쪽. 근사열을 따라간다.
     set U : State V → SigmaBot V :=
-      fun σ => if ⟦b⟧ᵇ σ then Option.bind (s σ) W2 else W2 σ with hU
+      fun σ => if ⟦b⟧ᵇ σ then Flat.bind (s σ) W2 else W2 σ with hU
     -- 늘린 본체를 거친 `W2` 는 본체 한 번과 `U` 로 갈라진다.
-    have hC : ∀ σ, Option.bind ((dblBody b c).eval σ) W2 = Option.bind (s σ) U := by
+    have hC : ∀ σ, Flat.bind ((dblBody b c).eval σ) W2 = Flat.bind (s σ) U := by
       intro σ
-      rw [hdbl, Option.bind_assoc]
+      rw [hdbl, Flat.bind_assoc]
       congr 1
       funext σ'
       by_cases hb : ⟦b⟧ᵇ σ' <;> simp [hh, hU, hb]
     -- 귀납을 굴리는 등식: 뒷부분을 훑고 `U` 로 가면 정확히 `W2` 다.
-    have hD : ∀ σ, Option.bind (h σ) U = W2 σ := by
+    have hD : ∀ σ, Flat.bind (h σ) U = W2 σ := by
       intro σ
       by_cases hb : ⟦b⟧ᵇ σ
       · simp only [hh, if_pos hb]
@@ -177,17 +177,17 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
           unfold whileF
           by_cases hb : ⟦b⟧ᵇ σ
           · simp only [if_pos hb]
-            calc Option.bind ((dblBody b c).eval σ) ((whileF b ((dblBody b c).eval))^[n] ⊥)
-                = Option.bind (s σ) (fun σ' =>
-                    Option.bind (h σ') ((whileF b ((dblBody b c).eval))^[n] ⊥)) := by
-                  rw [hdbl, Option.bind_assoc]
-              _ ≤ Option.bind (s σ) (fun σ' => Option.bind (h σ') U) :=
-                  Option.bind_le_bind (le_refl _) (fun σ' => Option.bind_le_bind (le_refl _) ih)
-              _ = Option.bind (s σ) W2 := by
+            calc Flat.bind ((dblBody b c).eval σ) ((whileF b ((dblBody b c).eval))^[n] ⊥)
+                = Flat.bind (s σ) (fun σ' =>
+                    Flat.bind (h σ') ((whileF b ((dblBody b c).eval))^[n] ⊥)) := by
+                  rw [hdbl, Flat.bind_assoc]
+              _ ≤ Flat.bind (s σ) (fun σ' => Flat.bind (h σ') U) :=
+                  Flat.bind_le_bind (le_refl _) (fun σ' => Flat.bind_le_bind (le_refl _) ih)
+              _ = Flat.bind (s σ) W2 := by
                   congr 1; funext σ'; exact hD σ'
               _ = U σ := by simp [hU, hb]
           · simp only [if_neg hb]
-            change (some σ : SigmaBot V) ≤ U σ
+            change (Flat.some σ : SigmaBot V) ≤ U σ
             simp [hU, hb, hW2 σ]
     have hW2U : W2 ≤ U := by
       rw [hW2def]
@@ -199,9 +199,9 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
     unfold whileF
     by_cases hb : ⟦b⟧ᵇ σ
     · simp only [if_pos hb]
-      calc Option.bind (s σ) W2 ≤ Option.bind (s σ) U :=
-            Option.bind_le_bind (le_refl _) hW2U
-        _ = Option.bind ((dblBody b c).eval σ) W2 := (hC σ).symm
+      calc Flat.bind (s σ) W2 ≤ Flat.bind (s σ) U :=
+            Flat.bind_le_bind (le_refl _) hW2U
+        _ = Flat.bind ((dblBody b c).eval σ) W2 := (hC σ).symm
         _ = W2 σ := by rw [hW2 σ, if_pos hb]
     · simp only [if_neg hb]
       rw [hW2 σ, if_neg hb]
@@ -212,10 +212,10 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
     unfold whileF
     by_cases hb : ⟦b⟧ᵇ σ
     · simp only [if_pos hb]
-      calc Option.bind ((dblBody b c).eval σ) W
-          = Option.bind (s σ) (fun σ' => Option.bind (h σ') W) := by
-            rw [hdbl, Option.bind_assoc]
-        _ = Option.bind (s σ) W := by
+      calc Flat.bind ((dblBody b c).eval σ) W
+          = Flat.bind (s σ) (fun σ' => Flat.bind (h σ') W) := by
+            rw [hdbl, Flat.bind_assoc]
+        _ = Flat.bind (s σ) W := by
             congr 1; funext σ'
             by_cases hb' : ⟦b⟧ᵇ σ'
             · simp only [hh, if_pos hb']

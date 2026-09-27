@@ -68,7 +68,7 @@ variable {V : Type u} [DecidableEq V]
 -- ANCHOR: wlp
 /-- 의미적 최약 자유 사전조건(weakest liberal precondition). `c` 가 끝나면 `Q` 가 참인 상태들. -/
 def wlp (c : Comm V) (Q : State V → Prop) : State V → Prop :=
-  fun σ => ∀ τ, ⟦c⟧ᶜ σ = some τ → Q τ
+  fun σ => ∀ τ, ⟦c⟧ᶜ σ = Flat.some τ → Q τ
 
 /-- 부분 정확성은 wlp 로 다시 쓰인다. 정의 그대로다. 그러니 `wlp c Q` 는 `{P} c {Q}` 를 만족하는
 가장 약한 `P` 다. -/
@@ -217,7 +217,7 @@ theorem wp_weakest [HasFresh V] (c : Comm V) :
     · rw [h₁] at h; simp at h
     · rw [h₁] at h
       refine ih₀ r p h σ fun ρ hρ => ih₁ q r h₁ ρ fun τ hτ => hw τ ?_
-      change Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = some τ
+      change Flat.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = Flat.some τ
       rw [hρ]; exact hτ
   | ite b c₀ c₁ ih₀ ih₁ =>
     intro q p h σ hw
@@ -232,9 +232,9 @@ theorem wp_weakest [HasFresh V] (c : Comm V) :
     change (⟦b.toAssert⟧ₐ σ → ⟦p₀⟧ₐ σ) ∧ (¬ ⟦b.toAssert⟧ₐ σ → ⟦p₁⟧ₐ σ)
     refine ⟨fun hb => ih₀ q p₀ h₀ σ fun τ hτ => hw τ ?_,
       fun hb => ih₁ q p₁ h₁ σ fun τ hτ => hw τ ?_⟩
-    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ
+    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = Flat.some τ
       rw [if_pos ((boolExp_eval_iff b σ).mp hb)]; exact hτ
-    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ
+    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = Flat.some τ
       rw [if_neg fun h => hb ((boolExp_eval_iff b σ).mpr h)]; exact hτ
   | wh b c _ => intro q p h; simp [Comm.wp] at h
   | «newvar» v e c ih =>
@@ -258,7 +258,7 @@ theorem wp_weakest [HasFresh V] (c : Comm V) :
         subst hn
         refine ih q p' hc _ fun ρ hρ => ?_
         have hq := hw (ρ[v := σ v]) (by
-          change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = some (ρ[v := σ v])
+          change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some (ρ[v := σ v])
           rw [hρ]; rfl)
         exact (coincidence_assert q ρ (ρ[v := σ v]) fun w hw =>
           (State.subst_of_ne ρ v w _ fun (h : w = v) => hv.1 (h ▸ hw)).symm).mpr hq
