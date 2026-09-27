@@ -710,12 +710,46 @@ def SExp.fv : SExp V → Finset V
 `e₂`에서만 `erase` 한다. 같은 비대칭이 치환과 의미 방정식(semantic equation)에도
 그대로 나타난다.
 
+## 합 식에서도 치환 정리가 성립하는가
+
+책 p. 23의 연습 1.5(c)는 정의를 제시하는 데서 끝나지 않는다. §1.4의 결합·치환 명제가
+계속 성립해야 한다. `Ex/Summation/Substitution.lean`에서 명제 1.2의 치환 일치·항등·자유 변수
+법칙을 확인하고, 아래 명제 1.3의 합 식 판을 새 연습으로 푼다.
+
+```anchor stmtSubstitutionSExp (module := Reynolds.Answers.Ch01.Ex.Summation.Substitution)
+/--
+연습 1.5(c) (p. 23): 명제 1.3 (§1.4)의 합 식 판.
+치환한 구문을 평가하는 것과 치환 사상을 평가한 상태에서 원래 구문을 평가하는 것이 같다.
+`hcoin`은 별도 일치 정리 연습의 결론이다. 가설로 받아 두 연습의 채점을 분리한다.
+-/
+@[exercise "Ex 1.5c-substitution" 3]
+theorem substitution_sExp
+    (hcoin : ∀ (e : SExp V) (σ σ' : State V),
+      (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₛ σ = ⟦e⟧ₛ σ') :
+    ∀ (e : SExp V) (δ : SSubst V) (σ σ' : State V),
+      (∀ w ∈ e.fv, σ w = ⟦δ w⟧ₛ σ') → ⟦e /ₜ δ⟧ₛ σ' = ⟦e⟧ₛ σ
+```
+
+`hcoin`은 이미 주어진 가설이므로 앞의 `coincidence_sExp` 연습을 풀지 않고도 쓸 수 있다.
+합의 두 경계는 원래 치환으로 처리하고, 본체는 새 결합 변수로 갱신한 치환으로 처리한다.
+그 새 이름이 대입되는 식의 자유 변수를 포획하지 않는다는 사실이 증명의 핵심이다.
+
+예를 들어 `Σi : 1 to 2. a`에 `a ↦ i`를 넣고 바깥 상태에서 `i = 7`이라면 값은 14다.
+결합자를 그대로 두어 새 `i`를 포획하면 3이 되어 치환 정리에 어긋난다.
+반면 `Σi : 1 to i. i`의 상계에 있는 `i`는 자유로우므로 치환해야 한다.
+한 변수 치환과 결합 변수 이름 바꾸기는 새 정리의 따름정리로 제공한다.
+
+이 실습은 합 식을 포함한 정수 식 `SExp`를 다룬다. 비교식·양화 단언 전체를 확장하거나,
+연습 1.7의 구문적 α-동치까지 증명한 것은 아니다.
+
+## 부정 합에서는 무엇이 달라지는가
+
 연습 1.6은 여기서 한 걸음 더 간다. 부정 합(indefinite summation) `Σv. e`의 뜻이
 `Σ_{v=0}^{v-1} e`라서,
 `v`가 아래첨자로 묶이면서 동시에 상계로 자유롭다. 한 이름이 한 식 안에서 두 역할을
 하고, §1.4의 결합 구조에는 그럴 곳이 없다. 결과로 *이름 바꾸기 정리(renaming theorem)가
 깨진다* —
-`Ex/Summation.lean`에서 반례를 증명한다.
+`Ex/Summation/Indefinite.lean`에서 반례를 증명한다.
 
 앞 절의 동적 결합과 결과는 비슷하지만 원인은 다르다. 여기서는 `Σv. e`를 독립적인 원시
 구문으로 두면서, 표면의 같은 `v` 중 어느 발생이 자유롭고 어느 발생이 묶이는지를 생성자
@@ -826,13 +860,13 @@ file := "ch01-exercise-list"
 number := false
 %%%
 
-1장에는 채점되는 연습이 35개 있다. 책 연습문제와 본문 명제가 섞여 있고,
+1장에는 채점되는 연습이 36개 있다. 책 연습문제와 본문 명제가 섞여 있고,
 아래는 [읽는 순서](--tag--ch01-order)와 같은 차례로 늘어놓은 것이다.
 
 * `Validity.lean` — §1.3 건전성과 규칙. *3개*
 * `FreeVars.lean`, `Substitution.lean` — 본문 명제 1.1 ~ 1.3. *5개*
 * `Realizations/Constructors.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.4. *12개*
-* `Ex/Summation.lean` — 책 연습 1.5 · 1.6. *6개*
+* `Ex/Summation.lean`·`Ex/Summation/` — 책 연습 1.5 · 1.6. *7개*
 * `Design.lean` — 정의 선택과 정리의 성립. *3개*
 * `Depth/` — 심화 트랙. *6개*
 

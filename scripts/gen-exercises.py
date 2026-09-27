@@ -380,6 +380,24 @@ BLANKS: list[tuple[str, str, str, str]] = [
     ),
     # ── 연습 1.5 · 1.6 합 식
     (
+        "Ch01/Ex/Summation/Substitution.lean",
+        "theorem substitution_sExp",
+        "-- ANCHOR_END: substitutionSExp",
+        """theorem substitution_sExp
+    (hcoin : ∀ (e : SExp V) (σ σ' : State V),
+      (∀ w ∈ e.fv, σ w = σ' w) → ⟦e⟧ₛ σ = ⟦e⟧ₛ σ') :
+    ∀ (e : SExp V) (δ : SSubst V) (σ σ' : State V),
+      (∀ w ∈ e.fv, σ w = ⟦δ w⟧ₛ σ') → ⟦e /ₜ δ⟧ₛ σ' = ⟦e⟧ₛ σ := by
+  -- 먼저 볼 것: `SExp.newBinder_notMem_fv`와 가설 `hcoin`.
+  -- 힌트 1: `e`에 대한 귀납법. 합의 경계에는 원래 상태와 치환 사상을 쓴다.
+  -- 힌트 2: `Finset.sum_congr rfl`로 본체의 각 항을 비교한다.
+  -- 힌트 3: 갱신한 두 상태가 본체의 자유 변수에서 치환 가설을 만족하는지 보인다.
+  --         결합 변수 자리와 다른 자리를 나누고, 다른 자리에서는 신선성과 `hcoin`을 쓴다.
+  sorry
+
+""",
+    ),
+    (
         "Ch01/Ex/Summation.lean",
         "theorem coincidence_sExp",
         "-- ANCHOR_END: coincidenceSExp",
@@ -443,7 +461,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
 """,
     ),
     (
-        "Ch01/Ex/Summation.lean",
+        "Ch01/Ex/Summation/Indefinite.lean",
         "theorem isum_renaming_fails",
         "/-! ## 어려움 2",
         """theorem isum_renaming_fails :
