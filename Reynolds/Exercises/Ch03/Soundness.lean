@@ -8,22 +8,23 @@ module
 public import Reynolds.Exercises.Ch03.Hoare
 
 /-!
-# §3.2~3.6 건전성 — 규칙마다 1·2장의 정리 하나
+# §3.2–§3.5 건전성 — 규칙마다 1·2장의 정리 하나
 
 `Hoare.lean` 의 규칙이 뜻(`Spec.lean`)에 대해 옳다는 것을 증명한다. 유도된 명세는 타당하다.
 
 ## 규칙마다 독립이다
 
-AS·SQ·CD·WHP는 `Semantic.lean`에서 각각 독립된 의미 판 연습으로 증명한다.
-이 파일의 해당 구문 판은 그 결과를 구문 단언에 적용한다. 변수 선언의 건전성은
-아래에 별도 연습으로 남긴다. 각 규칙이 앞 장의 어느 정리를 쓰는지는 다음과 같다.
+AS·SQ·CD·WHP·DC·RN은 `Semantic.lean`에서 각각 독립된 의미 판 연습으로 증명한다.
+이 파일의 구문 판은 그 결과를 구문 단언에 적용한다. 기존 합성형 선언 API도 제공한다.
+각 규칙이 앞 장의 어느 정리를 쓰는지는 다음과 같다.
 
 - 대입 공리 — 명제 1.4 (`substitution_single`). **1장 §1.4 의 치환 정리가 이 한 줄을
   위해 있었다.**
 - 순차 합성 — `Flat.bind`.
 - 조건 — §2.2 의 `boolExp_eval_iff`.
 - `while` — §2.4 의 **Scott 귀납법**. 허용 가능성은 §3.1 의 `Sat.admissible` 이다.
-- 변수 선언 — 명제 1.1 (`coincidence_assert`) 세 번.
+- DC — 복원과 사후조건의 지역성. 구문 판의 지역성은 명제 1.1에서 얻는다.
+- RN — §2.5 `Comm.newvar_rename`의 명령 의미 등식.
 - 결과 규칙 — §3.1 의 `PartialCorrect.conseq`.
 
 `Hoare.sound` 자체는 `Hoare` 에 대한 구조적 귀납으로 위의 것들을 잇기만 한다.
@@ -103,29 +104,15 @@ theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
       simp [hb] at this⟩
 
 
-/--
-**변수 선언 규칙의 건전성 — 명제 1.1 세 번.**
-
-`⟦newvar v := e in c⟧ σ = restore v σ (⟦c⟧ (σ[v := ⟦e⟧ σ]))` 다. 세 신선함 조건이 각각
-다른 자리에서 쓰인다.
-
-- `v ∉ FV(p)` — `v` 를 갱신해도 `p` 가 그대로 참이다.
-- `v ∉ FV(e)` — `v` 를 갱신해도 `e` 의 값이 그대로라 안쪽에서 `v = e` 가 참이다.
-- `v ∉ FV(q)` — `v` 를 복원해도 `q` 가 그대로 참이다.
--/
-@[exercise "§3.6 newvar-sound" 2]
+/-- 기존 합성형 변수 선언 규칙의 건전성. 초기 단언을 AS·SQ로 만든 뒤 DC를 적용한다.
+`p`와 `e`의 신선함은 이 제공 규칙의 조건이며, DC 자체는 `q`의 신선함만 요구한다. -/
 theorem newvar_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
     (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
     (h : ｛p ⋀ .cmp .eq (.var v) e｝c｛q｝) : ｛p｝(Comm.newvar v e c)｛q｝ := by
-  -- 먼저 볼 것: §1.4 의 `coincidence_assert` · `coincidence_intExp` (명제 1.1),
-  --            `State.subst_self` · `State.subst_of_ne`.
-  -- 힌트 1: `⟦newvar v := e in c⟧ᶜ σ` 는 정의상 `restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]))` 다.
-  --         `rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])` 로 나누고, `Flat.some ρ` 면
-  --         `simp only [restore, Flat.map_some, Flat.some.injEq] at hτ` 로 `τ = ρ[v := σ v]`.
-  -- 힌트 2: 안쪽 사전조건 두 조각 — `p` 는 `v` 를 안 보니 갱신해도 참(`hp`), `v = e` 는
-  --         `State.subst_self` 와 `e` 가 `v` 를 안 본다는 것(`he`)으로.
-  -- 힌트 3: 안쪽 결과 `⟦q⟧ₐ ρ` 에서 `v` 를 복원해도 `q` 는 `v` 를 안 본다(`hq`).
-  sorry
+  apply (dc_sound [] p.eval q.eval v e c (Assert.eval_update_of_notMem hq)).1
+  have hs := sq_sound.1 (as_sound (p ⋀ .cmp .eq (.var v) e).eval v e).1 h
+  intro σ hpσ
+  exact hs σ (newvar_init hp he σ hpσ)
 
 
 /-! ## 2. 건전성 -/
@@ -145,7 +132,9 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
   | seq _ _ ih₀ ih₁ => exact seq_sound ih₀ ih₁
   | ite _ _ ih₀ ih₁ => exact ite_sound ih₀ ih₁
   | wh _ ih => exact wh_sound ih
-  | «newvar» hp hq he _ ih => exact newvar_sound hp hq he ih
+  | dc s hq _ ih =>
+    exact (dc_sound s _ _ _ _ _ (Assert.eval_update_of_notMem hq)).1 ih
+  | rename hr _ ih => exact (rn_sound _ _ hr).1 ih
   | conseq hp _ hq ih => exact PartialCorrect.conseq hp ih hq
 
 /-- `Hoare.lean` 의 두 유도가 이제 타당한 명세가 된다. §2.5 의 `swap_ok` 를 계산 없이 다시

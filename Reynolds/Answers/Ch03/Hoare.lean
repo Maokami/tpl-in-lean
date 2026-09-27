@@ -8,10 +8,10 @@ module
 public import Reynolds.Answers.Ch03.Semantic
 
 /-!
-# §3.2 · §3.3 · §3.5 · §3.6 추론 규칙
+# §3.2–§3.5 추론 규칙
 
 Reynolds §3.2(규칙의 모양)와 그 뒤 절들이 하나씩 내놓는 규칙 — §3.3 대입과 순차 합성,
-§3.5 조건과 `while`, §3.6 변수 선언 — 을 한 귀납 술어로 모은다. 건전성은
+§3.4 반복, §3.5 조건·변수 선언·이름 바꾸기 — 를 한 귀납 술어로 모은다. 건전성은
 `Soundness.lean` 이다. 전체 정확성의 `while` 규칙은 `Total.lean` 이다.
 
 ## 규칙 하나가 생성자 하나
@@ -32,6 +32,10 @@ Reynolds 는 결과 규칙을 둘로 나눈다 — 전제 강화와 결론 약�
 
 ## 읽는 순서
 `Spec.lean` → `Semantic.lean` → 이 파일 → `Soundness.lean` → `Assign.lean`.
+
+## 책과의 차이
+RN은 앞부분 뒤의 지역 선언만 바꾸는 `Comm.PrefixRename`으로 표현한다.
+기존 합성형 `newvar`는 생성자 대신 AS·SQ·DC의 파생 정리로 제공한다.
 -/
 
 @[expose] public section
@@ -75,7 +79,7 @@ theorem Assert.eval_eq (e₀ e₁ : IntExp V) (σ : State V) :
 
 -- ANCHOR: hoare
 /--
-부분 정확성의 추론 체계. Reynolds §3.2~3.6 의 규칙들이다.
+부분 정확성의 추론 체계. Reynolds §3.2–§3.5의 규칙들이다.
 
 `[HasFresh V]` 가 붙는 이유는 대입 공리의 치환 `q /[v := e]` 가 새 결합자를 뽑기
 때문이다 (§1.4).
@@ -98,12 +102,15 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   조건이 거짓이다. -/
   | wh {i : Assert V} {b : BoolExp V} {c : Comm V} :
       Hoare (i ⋀ b.toAssert) c i → Hoare i (.wh b c) (i ⋀ .not b.toAssert)
-  /-- 변수 선언. 지역 변수는 밖의 단언과 초기값 식에 나오지 않아야 한다. 나오면 이름을
-  바꾼다 (§2.5 `Comm.newvar_rename`). -/
-  | newvar {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-      (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv) :
-      Hoare (p ⋀ .cmp .eq (.var v) e) c q → Hoare p (.newvar v e c) q
-  /-- 결과 규칙. 사전조건은 강하게, 사후조건은 약하게. 전제가 단언의 **타당성**이다. -/
+  /-- DC (§3.5 p.67). 사후조건에만 지역 변수가 나타나지 않아야 한다. -/
+  | dc (s : List (Comm V)) {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+      (hq : v ∉ q.fv) :
+      Hoare p (Comm.seqs s (.seq (.assign v e) c)) q →
+      Hoare p (Comm.seqs s (.newvar v e c)) q
+  /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
+  | rename {p q : Assert V} {c c' : Comm V} :
+      Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
+  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
   | conseq {p p' q q' : Assert V} {c : Comm V} :
       Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
 -- ANCHOR_END: hoare
@@ -121,6 +128,37 @@ theorem Hoare.strengthen [HasFresh V] {p p' q : Assert V} {c : Comm V}
 theorem Hoare.weaken [HasFresh V] {p q q' : Assert V} {c : Comm V}
     (h : Hoare p c q) (hq : Stronger q q') : Hoare p c q' :=
   Hoare.conseq (Stronger.refl p) h hq
+
+/-- 자유 변수가 아닌 이름의 갱신은 단언의 진릿값을 보존한다. -/
+theorem Assert.eval_update_of_notMem {q : Assert V} {v : V} (hq : v ∉ q.fv)
+    (σ : State V) (n : Int) : q.eval (σ[v := n]) ↔ q.eval σ := by
+  exact (coincidence_assert q σ _ fun w hw =>
+    (State.subst_of_ne σ v w n fun hwv => hq (hwv ▸ hw)).symm).symm
+
+/-- 기존 합성형 선언 규칙의 안쪽 사전조건. `p`와 `e`의 신선함은 이 보조 규칙에 쓰인다. -/
+theorem newvar_init {p : Assert V} {v : V} {e : IntExp V}
+    (hp : v ∉ p.fv) (he : v ∉ e.fv) (σ : State V) (h : p.eval σ) :
+    (p ⋀ .cmp .eq (.var v) e).eval (σ[v := e.eval σ]) := by
+  refine ⟨(Assert.eval_update_of_notMem hp σ _).mpr h, ?_⟩
+  change (σ[v := e.eval σ]) v = e.eval (σ[v := e.eval σ])
+  rw [State.subst_self]
+  exact coincidence_intExp e σ _ fun w hw =>
+    (State.subst_of_ne σ v w _ fun hwv => he (hwv ▸ hw)).symm
+
+/-- 대입 뒤 본체의 유도에서 빈 앞부분의 DC로 변수 선언을 얻는다. -/
+theorem Hoare.newvar_comp [HasFresh V] {p r q : Assert V} {v : V}
+    {e : IntExp V} {c : Comm V} (hq : v ∉ q.fv)
+    (ha : Hoare p (.assign v e) r) (hc : Hoare r c q) :
+    Hoare p (.newvar v e c) q :=
+  Hoare.dc [] hq (Hoare.seq ha hc)
+
+/-- 기존 합성형 선언 API. AS·SQ·DC로 유도되며 `p`, `e`의 신선함은 초기 단언에만 쓰인다. -/
+theorem Hoare.newvar [HasFresh V] {p q : Assert V} {v : V}
+    {e : IntExp V} {c : Comm V} (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
+    (h : Hoare (p ⋀ .cmp .eq (.var v) e) c q) : Hoare p (.newvar v e c) q := by
+  refine Hoare.newvar_comp hq (Hoare.strengthen ?_ (Hoare.assign _ v e)) h
+  intro σ hpσ
+  exact (substitution_single _ v e σ).mpr (newvar_init hp he σ hpσ)
 
 /-! ## 4. 첫 유도
 

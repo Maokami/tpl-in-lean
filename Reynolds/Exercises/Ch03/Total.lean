@@ -82,9 +82,14 @@ inductive HoareT [HasFresh V] : Assert V → Comm V → Assert V → Prop where
       (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e)) :
       HoareT (i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)) c (i ⋀ .cmp .lt e (.var z)) →
       HoareT i (.wh b c) (i ⋀ .not b.toAssert)
-  | newvar {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-      (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv) :
-      HoareT (p ⋀ .cmp .eq (.var v) e) c q → HoareT p (.newvar v e c) q
+  | dc (s : List (Comm V)) {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+      (hq : v ∉ q.fv) :
+      HoareT p (Comm.seqs s (.seq (.assign v e) c)) q →
+      HoareT p (Comm.seqs s (.newvar v e c)) q
+  /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
+  | rename {p q : Assert V} {c c' : Comm V} :
+      Comm.PrefixRename c c' → HoareT p c q → HoareT p c' q
+  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
   | conseq {p p' q q' : Assert V} {c : Comm V} :
       Stronger p' p → HoareT p c q → Stronger q q' → HoareT p' c q'
 
@@ -97,6 +102,21 @@ theorem HoareT.strengthen [HasFresh V] {p p' q : Assert V} {c : Comm V}
 theorem HoareT.weaken [HasFresh V] {p q q' : Assert V} {c : Comm V}
     (h : HoareT p c q) (hq : Stronger q q') : HoareT p c q' :=
   HoareT.conseq (Stronger.refl p) h hq
+
+/-- 대입 뒤 본체의 유도에서 빈 앞부분의 DC로 변수 선언을 얻는다. -/
+theorem HoareT.newvar_comp [HasFresh V] {p r q : Assert V} {v : V}
+    {e : IntExp V} {c : Comm V} (hq : v ∉ q.fv)
+    (ha : HoareT p (.assign v e) r) (hc : HoareT r c q) :
+    HoareT p (.newvar v e c) q :=
+  HoareT.dc [] hq (HoareT.seq ha hc)
+
+/-- 기존 합성형 선언 API. AS·SQ·DC로 유도되며 `p`, `e`의 신선함은 초기 단언에만 쓰인다. -/
+theorem HoareT.newvar [HasFresh V] {p q : Assert V} {v : V}
+    {e : IntExp V} {c : Comm V} (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
+    (h : HoareT (p ⋀ .cmp .eq (.var v) e) c q) : HoareT p (.newvar v e c) q := by
+  refine HoareT.newvar_comp hq (HoareT.strengthen ?_ (HoareT.assign _ v e)) h
+  intro σ hpσ
+  exact (substitution_single _ v e σ).mpr (newvar_init hp he σ hpσ)
 
 /-! ## 3. 규칙마다 건전성 — 종료를 얹는다 -/
 
@@ -198,21 +218,10 @@ theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z 
 theorem newvarT_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
     (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
     (h : ［p ⋀ .cmp .eq (.var v) e］c［q］) : ［p］(Comm.newvar v e c)［q］ := by
+  apply (dc_sound [] p.eval q.eval v e c (Assert.eval_update_of_notMem hq)).2
+  have hs := sq_sound.2 (as_sound (p ⋀ .cmp .eq (.var v) e).eval v e).2 h
   intro σ hpσ
-  have hp' : ⟦p⟧ₐ (σ[v := ⟦e⟧ₑ σ]) :=
-    (coincidence_assert p σ _ fun w hw =>
-      (State.subst_of_ne σ v w _ fun (hwv : w = v) => hp (hwv ▸ hw)).symm).mp hpσ
-  have hv : ⟦Assert.cmp .eq (.var v) e⟧ₐ (σ[v := ⟦e⟧ₑ σ]) := by
-    change (σ[v := ⟦e⟧ₑ σ]) v = ⟦e⟧ₑ (σ[v := ⟦e⟧ₑ σ])
-    rw [State.subst_self]
-    exact coincidence_intExp e σ _ fun w hw =>
-      (State.subst_of_ne σ v w _ fun (hwv : w = v) => he (hwv ▸ hw)).symm
-  obtain ⟨ρ, hρ, hqρ⟩ := h _ ((Assert.eval_and _ _ _).mpr ⟨hp', hv⟩)
-  refine ⟨ρ[v := σ v], ?_, ?_⟩
-  · change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some (ρ[v := σ v])
-    rw [hρ]; rfl
-  · exact (coincidence_assert q ρ (ρ[v := σ v]) fun w hw =>
-      (State.subst_of_ne ρ v w _ fun (hwv : w = v) => hq (hwv ▸ hw)).symm).mp hqρ
+  exact hs σ (newvar_init hp he σ hpσ)
 
 /-! ## 4. 건전성 -/
 
@@ -226,7 +235,9 @@ theorem HoareT.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
   | seq _ _ ih₀ ih₁ => exact seqT_sound ih₀ ih₁
   | ite _ _ ih₀ ih₁ => exact iteT_sound ih₀ ih₁
   | wh hzi hzb hzc hze hnonneg _ ih => exact whT_sound hzi hzb hzc hze hnonneg ih
-  | «newvar» hp hq he _ ih => exact newvarT_sound hp hq he ih
+  | dc s hq _ ih =>
+    exact (dc_sound s _ _ _ _ _ (Assert.eval_update_of_notMem hq)).2 ih
+  | rename hr _ ih => exact (rn_sound _ _ hr).2 ih
   | conseq hp _ hq ih => exact TotalCorrect.conseq hp ih hq
 
 /-- 전체 정확성의 유도는 부분 정확성의 명세도 준다 (§3.1 `TotalCorrect.toPartial` 과 같은
