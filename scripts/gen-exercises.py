@@ -57,6 +57,20 @@ EXERCISES = ROOT / "Reynolds" / "Exercises"
 # 시작 마커부터 다음 마커 직전까지를 스텁으로 갈아 끼운다.
 # 마커는 파일 안에서 유일해야 한다.
 BLANKS: list[tuple[str, str, str, str]] = [
+    (
+        "Ch01/Depth/LogicFold.lean",
+        "theorem Assert.eval_eq_foldA",
+        "/-- Reynolds §1.4",
+        """theorem Assert.eval_eq_foldA {V : Type u} [DecidableEq V] (p : Assert V) :
+    p.eval = (logicEvalAlg V).foldA p := by
+  -- 먼저 볼 것: 바로 위 IntExp.eval_eq_foldE의 완성 증명.
+  -- 힌트 1: 단언에 구조적 귀납법을 적용한다. cmp에는 정수 식 보조정리가 필요하다.
+  -- 힌트 2: quant에서는 q를 나눈 뒤, 본문의 함수 등식을 갱신 상태에서도 쓴다.
+  -- LogicAlg.initial이나 다른 미완성 연습을 사용할 필요가 없다.
+  sorry
+
+""",
+    ),
     # ── §1.4 자유 변수와 일치 정리
     #
     # `coincidence_intExp` (명제 1.1a)는 채점 대상이 아니다. `coincidence_assert` 와

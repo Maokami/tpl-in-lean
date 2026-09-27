@@ -9,5 +9,6 @@ public import ReynoldsTests.CategoryBridge
 public import ReynoldsTests.Ch01
 public import ReynoldsTests.Ch02
 public import ReynoldsTests.Ch03
+public import ReynoldsTests.LogicFold
 
 /-! # 테스트 루트 모듈 (`lake test`) -/

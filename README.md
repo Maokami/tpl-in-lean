@@ -164,6 +164,7 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | §1.4 치환 | [`Substitution.lean`](./Reynolds/Answers/Ch01/Substitution.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 대수와 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 두 정렬 초기성 | [`Depth/Algebra.lean`](./Reynolds/Answers/Ch01/Depth/Algebra.lean) | [#48](../../pull/48) | `ch01-depth-logic-initiality` (병합 후) |
+| 심화 A · 의미와 자유 변수의 유일한 접기 | [`Depth/LogicFold.lean`](./Reynolds/Answers/Ch01/Depth/LogicFold.lean) | 준비 중 | `ch01-depth-logic-fold` (병합 후) |
 | 심화 B · 시그니처 함자와 Lambek | [`Depth/SignatureFunctor.lean`](./Reynolds/Answers/Ch01/Depth/SignatureFunctor.lean) | [#1](../../pull/1) | 〃 |
 | 심화 A · 치환과 bind | [`Depth/TermMonad.lean`](./Reynolds/Answers/Ch01/Depth/TermMonad.lean) | [#1](../../pull/1) | 〃 |
 | 심화 C · 대수 범주와 Mathlib 초기성 | [`Depth/CategoryBridge.lean`](./Reynolds/Answers/Ch01/Depth/CategoryBridge.lean) | [#52](../../pull/52) | `ch01-depth-category-bridge` (병합 후) |
