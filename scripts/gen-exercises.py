@@ -1571,20 +1571,14 @@ BLANKS: list[tuple[str, str, str, str]] = [
     ),
     (
         "Ch03/Examples/FastExp.lean",
-        "theorem expBody_ok",
+        "theorem exp_even_arithmetic",
         "-- ANCHOR_END: expBodyOk",
-        """theorem expBody_ok :
-    PartialCorrectS (fun σ => expInv σ ∧ ⟦⟪ k > 0 ⟫ᵇ⟧ᵇ σ = true)
-      (.ite ⟪ k rem 2 = 1 ⟫ᵇ expOdd expEven) expInv := by
-  -- 먼저 볼 것: `Semantic.lean` 의 `PartialCorrectS.ite`, Mathlib 의 `pow_succ` · `pow_two` ·
-  --            `pow_mul` · `Nat.two_mul_div_two_of_even` · `Nat.even_iff`.
-  -- 힌트 1: `refine PartialCorrectS.ite ?_ ?_` 로 두 갈래를 나눈다. 각 갈래는 반복이 없어
-  --         `obtain rfl := Flat.some.inj hτ` 로 결과 상태가 드러난다.
-  -- 힌트 2: 조건들을 `simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk]` 로
-  --         `m` 에 대한 사실(`m % 2 = 1 ∧ 0 < m`, 또는 `m % 2 = 0`)로 바꾼다 (`omega`).
-  -- 힌트 3: 홀수 갈래 — 증인 `m - 1`. `m = j + 1` 로 쓰면 `y · x · x^j = y · x^(j+1)`.
-  -- 힌트 4: 짝수 갈래 — 증인 `m / 2`. `(x · x)^(m/2) = x^(2 · (m/2)) = x^m`.
-  -- 힌트 5: 등식은 먼저 `key` 로 따로 증명하고 `simpa [State.subst_def, Function.update, …] using key`.
+        """theorem exp_even_arithmetic (y z : Int) (m : Nat) (heven : m % 2 = 0) (hpos : 0 < m) :
+    y * (z * z) ^ (m / 2) = y * z ^ m ∧ m / 2 < m := by
+  -- 곱 보존과 지수 감소를 나누어 증명한다.
+  -- `pow_two`, `pow_mul`, `Nat.two_mul_div_two_of_even`, `Nat.even_iff`를 연결한다.
+  -- 양의 지수를 반으로 줄이면 작아진다는 사실은 자연수 산술이다.
+  -- 이 연습은 미완성 AS·SQ·CD·WHT·DC 정리에 의존하지 않는다.
   sorry
 
 """,

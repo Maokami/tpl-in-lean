@@ -173,53 +173,108 @@ theorem fib_total_correct :
 `§3.6 fib-step`에서 확인한다. 실행 회귀 검사는 `n = 0, 1, 2, 10`의 결과와
 `k`, `g`, `t`의 복원을 함께 확인한다.
 
-# 빠른 거듭제곱
+# §3.7 빠른 거듭제곱
 %%%
 tag := "ch03-fastexp"
 file := "ch03-fastexp"
 number := false
 %%%
 
+목표는 `n ≥ 0`인 입력에서 `y = x^n`을 얻는 것이다. 먼저 `y*x^k = x^n`을
+불변식으로 잡으면 `y := 1`, `k := n`으로 시작하고 `k = 0`에서 끝낼 수 있다.
+본체를 `k := k−1; y := y*x`로 채우면 한 바퀴마다 지수가 하나씩 줄어든다.
+
+지수를 한 번에 반으로 줄이려면 밑도 바꿀 수 있어야 한다. 입력 `x`를 보존하면서
+변경할 밑 `z`를 따로 두면 불변식은 `y*z^k = x^n ∧ k ≥ 0`이 된다.
+`z := x`로 초기화하면 앞의 시작 조건을 유지하고, 종료 시 `z^0 = 1`도 그대로 쓴다.
+
 ```anchor expProg (module := Reynolds.Answers.Ch03.Examples.FastExp)
-/-- 초기화 — `y := 1`, `x := a`, `k := n`. -/
-def expInit : Comm String := ⟪ y := 1; x := a; k := n ⟫ᶜ
+/-- 책 p73의 짝수 가지. 지수를 반으로 줄인 뒤 밑을 제곱한다. -/
+def expEven : Comm String := ⟪ k := k ÷ 2; z := z × z ⟫ᶜ
 
-/-- 홀수 갈래 — `y` 에 `x` 를 한 번 곱해 넣고 지수를 하나 줄인다. -/
-def expOdd : Comm String := ⟪ y := y × x; k := k - 1 ⟫ᶜ
+/-- 책 p73의 홀수 가지. 지수를 하나 줄인 뒤 결과에 밑을 곱한다. -/
+def expOdd : Comm String := ⟪ k := k - 1; y := y × z ⟫ᶜ
 
-/-- 짝수 갈래 — 밑을 제곱하고 지수를 반으로. -/
-def expEven : Comm String := ⟪ x := x × x; k := k ÷ 2 ⟫ᶜ
+/-- 짝수이면 반감하고, 아니면 하나 줄이는 본체. -/
+def expBody : Comm String := .ite ⟪ k rem 2 = 0 ⟫ᵇ expEven expOdd
 
-/-- 빠른 거듭제곱. -/
-def expProg : Comm String :=
-  .seq expInit (.wh ⟪ k > 0 ⟫ᵇ (.ite ⟪ k rem 2 = 1 ⟫ᵇ expOdd expEven))
+/-- 책 p72의 프로그램 틀. 지역 `k`, `z`의 바깥 값은 종료 뒤 복원된다. -/
+def expSchema (B : Comm String) : Comm String :=
+  .newvar "k" (.var "n") (.newvar "z" (.var "x")
+    (.seq ⟪ y := 1 ⟫ᶜ (.wh ⟪ k ≠ 0 ⟫ᵇ B)))
 
-/-- 불변식 `n ≥ 0 ∧ k ≥ 0 ∧ y · x^k = a^n`. `k` 를 자연수 `m` 으로 붙든다. -/
+/-- §3.7의 빠른 거듭제곱 프로그램. 입력은 `x`, `n`이고 출력은 `y`다. -/
+def expProg : Comm String := expSchema expBody
+
+/-- 책의 불변식. 자연수 증인 `m`이 지수 `k`의 비음수성을 함께 표현한다. -/
 def expInv (σ : State String) : Prop :=
-  0 ≤ σ "n" ∧ ∃ m : ℕ, σ "k" = m ∧ σ "y" * σ "x" ^ m = σ "a" ^ (σ "n").toNat
+  ∃ m : Nat, σ "k" = m ∧ σ "y" * σ "z" ^ m = σ "x" ^ (σ "n").toNat
 ```
 
-§1.1의 `IntOp`에 `÷`와 `rem`이 있다(§2.7의 유클리드 나눗셈). `k ≥ 0`이고 나누는 수가 2이니
-수학의 몫, 나머지와 같다. 한 바퀴는 두 갈래다.
+`expInv`의 자연수 증인 `m`은 `k ≥ 0`을 표현하면서 Lean의 자연수 지수 연산에
+연결한다. 음수 밑도 허용한다. 지수가 0이면 `0^0 = 1`을 포함해 결과가 1이다.
 
-: 홀수
+## 본체의 계약부터 정하기
 
-  `y · x · x^(m-1) = y · x^m`. `m = j + 1`로 쓰고 `pow_succ`를 쓴다.
+책 p72는 아직 정하지 않은 본체 `B`에 필요한 조건을 먼저 쓴다. `B`는 실행을
+끝내고 불변식을 보존하며, 실행 전 값을 나타내는 임의의 정수 `old`보다 `k`를
+작게 만들어야 한다. 다음 정리는 그 계약만으로 전체 프로그램의 정당성을 조립한다.
 
-: 짝수
+```anchor stmtExpSchemaTotal (module := Reynolds.Answers.Ch03.Examples.FastExp)
+/-- 책 p72의 증명 틀. 본체의 종료·불변식 보존·변항 감소만 알면 전체 프로그램이 옳다. -/
+theorem exp_schema_total (B : Comm String)
+    (hB : ∀ old : Int, TotalCorrectS
+      (fun σ => expInv σ ∧ ⟦⟪ k ≠ 0 ⟫ᵇ⟧ᵇ σ = true ∧ σ "k" = old)
+      B (fun σ => expInv σ ∧ σ "k" < old)) :
+    TotalCorrectS (fun σ => 0 ≤ σ "n") (expSchema B)
+      (fun τ => τ "y" = τ "x" ^ (τ "n").toNat)
+```
 
-  `(x · x)^(m/2) = x^(2 · (m/2)) = x^m`. `pow_mul`을 쓰고 `2 · (m/2) = m`을 보인다.
+WHT에 변항 `k`를 넣으면 반복의 종료를 얻는다. 초기화를 앞에 붙인 뒤 DC로
+`z`를 지역화할 때는 `k := n`이 접두 명령으로 남는다. 이어 DC로 `k`를 지역화한다.
+사후조건은 `k`, `z`를 보지 않으므로 두 지역 변수의 바깥 값을 복원해도 유지된다.
 
-```anchor expCorrect (module := Reynolds.Answers.Ch03.Examples.FastExp)
-/-- **빠른 거듭제곱은 옳다.** 끝나면 `y = a^n`. 루프가 끝난 자리에서 `k = 0` 이다. -/
+## 두 대입열로 계약 채우기
+
+양의 지수에서 `k := k−1; y := y*z`는 항상 계약을 만족한다. 필요한 등식은
+`(y*z)*z^(k−1) = y*z^k`이고, 감소량은 1이다. 이 후보를 모든 바퀴에 쓰면
+지수만큼 반복하므로, 짝수일 때 더 큰 감소를 허용한다.
+
+짝수 `k`에 대해서는 `(z*z)^(k/2) = z^k`이다. 따라서 `k := k÷2; z := z*z`도
+누적 곱을 보존한다. 활성 상태에서는 `k > 0`이므로 `k÷2 < k`까지 얻는다.
+책의 `even k`는 기존 언어의 `k rem 2 = 0`으로 표현했다. 제수는 항상 2이고
+지수는 비음수이므로 유클리드 나눗셈을 그대로 사용할 수 있다.
+
+```anchor stmtExpEvenArithmetic (module := Reynolds.Answers.Ch03.Examples.FastExp)
+/-- 짝수 반감의 두 의무: 누적 곱을 보존하고 양의 지수를 엄격히 줄인다. -/
+@[exercise "§3.7 fastexp-even" 2]
+theorem exp_even_arithmetic (y z : Int) (m : Nat) (heven : m % 2 = 0) (hpos : 0 < m) :
+    y * (z * z) ^ (m / 2) = y * z ^ m ∧ m / 2 < m
+```
+
+이 산술 의무 하나가 직접 풀 연습이다. `pow_mul`, `pow_two`와 짝수의 몫 관계를
+연결하고, 변항의 감소를 별도로 확인한다. AS와 SQ는 각 대입열의 계약을 만들고,
+CD가 짝수와 홀수 가지를 합친다. 완성된 본체를 앞의 프로그램 틀에 대입하면 된다.
+
+```anchor stmtExpTotalCorrect (module := Reynolds.Answers.Ch03.Examples.FastExp)
+/-- §3.7 전체 정확성. 본체 계약을 채웠으므로 종료를 따로 가정하지 않는다. -/
+theorem exp_total_correct :
+    TotalCorrectS (fun σ => 0 ≤ σ "n") expProg
+      (fun τ => τ "y" = τ "x" ^ (τ "n").toNat)
+```
+
+```anchor stmtExpCorrect (module := Reynolds.Answers.Ch03.Examples.FastExp)
+/-- 전체 정확성에서 얻는 부분 정확성. 종료한 결과는 `x^n`이다. -/
 theorem exp_correct :
-    PartialCorrectS (fun σ => 0 ≤ σ "n") expProg fun τ => τ "y" = τ "a" ^ (τ "n").toNat := by
-  refine PartialCorrectS.seq expInit_ok
-    (PartialCorrectS.conseq (fun _ h => h) (PartialCorrectS.wh expBody_ok) ?_)
-  rintro τ ⟨⟨hn, m, hk, hinv⟩, hb⟩
-  have hm : m = 0 := by
-    simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool, hk] at hb
-    omega
-  subst hm
-  simpa using hinv
+    PartialCorrectS (fun σ => 0 ≤ σ "n") expProg
+      (fun τ => τ "y" = τ "x" ^ (τ "n").toNat)
 ```
+
+정답의 조립 과정은 `Reynolds/Answers` 아래의 `Ch03/Examples/FastExp.lean`에 있다.
+실습 파일은 `Reynolds/Exercises` 아래의 같은 경로이며 연습 이름은
+`§3.7 fastexp-even`이다. 이 연습은 미완성 WHT나 DC 정리를 호출하지 않는다.
+
+실행 검사는 `(x,n) = (0,0), (−2,3), (−2,4), (3,13)`의 결과뿐 아니라
+입력 `x`, `n`의 보존과 지역 `k`, `z`의 복원도 확인한다. 위 정리들은 무한 정밀도
+정수에서 결과와 종료를 보인다. 책의 로그 시간 설명을 별도의 비용 의미론으로
+형식화한 것은 아니다.
