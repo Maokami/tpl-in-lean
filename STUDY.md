@@ -37,6 +37,7 @@
 | 3 | §1.3 타당성과 추론 | `Ch01/Validity.lean` | 완료 |
 | 4 | §1.4 결합과 치환 | `Ch01/FreeVars.lean`, `Substitution.lean` | 완료 |
 | 5 | 1장 연습문제 | `Ch01/Ex.lean`, `Ex/Summation.lean` | 완료 |
+| 선택 · 5주 이후 | 두 정렬 대수의 범주와 초기성 | `Ch01/Depth/CategoryBridge.lean` | 구현·문서 완료 |
 | 6 | §2.1~§2.2 구문과 의미 방정식 | `Ch02/Syntax.lean`, `Semantics.lean` | 구현·문서 완료 |
 | 7 | §2.3 도메인과 연속 함수 | `Ch02/Domain.lean`, `Domain/*` | 구현·문서 완료 |
 | 8 | §2.4 최소 고정점과 연료 해석기 | `Ch02/Fixpoint.lean`, `Eval.lean`, `Interpreter.lean` | 구현·문서 완료 |

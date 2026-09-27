@@ -5,6 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 module
 
+public import ReynoldsTests.CategoryBridge
 public import ReynoldsTests.Ch01
 public import ReynoldsTests.Ch02
 public import ReynoldsTests.Ch03
