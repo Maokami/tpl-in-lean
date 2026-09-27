@@ -237,6 +237,91 @@ noncomputable def Comm.eval : Comm V → State V → SigmaBot V
 `Comm.eval`은 `noncomputable`이다. 평평한 사슬에서 언젠가 종료 결과가 나타나는지를
 일반적으로 계산할 수 없기 때문이다. 증명에 쓸 뜻과 실제로 돌릴 해석기를 분리해야 한다.
 
+# 실제 명령을 펼쳐 `wₙ`을 만든다
+%%%
+tag := "ch02-approx-commands"
+file := "ch02-approx-commands"
+number := false
+%%%
+
+Reynolds pp. 36–37은 의미 함수의 반복에 대응하는 명령 구문도 만든다.
+먼저 항상 발산하는 명령을 놓고, 다음 단계마다 조건과 본체 한 번을 앞에 붙인다.
+
+```anchor Comm.approx (module := Reynolds.Answers.Ch02.Approximation)
+/-- Reynolds pp. 36–37의 `wₙ`. 본체의 반복은 건드리지 않고 바깥 반복만 `n`단계 펼친다. -/
+def Comm.approx (b : BoolExp V) (c : Comm V) : ℕ → Comm V
+  | 0 => .wh .tru .skip
+  | n + 1 => .ite b (.seq c (Comm.approx b c n)) .skip
+```
+
+`w₀`는 조건을 보기도 전에 발산한다. `w₁`은 조건이 처음부터 거짓일 때만 종료한다.
+본체를 한 번 실행하고 종료하는 입력은 `w₂`부터 결과를 갖는다.
+각 명령을 해석하면 구문의 한 단계가 정확히 `F`의 한 번 적용이 된다.
+
+```anchor Comm.approx_eval_iterate (module := Reynolds.Answers.Ch02.Approximation)
+/-- Reynolds p. 37. 구문 근사의 뜻은 의미 연산자 `F`를 바닥에 `n`번 적용한 값이다. -/
+theorem Comm.approx_eval_iterate (b : BoolExp V) (c : Comm V) (n : ℕ) :
+    (Comm.approx b c n).eval = (whileF b c.eval)^[n] ⊥ := by
+  induction n with
+  | zero => exact Comm.spin_eval
+  | succ n ih =>
+      change whileF b c.eval (Comm.approx b c n).eval = _
+      rw [ih, Function.iterate_succ_apply']
+```
+
+`Comm.approxChain`은 이 의미들을 사슬로 묶는다. `Comm.eval_while_eq_approx_lub`가
+그 사슬의 극한과 `while`의 의미를 연결한다. 본체에 또 `while`이 있어도 이 대응은 같다.
+다만 본체의 뜻은 완전한 `c.eval`이므로, 중첩 반복까지 연료를 제한하는 `Comm.run n`과는
+단계별로 구별해야 한다.
+
+# 합산 반복문의 근사를 손으로 계산한다
+%%%
+tag := "ch02-sum-approximation"
+file := "ch02-sum-approximation"
+number := false
+%%%
+
+책 pp. 37–38의 예제는 `while x ≠ 0 do (x := x - 1; y := y + x)`다.
+처음 `x = 3`, `y = 10`이면 본체는 `(2,12)`, `(1,13)`, `(0,13)` 순서로 상태를 바꾼다.
+그 뒤 조건이 거짓인지 확인하는 검사까지 필요하다.
+
+* `w₀`, `w₁`, `w₂`, `w₃`의 결과는 `Flat.none`이다.
+* `w₄` 이후에는 `x = 0, y = 13`인 같은 종료 상태를 얻는다.
+
+`SumApproximation.lean`의 `sumApprox n`은 이 본체의 계산을 직접 적은 함수다.
+`sumApprox_eq_approx_eval`이 그 값과 실제 명령 `wₙ`의 의미를 연결한다.
+연습 `sumApprox_eq`에서는 모든 정수 상태에 대해 다음 식을 증명한다.
+
+```
+Fⁿ(⊥)(σ) = if 0 ≤ σ(x) < n
+           then some (σ[x := 0][y := σ(y) + σ(x)·(σ(x)−1)/2])
+           else none
+```
+
+핵심은 `n`에 대한 귀납이다. `x ≠ 0`에서 한 번 감소한 입력의 조건
+`0 ≤ x−1 < n`은 `0 ≤ x < n+1`과 같다. 결과 상태의 합산값도 같아야 하며,
+그 부분은 `triangle_step`과 `sumResult_step`이 완성 자료로 제공한다.
+학생은 상태를 바꾸어 귀납 가설을 적용하고, 종료 검사 횟수의 경계를 증명한다.
+
+`x ≥ 0`이면 어느 유한 단계부터 결과가 같아진다. `x < 0`이면 모든 단계가 바닥이다.
+`sumLoop_eval_of_approx`는 이 두 사슬의 최소 상계를 계산한다. 마지막 정리는 실제로
+증명한 유한 근사식을 사용하므로, 추가 가설 없이 반복문 전체의 뜻을 준다.
+
+```anchor sumLoop_eval_closed (module := Reynolds.Answers.Ch02.SumApproximation)
+/--
+Reynolds p. 38. 합산 반복문의 최소 고정점은 `x ≥ 0`에서만 종료하는 이 전체 상태 함수다.
+유한 근사식은 `sumApprox_eq`로 증명했으므로 추가 가설이 없다.
+이 정리는 그 연습에 의존하는 결론이며 별도 채점 연습으로 두지 않는다.
+-/
+theorem sumLoop_eval_closed (σ : State String) :
+    sumLoop.eval σ = if 0 ≤ σ "x" then .some (sumResult σ) else .none :=
+  sumLoop_eval_of_approx sumApprox_eq σ
+```
+
+직접 확인할 입력은 `x = 0`, `x = 3`, `x = -1`이다. 각각 처음 검사에서 종료,
+세 번 본체 실행 뒤 종료, 영원히 0에서 멀어지는 경우를 보여 준다.
+`x`, `y` 이외의 변수도 하나 넣어 `sumResult`가 그 변수의 값을 보존하는지 확인해 보자.
+
 # 연료 해석기는 유한 근사를 실행한다
 %%%
 tag := "ch02-interpreter"
@@ -321,15 +406,19 @@ file := "ch02-practice"
 number := false
 %%%
 
-현재 2장에는 §2.2~§2.4의 채점 대상이 16개 있다.
+현재 §2.2~§2.4 본문 파일에는 채점 대상이 20개 있다.
 
 * `Semantics.lean` — 불 식과 단언의 일치, 리프팅과 `bind`, 풀기 방정식의 비유일성
 * `Domain.lean` — 연속이면 단조, 명제 2.1, 단조지만 연속이 아닌 반례
 * `Domain/Lifting.lean` — 평평한 도메인의 연속성, 명제 2.4
+* `Domain/LiftingLaws.lean` — 명제 2.4(a–e)의 이산 입력 특수화, 다섯 독립 연습
 * `Domain/FunctionSpace.lean` — 명제 2.2와 2.3
 * `Fixpoint.lean` — 고정점, 최소성, Scott 귀납법
 * `Eval.lean` — 연속성 계산 연습 2.4
-* `Interpreter.lean` — 연료 단조성
+* `SumApproximation.lean` — 책 pp. 37–38의 유한 근사 닫힌 꼴
+
+`Approximation.lean`의 구문·의미 대응, 합산 예제의 극한 계산,
+`Interpreter.lean`의 연료 단조성과 적합성은 완성 자료로 읽는다.
 
 `Reynolds/Exercises/Ch02/`에서 `sorry`를 채운 뒤 다음 명령으로 상태를 확인한다.
 
@@ -337,6 +426,7 @@ number := false
 lake exe grade --chapter 2
 ```
 
-§2.5~§2.8과 책 연습 2.1~2.10 전체는 아직 구현 범위가 아니다. 현재 연습 목록의
+§2.5~§2.8과 책 연습 2.1~2.10의 실습은 뒤의 파일로 이어진다.
 “§2.2” 같은 식별자는 해당 절의 형식화를 익히기 위해 저장소가 둔 연습이고,
-“Prop 2.1”과 “Ex 2.4”는 책의 번호에 직접 대응한다.
+“Prop 2.1”과 “Ex 2.4”는 책의 번호다. `discrete`가 붙은 명제 2.4 연습은 책의
+일반 명제를 이산 입력에 특수화했다는 표시다.

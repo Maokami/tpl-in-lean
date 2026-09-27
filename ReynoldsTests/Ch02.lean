@@ -7,8 +7,11 @@ module
 
 public import Reynolds.Answers.Ch02.Interpreter
 public import Reynolds.Answers.Ch02.FullAbstraction
+public import Reynolds.Answers.Ch02.Domain.LiftingLaws
+public import Reynolds.Answers.Ch02.SumApproximation
 -- `#guard`가 계산에 사용하는 정의를 메타 문맥에도 공개한다.
 public meta import Reynolds.Answers.Ch02.Interpreter
+public meta import Reynolds.Answers.Ch02.SumApproximation
 public meta import Reynolds.Answers.Ch02.Notation
 public meta import Reynolds.Answers.Ch02.Semantics
 public meta import Reynolds.Answers.Ch01.Semantics
@@ -115,5 +118,34 @@ example : (Comm.seq (.assign "x" (.num 3)) .skip).eval (State.const 0) =
 
 -- 명백히 발산하는 프로그램은 유한 연료 1000으로도 결과를 내지 않는다.
 #guard ((⟪ while tt do skip ⟫ᶜ : Comm String).run 1000 (State.const 0)).isNone
+
+/-! ## 책 pp. 37–38의 근사 경계와 전체 상태 -/
+
+open SumApproximation
+
+-- y=10, z=99에서 x만 바꾼다. 책의 결과가 관계없는 변수도 보존하는지 확인한다.
+/-- 합산 근사 회귀 검사의 초기 상태. `z`는 보존 여부를 확인하는 변수다. -/
+def sumInput (x : Int) : State String :=
+  (State.const 99)["x" := x]["y" := (10 : Int)]
+
+/-- 합산 근사의 `x`, `y`, `z` 값을 함께 관찰한다. -/
+def sumObserve (n : Nat) (x : Int) : Flat (Int × Int × Int) :=
+  (sumApprox n (sumInput x)).map fun σ ↦ (σ "x", σ "y", σ "z")
+
+#guard sumObserve 0 0 == .none
+#guard sumObserve 1 0 == .some (0, 10, 99)
+#guard sumObserve 3 3 == .none
+#guard sumObserve 4 3 == .some (0, 13, 99)
+#guard sumObserve 6 3 == .some (0, 13, 99)
+#guard sumObserve 8 (-1) == .none
+
+-- 음수 입력의 발산은 유한한 테스트로 추측하지 않고 가설 없는 극한 정리로 확인한다.
+example : sumLoop.eval (sumInput (-1)) = .none := by
+  rw [sumLoop_eval_closed]
+  simp [sumInput, State.subst_def, Function.update]
+
+-- 이산 입력을 평평하지 않은 멱집합 도메인으로 보내도 source-lifting이 가능하다.
+example : FlatLift.sourceLift (fun n : Nat ↦ ({n} : Set Nat)) .none = ∅ := rfl
+example : FlatLift.sourceLift (fun n : Nat ↦ ({n} : Set Nat)) (.some 2) = {2} := rfl
 
 end Reynolds.Answers.Ch02

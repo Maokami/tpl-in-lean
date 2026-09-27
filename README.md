@@ -192,6 +192,7 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | §2.3 리프팅과 함수 공간 | [`Domain/Lifting.lean`](./Reynolds/Answers/Ch02/Domain/Lifting.lean) · [`Domain/FunctionSpace.lean`](./Reynolds/Answers/Ch02/Domain/FunctionSpace.lean) | [#15](../../pull/15) | [`ch02-s03b`](../../tree/ch02-s03b) |
 | §2.4 최소 고정점 정리와 `while`의 뜻 | [`Fixpoint.lean`](./Reynolds/Answers/Ch02/Fixpoint.lean) · [`Eval.lean`](./Reynolds/Answers/Ch02/Eval.lean) | [#16](../../pull/16) | [`ch02-s04a`](../../tree/ch02-s04a) |
 | §2.4 연료 해석기와 적합성 | [`Interpreter.lean`](./Reynolds/Answers/Ch02/Interpreter.lean) | [#17](../../pull/17) | [`ch02-s04b`](../../tree/ch02-s04b) |
+| §2.3–2.4 이산 리프팅 법칙 · 근사 명령 · 합산 계산 | [`LiftingLaws.lean`](./Reynolds/Answers/Ch02/Domain/LiftingLaws.lean) · [`Approximation.lean`](./Reynolds/Answers/Ch02/Approximation.lean) · [`SumApproximation.lean`](./Reynolds/Answers/Ch02/SumApproximation.lean) | 게시 예정 | `ch02-s03c-s04c` (병합 후) |
 | §2.5 자유 변수와 명제 2.6 | [`FreeVars.lean`](./Reynolds/Answers/Ch02/FreeVars.lean) | [#21](../../pull/21) | [`ch02-s05a`](../../tree/ch02-s05a) |
 | §2.5 치환 · 별칭 · 지역 변수 이름 바꾸기 | [`Substitution.lean`](./Reynolds/Answers/Ch02/Substitution.lean) | [#22](../../pull/22) | [`ch02-s05b`](../../tree/ch02-s05b) |
 | §2.6 `for` 명령과 세 가지 결함 | [`Sugar.lean`](./Reynolds/Answers/Ch02/Sugar.lean) | [#23](../../pull/23) | [`ch02-s06a`](../../tree/ch02-s06a) |
@@ -207,6 +208,8 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | 연습 2.9 · 2.10 | [`Ex/ForRange.lean`](./Reynolds/Answers/Ch02/Ex/ForRange.lean) · [`Ex/DoTwice.lean`](./Reynolds/Answers/Ch02/Ex/DoTwice.lean) | [#33](../../pull/33) | [`ch02-ex09-ex10`](../../tree/ch02-ex09-ex10) |
 
 2장은 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-02.md`](./docs/chapter-02.md).
+현재 명제 2.4 실습은 이산 입력의 `Flat` 리프팅이다. 임의의 기존 순서를 보존하는
+일반 `P⊥` 구성과 리프팅 모나드 법칙은 별도 후속 PR에서 다룬다.
 
 ### 3장 명세와 그 증명 (Program Specifications and Their Proofs)
 
