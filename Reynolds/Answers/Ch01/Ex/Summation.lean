@@ -6,6 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Answers.Ch01.Semantics
+public import Reynolds.Answers.Ch01.Ex.Summation.Indefinite
 public import Reynolds.Meta.Exercise
 public import Cslib.Foundations.Data.HasFresh
 public import Mathlib.Data.Int.Interval
@@ -19,18 +20,10 @@ public meta import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 /-!
 # 연습 1.5 · 1.6 — 합 식 (summation expression)
 
-## 1.5 가 요구하는 것
+## 1.5가 요구하는 것 (p. 23)
 
-> *"Suppose that, when `v` is a variable and `e₀`, `e₁`, and `e₂` are integer expressions,
-> `Σv : e₀ to e₁. e₂` is an integer expression (called a summation expression) with the same
-> meaning as the conventional mathematical expression `Σ_{v=e₀}^{e₁} e₂`.
-> Describe this extension of predicate logic by giving:
-> (a) an abstract-grammar production;
-> (b) a semantic equation;
-> (c) a definition of the set of free variables and the effect of substitution on a summation
-> expression, in such a way that the propositions we have given about binding and substitution
-> remain true;
-> (d) sound and nontrivial inference rules for the summation expression."*
+유한 합 식을 더하고 (a) 문법, (b) 의미, (c) 자유 변수와 치환, (d) 건전한 추론 규칙을
+제시한다. (c)는 §1.4의 결합·치환 명제가 계속 성립하도록 정의할 것을 요구한다.
 
 ## 왜 축소판 언어를 따로 만드나
 
@@ -38,8 +31,8 @@ public meta import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 증명이 케이스 하나씩 늘어난다. 본문 연습이 전부 깨진다. 그래서 여기서는 `SExp` 라는 자족적인
 축소판을 세우고, 그 안에서 (a)~(d) 를 처음부터 다시 밟는다.
 
-축소판이라 잃는 것은 없다. 1.5 가 묻는 것은 **결합자가 정수 식 층에 들어올 때 무엇이 달라지는가**
-하나이고, 그건 `SExp` 에서 그대로 드러난다.
+**책과의 차이**: 합 식을 더한 정수 식의 성질을 다룬다. 이를 비교식과 양화 단언에도
+연결한 전체 술어 논리 언어는 여기서 새로 정의하지 않는다.
 
 ## 무엇이 새로운가
 
@@ -61,6 +54,7 @@ public meta import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 연습 파일이 빌드되지 않는다. 대신 **정의가 옳다는 증거**를 연습으로 냈다.
 
 - (c) 일치 정리가 합 식으로 확장해도 성립하는가 → `coincidence_sExp`
+- (c) 치환 정리의 합 식 판 → `Summation/Substitution.lean`의 `substitution_sExp`
 - (d) 건전한 추론 규칙 넷 → `sum_empty`, `sum_single`, `sum_split`, `sum_add`
 - 1.6 이름 바꾸기가 깨진다는 것 → `isum_renaming_fails`
 
@@ -334,8 +328,9 @@ Reynolds 는 "sound and nontrivial inference rules" 를 요구한다. §1.3 의 
 (Σv : e₀ to e₁. e₂) = 0
 ```
 
-건전성(soundness)은 §1.3 에서 정의한 대로 "모든 상태에서 뜻이 같다" 이므로,
-Lean 으로 옮기면 `∀ σ, ⟦…⟧ₛ σ = ⟦…⟧ₛ σ` 꼴의 정리가 된다. 아래 넷이 그것이다.
+§1.3의 건전성(soundness)은 전제의 타당성이 결론의 타당성을 보존한다는 뜻이다.
+여기서는 더 구체적으로, 임의의 상태에서 경계 조건이 성립하면 두 합 식의 값이 같음을
+보인다. 이를 모든 상태에 적용하면 등식 단언에 대한 건전한 추론 규칙을 얻는다.
 
 넷을 고른 기준은 Reynolds 의 "nontrivial" 이다. 빈 범위와 한 항짜리는 경계를 정하고,
 분리 규칙은 합을 귀납적으로 계산하게 해 주며, 선형성은 합을 대수적으로 다루게 해 준다.
@@ -409,142 +404,11 @@ theorem sum_add (e e' : SExp V) :
 #guard ⟦(.sum "i" (.num 1) (.num 4) (.var "i") : SExp String)⟧ₛ (State.const 0)
         == ⟦(.sum "i" (.num 1) (.num 3) (.var "i") : SExp String)⟧ₛ (State.const 0) + 4
 
-/-! ## 남겨 둔 것 — 치환 정리
+/-! ## 이어서 확인할 것 — 치환 정리
 
-명제 1.3(치환 정리)의 합 식 판은 여기에 없다. 진술은 이렇게 된다.
-
-```
-⟦e /ₜ δ⟧ₛ σ = ⟦e⟧ₛ (fun w => ⟦δ w⟧ₛ σ)
-```
-
-증명은 `Substitution.lean` 의 `substitution_assert` 와 같은 길을 간다. `sum` 케이스에서
-`newBinder` 가 고른 새 이름이 `δ w` 의 자유 변수에 없다는 사실과 일치 정리를 함께 쓴다.
-분량이 본문 절 하나만큼 되어서 이 파일에는 넣지 않았다.
-
-직접 해 보려면 `Substitution.lean` 의 `newBinder_notMem_fv` 부터 옮기면 된다.
+`Summation/Substitution.lean`은 명제 1.2의 구문적 성질, 명제 1.3의 치환 정리,
+한 변수 치환과 합의 결합 변수 이름 바꾸기를 증명한다. 치환 정리 연습은 일치 정리의
+결론을 가설로 받으므로, 이 파일의 연습을 아직 풀지 않아도 독립적으로 풀 수 있다.
 -/
-
-/-! # 연습 1.6 — 부정 합(indefinite summation)
-
-> *"Suppose the language in the previous exercise is further extended by introducing an integer
-> expression for 'indefinite' summation, `Σv. e`, with the same meaning as `Σ_{v=0}^{v-1} e`.
-> (Notice the similarity to the usual notation `∫ dv e` for an indefinite integral.)
-> Discuss the difficulties raised by the binding and substitution properties of this expression."*
-
-## 무엇이 이상한가
-
-`Σv. e` 의 뜻은 `Σ_{v=0}^{v-1} e` 다. 오른쪽에서 `v` 가 **두 가지 역할**을 한다.
-
-- 아래첨자의 `v` 는 0, 1, …, 로 훑는 묶인 변수다
-- 위끝의 `v` 는 바깥에서 값을 읽는 자유 변수다
-
-한 이름이 같은 식 안에서 묶이면서 동시에 자유롭다. §1.4 의 결합 구조는 이런 경우를 허용하지
-않는다. `∀v. p` 에서 `v` 는 `p` 전체에서 묶이고, `Σv : e₀ to e₁. e₂` 에서도 `v` 가 묶이는
-범위와 자유로운 범위가 부분식으로 갈렸다. 여기서는 갈 곳이 없다.
-
-아래에서 그 결과를 실제로 확인한다.
--/
-
-namespace Indefinite
-
-/-- 부정 합만 있는 최소 언어. 문제를 드러내는 데 필요한 것만 남겼다. -/
-inductive ISExp (V : Type u) where
-  /-- 정수 상수. -/
-  | num : Int → ISExp V
-  /-- 변수. -/
-  | var : V → ISExp V
-  /-- 이항 연산. -/
-  | bin : IntOp → ISExp V → ISExp V → ISExp V
-  /-- `Σv. e` — 위끝을 `v` 자신이 정하는 합. -/
-  | isum : V → ISExp V → ISExp V
-  deriving DecidableEq, Repr
-
-/--
-부정 합의 뜻. `Σv. e = Σ_{k=0}^{σv - 1} ⟦e⟧ (σ[v := k])`.
-
-위끝 `σ v` 를 **갱신 전** 상태에서 읽는다는 것이 정의의 전부다.
-`Finset.Ico 0 (σ v)` 가 `0 ≤ k < σ v` 를 준다.
--/
-def ISExp.eval : ISExp V → State V → Int
-  | .num n,       _ => n
-  | .var v,       σ => σ v
-  | .bin op a b,  σ => op.denote (a.eval σ) (b.eval σ)
-  | .isum v e,    σ => ∑ k ∈ Finset.Ico 0 (σ v), e.eval (σ[v := k])
-
-@[inherit_doc ISExp.eval]
-scoped notation:max "⟦" e "⟧ᵢ" => ISExp.eval e
-
-/--
-부정 합의 자유 변수.
-
-`isum` 절에 `insert v` 가 붙는다. 본체에서는 `v` 를 지우지만 위끝으로 다시 들어온다.
-`FV(Σv. e) = {v} ∪ (FV(e) \ {v})` 이므로 결과적으로 `v` 는 언제나 자유롭다.
--/
-def ISExp.fv : ISExp V → Finset V
-  | .num _       => ∅
-  | .var v       => {v}
-  | .bin _ a b   => a.fv ∪ b.fv
-  | .isum v e    => insert v (e.fv.erase v)
-
--- 결합 변수가 자유 변수 목록에 남는다. `Σi. 1` 조차 `i` 에 의존한다.
-#guard (ISExp.isum "i" (.num 1) : ISExp String).fv == {"i"}
-
-/-! ## 어려움 1 — 이름 바꾸기가 뜻을 바꾼다
-
-명제 1.5(이름 바꾸기 정리)는 `vnew ∉ FV(q) \ {v}`이면 결합 변수를 `vnew`로 바꿔도 뜻이
-같다고 말한다. 부정 합에서는 그 단서를 만족시켜도 뜻이 달라진다.
-
-`Σi. 1` 을 보자. 본체에 `i` 가 없으므로 `FV(1) \ {i} = ∅` 이고, 어떤 `vnew` 든 단서를
-통과한다. `i` 를 `j` 로 바꾸면 `Σj. 1` 이 되는데, 앞의 뜻은 `σi` 이고 뒤의 뜻은 `σj` 다.
-`σi ≠ σj` 인 상태를 하나 잡으면 끝난다.
-
-무슨 일이 일어났나. 이름 바꾸기는 **묶인** 자리만 건드린다는 전제 위에 서 있는데,
-여기서는 같은 이름이 자유로운 자리에도 있어서 그것까지 함께 바뀐다.
--/
-
-/--
-**이름 바꾸기 정리가 깨진다.** 명제 1.5 의 단서를 만족하는데도 뜻이 달라지는 예가 있다.
-
-`Σi. 1` 과 `Σj. 1` 을 쓴다. 본체 `1` 에 자유 변수가 없으므로 `j ∉ FV(1) \ {i} = ∅` 이고,
-따라서 `Σj. 1` 은 `Σi. 1` 의 적법한 이름 바꾸기다. 그런데 앞은 `σ i` 를, 뒤는 `σ j` 를 센다.
-
-증명은 `σ i = 1`, `σ j = 0` 인 상태를 제시하면 된다.
--/
-@[exercise "Ex 1.6" 3]
-theorem isum_renaming_fails :
-    ∃ σ : State String,
-      ⟦(ISExp.isum "i" (.num 1) : ISExp String)⟧ᵢ σ
-        ≠ ⟦(ISExp.isum "j" (.num 1) : ISExp String)⟧ᵢ σ := by
-  refine ⟨fun w => if w = "i" then 1 else 0, ?_⟩
-  simp [ISExp.eval]
-
-/-! ## 어려움 2 — 치환이 결합 변수를 건너뛸 수 없다
-
-`Assert.subst` 는 `(∀v. p) /ₛ δ` 에서 `δ` 의 `v` 자리를 `var vnew` 로 덮어썼다.
-`v` 는 묶여 있으니 `δ v` 를 볼 일이 없다는 판단이었다.
-
-부정 합에서는 그 판단이 틀린다. 위끝의 `v`는 자유롭고, 치환은 그 자리를 `δ v`로 바꿔야 한다.
-그런데 위끝은 부분식이 아니라 결합 변수 자체다. `Σv. e` 에 `v ↦ e'` 를 넣으면
-"위끝은 `e'` 로, 본체의 `v` 는 그대로" 를 표현해야 하는데, 구문에 그런 자리가 없다.
-
-바꿔 말하면 `Σv. e` 는 `Σv : 0 to (v-1). e` 의 줄임말인데, 줄이면서 위끝 자리를 잃어버렸다.
-줄이지 않은 쪽에서는 §1.4 의 정의가 그대로 통한다 — `SExp` 에서 확인한 그대로다.
-
-## 그래서 어떻게 하나
-
-세 가지 길이 있고, Reynolds 가 이후 장들에서 모두 지나간다.
-
-- **위끝을 부분식으로 되돌린다.** `Σv : e₀ to e₁. e₂` 로 돌아가는 것이다.
-  `Σv. e` 를 그 위의 파생 형태(derived form)로 정의하면 결합 문제가 사라진다.
-- **결합 변수와 자유 변수를 표기로 구분한다.** de Bruijn 색인이 그것이다.
-  묶인 자리는 번호로, 자유로운 자리는 이름으로 두면 두 역할이 섞이지 않는다.
-  CSlib 의 `Cslib/Languages/LambdaCalculus/LocallyNameless/` 가 이 방식이다.
-- **결합 구조가 불분명한 구문을 언어에서 제외한다.** 실제 언어 설계에서도 쓰는 선택이다.
-
-1.6 이 "discuss" 로 끝나는 이유가 이것이다. 정답 하나가 아니라, 결합 구조를 어떻게
-설계하느냐에 따라 값을 치르는 자리가 달라진다.
--/
-
-end Indefinite
 
 end Reynolds.Answers.Ch01.Summation

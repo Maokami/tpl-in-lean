@@ -15,6 +15,7 @@ public import Reynolds.Answers.Ch01.FreeVars
 public import Reynolds.Answers.Ch01.Substitution
 public import Reynolds.Answers.Ch01.Ex
 public import Reynolds.Answers.Ch01.Ex.Summation
+public import Reynolds.Answers.Ch01.Ex.Summation.Substitution
 public import Reynolds.Answers.Ch01.Design
 public import Reynolds.Answers.Ch01.Background
 public import Reynolds.Answers.Ch01.Depth.Algebra
