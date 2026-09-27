@@ -119,12 +119,12 @@ theorem Chain.range_step [Preorder α] {x y : α} (h : x ≤ y) :
 
 /-! ## 2. 프리도메인과 도메인
 
-Reynolds 는 용어가 저자마다 다르다는 것을 §2.3 에서 직접 경고한다. 우리는 그의 용어를 쓴다.
+Reynolds 는 2장 문헌 주석(p. 51)에서 저자마다 용어가 다름을 지적한다. 우리는 그의 용어를 쓴다.
 
 - **프리도메인** — 모든 사슬이 최소 상계를 갖는 부분 순서 집합
 - **도메인(domain)** — 최소원 `⊥` 이 있는 프리도메인
 
-Gunter 와 Winskel 은 앞의 것을 complete partial order 라 부르고, Tennent 는 뒤의 것을
+Gunter 와 Winskel 은 앞의 것을 complete partial order 라 부르고, Tennent 도 앞의 것을
 domain 이라 부른다. 이름이 겹치므로 논문을 읽을 때는 정의를 확인해야 한다. -/
 
 /--
@@ -193,10 +193,10 @@ Lean 에서는 오른쪽이 존재한다고 가정하지 않고 **`f (⨆ xᵢ)`
 /--
 연속(continuous) — 사슬의 극한을 함수상의 극한으로 보낸다.
 
-Reynolds는 단조 함수에 대해 이 보존 조건을 정의한다. 여기서는 보존 조건만 적고
-`x, y, y, …` 사슬을 이용해 단조성을 정리로 유도한다. 공역도 프리도메인일 때는
-Reynolds의 두 조건과 같은 함수 부류를 표현한다. 다만 이 정의 자체는 공역의 모든 사슬에
-최소 상계가 있다고 가정하지 않고, 각 상 사슬의 최소 상계가 `f c.lub`라고 직접 요구한다.
+Reynolds도 이 보존 조건으로 연속성을 정의하고, `x, y, y, …` 사슬에서 단조성을
+유도한다(§2.3, p. 31). 책은 정의역과 공역을 모두 프리도메인으로 둔다. 여기서는
+공역에 부분 순서만 요구하고, 각 상 집합의 최소 상계가 `f c.lub`라고 직접 적는다.
+공역도 프리도메인이면 책의 정의와 같다.
 -/
 def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β) : Prop :=
   ∀ c : Chain α, IsLUB (f '' Set.range c.seq) (f c.lub)
@@ -207,11 +207,10 @@ variable [PartialOrder α] [PartialOrder β] [Predomain α]
 /--
 연속이면 단조다.
 
-`x ⊑ y` 를 보이려면 `x, y, y, …` 인 사슬 하나면 된다. 그 사슬의 극한이 `y` 이므로
+`x ⊑ y` 일 때 `f x ⊑ f y` 를 보이려면 `x, y, y, …` 인 사슬 하나면 된다. 그 사슬의 극한이 `y` 이므로
 연속성이 `f y` 가 `{f x, f y}` 의 상계라고 말해 주고, 상계라는 것이 곧 `f x ⊑ f y` 다.
 
-Reynolds는 단조성을 먼저 요구한 뒤 극한 보존을 덧붙인다. 이 정리는 현재 정의에서
-그 첫 조건이 이미 따라옴을 보인다.
+책도 같은 사슬로 연속성에서 단조성을 유도한다(§2.3, p. 31).
 
 채점 연습이 아니다. `Domain/FunctionSpace.lean`의 명제 2.2·2.3(`Cont.lub_continuous`,
 `Continuous.comp`)이 둘 다 증명에서 이 결과를 쓰고(`hf.monotone`), 그 둘도 채점 연습이라,
