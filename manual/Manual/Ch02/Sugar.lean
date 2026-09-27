@@ -84,12 +84,12 @@ def forV2 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
   .newvar v e₀ (forWhile v e₁ c)
 ```
 
-이제 `v ∉ FA(forV2 …)`다. 그런데 새 결함이 드러난다. 상한 식이 while 안에 있어 매 반복
+이제 `v ∉ FA(forV2 …)`다. 판본 1과 2에는 공통 결함이 남아 있다(p. 46). 상한 식이 while 안에 있어 매 반복
 다시 평가되는 것이다. Reynolds의 극단적인 예는 상한이 제어 변수 자신인 경우다.
 
 ```anchor forV2Diverges (module := Reynolds.Answers.Ch02.Sugar)
 /--
-**판본 2 의 결함: 상한이 매 반복 재평가된다.**
+**판본 1·2의 공통 결함: 상한이 매 반복 재평가된다.** 아래 정리는 판본 2를 다룬다.
 
 Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어 변수 자신이라,
 `v` 를 올릴 때마다 상한도 같이 올라간다. 조건 `v ≤ v` 는 언제나 참이고 루프는 멈추지
