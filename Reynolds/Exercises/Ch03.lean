@@ -13,6 +13,7 @@ public import Reynolds.Exercises.Ch03.Assign
 public import Reynolds.Exercises.Ch03.Annot
 public import Reynolds.Exercises.Ch03.Total
 public import Reynolds.Exercises.Ch03.Derived
+public import Reynolds.Exercises.Ch03.BookExercises
 public import Reynolds.Exercises.Ch03.Examples.Fib
 public import Reynolds.Exercises.Ch03.Examples.FastExp
 public import Reynolds.Exercises.Ch03.Wlp
