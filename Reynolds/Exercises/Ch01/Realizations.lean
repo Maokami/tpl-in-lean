@@ -18,11 +18,11 @@ public meta import Reynolds.Answers.Ch01.Notation
 /-!
 # §1.1 실현 (realization) — 연습 1.3
 
-Reynolds §1.1 은 같은 추상 구문의 여러 실현을 든다. 괄호 붙인 중위 문자열,
+Reynolds §1.1(pp. 4–8)은 같은 추상 구문의 여러 실현을 든다. 괄호 붙인 중위 문자열,
 괄호 붙인 접두 문자열, 구문 트리. 그리고 연습 1.3 에서 하나를 더 요구한다.
 
 연습은 괄호 없는 접두 표기의 구문 세계와 생성자를 정의하고, 생성자가 단사인지 확인하라고
-한다. 책의 예시는 `c₊(c₋ᵦ(c₀(), c₁()), c₋ᵤ(c₂()))`의 마지막 토큰을 `0`이라고 적지만,
+한다(p. 22). 책의 예시는 `c₊(c₋ᵦ(c₀(), c₁()), c₋ᵤ(c₂()))`의 마지막 토큰을 `0`이라고 적지만,
 식의 두 번째 인자는 `c₂()`이므로 문맥상 `2`의 오탈자로 보인다. 아래 예제도 `2`를 쓴다.
 
 괄호가 없다는 것이 요점이다. 괄호 없이도 읽을 수 있으려면 연산자마다 인자 개수가 고정되어
@@ -35,7 +35,8 @@ Reynolds 는 문자열이라고 말하지만, 문자열로 하면 `"x1"` 이 변
 이 연습이 묻는 것이 아니다. 토큰 열로 두면 물어야 할 것만 남는다.
 
 ## 읽는 순서
-`Syntax.lean` → 이 파일. `Ex.lean` 의 연습 1.3 이 여기를 가리킨다.
+`Syntax.lean` → 이 파일 → `Realizations/Assertions.lean` → `Realizations/Constructors.lean`.
+정수 식과 단언의 구문 세계를 차례로 정의한 뒤 식 (1.1)의 생성자 단사성을 증명한다.
 -/
 
 -- 실현이 실제로 무엇을 뱉는지 눈으로 본다.
@@ -59,6 +60,16 @@ inductive Tok where
   | neg : Tok
   /-- 이항 연산자. -/
   | op : IntOp → Tok
+  /-- 단언의 두 진리 상수. Reynolds 식 (1.1), p. 4. -/
+  | truth : Bool → Tok
+  /-- 두 정수 식을 비교하는 기호. -/
+  | cmp : Cmp → Tok
+  /-- 단언의 부정. 정수 식의 `neg`와 구별한다. -/
+  | assertNot : Tok
+  /-- 두 단언을 잇는 논리 기호. -/
+  | log : LogOp → Tok
+  /-- 양화 기호. 뒤에는 변수 토큰 하나와 단언이 온다. -/
+  | quant : Quant → Tok
   deriving DecidableEq, Repr
 
 /--
@@ -146,11 +157,9 @@ theorem IntExp.toPrefix_prefixFree :
 
 꼬리를 빈 열로 두면 접두사 자유성에서 바로 나온다.
 -/
-@[exercise "Ex 1.3" 3]
 theorem IntExp.toPrefix_injective : Function.Injective IntExp.toPrefix := by
-  -- 먼저 볼 것: 바로 위 `toPrefix_prefixFree` (완성본).
-  -- 힌트: 꼬리를 빈 열로 넣고 `simpa` 로 `++ []` 를 정리하면 된다.
-  sorry
+  intro e₁ e₂ h
+  exact (IntExp.toPrefix_prefixFree e₁ e₂ [] [] (by simpa using h)).1
 
 /-! ## 접두 표기의 구문 세계
 

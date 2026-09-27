@@ -60,7 +60,7 @@ number := false
 5. `Validity.lean` — §1.3 타당성, 추론 규칙, 건전성
 6. `FreeVars.lean` — §1.4 자유 변수와 일치 정리
 7. `Substitution.lean` — §1.4 치환, 명제 1.2 ~ 1.5
-8. `Realizations.lean`, `Ex.lean`, `Ex/Summation.lean` — 책 연습문제
+8. `Realizations.lean`·`Realizations/`, `Ex.lean`, `Ex/Summation.lean` — 책 연습문제
 9. `Design.lean` — 정의 선택과 정리의 성립. 틀린 정의가 무엇을 깨뜨리는지
 10. `Depth/` — 심화 트랙. 건너뛰어도 1장은 완결된다
 
@@ -744,6 +744,55 @@ lake exe grade --chapter 1
 막히면 `docs/solving-guide.md`를 먼저 봐라. 이 저장소가 반복하는 증명 패턴 넷과
 자주 만나는 오류 메시지가 정리되어 있다.
 
+# 연습 1.1–1.3 — 단언과 구문 세계 만들기
+%%%
+tag := "ch01-early-exercises"
+file := "ch01-early-exercises"
+number := false
+%%%
+
+책 p. 22의 연습 1.1·1.2는 주어진 단언을 계산하는 문제가 아니라, 설명에 맞는 단언을
+직접 쓰는 문제다. `Exercises/Ch01/Ex.lean`의 `e11aAnswer`부터 `e12dAnswer`까지
+여덟 빈칸에는 구문과 의미 증명을 함께 쓴다. 답의 첫 칸에는 객체 언어 `Assert String`의
+값, 둘째 칸에는 그 단언이 의도한 뜻이라는 Lean 명제가 들어간다.
+
+연습 1.1에서는 `refine ⟨fun lo hi => ⟪ … ⟫ₐ, ?_⟩`로 시작한다.
+`lo`, `hi`는 Lean의 정수이고 `%(.num lo)`는 그 정수를 단언 안에 넣는 표기다.
+책의 (a)·(b)는 열린 구간 `(0,2)`, (c)·(d)는 `(0,3)`이다.
+적어도 둘이라는 말에는 서로 다른 두 수가 필요하다. 많아야 둘이라는 말은 세 수를
+골랐을 때 적어도 한 쌍이 같다는 뜻으로 표현할 수 있다.
+
+*책과의 차이*: 고정된 네 문장은 모두 참이라 참 단언만 써도 의미 검사를 통과한다.
+이를 피하는 보조 실습으로 임의의 구간을 받으며, `intervalCount`의 원소 수와 비교한다.
+`Finset.one_le_card`, `Finset.card_le_one`, `Finset.one_lt_card_iff`,
+`Finset.two_lt_card_iff`는 개수를 양화 명제로 풀어 주는 도구다.
+완성한 답에는 책의 끝점도 직접 대입하여 종이에 쓴 단언과 비교해 본다.
+
+연습 1.2는 책의 지시대로 변수와 양화 범위가 자연수다. 이 문제만의 `evalNat`를 쓰며,
+본문의 정수 의미 함수는 그대로 둔다. `NatAnswer`에는 단언, 허용 구문 검사,
+모든 자연수 상태에 대한 뜻의 증명이 들어간다. `refine ⟨⟪ … ⟫ₐ, rfl, ?_⟩`로
+단언을 쓴 뒤 `evalNat`와 의미 명세를 펼쳐 비교한다.
+
+*책과의 차이*: 산술 구문은 네 답에 충분한 자연수 상수·변수·덧셈·곱셈으로 제한한다.
+책이 금하는 나눗셈·나머지뿐 아니라 음수 리터럴과 뺄셈도 이 보조 실습에서는 받지 않는다.
+이 제한으로 식의 값이 항상 자연수 범위에 머문다. 구문 검사와 이 사실의 증명은
+`Ex/Specifications.lean`에 있다.
+
+최대공약수 문항은 공약수 집합의 *최대 원소*를 표현한다. 두 입력이 모두 0이면
+모든 자연수가 공약수이고, 어떤 후보보다 1 큰 공약수가 있으므로 최대가 없다.
+따라서 이 문항은 그 상태에서 거짓이다. `Nat.gcd 0 0 = 0`은 별도 함수의 규약이므로
+그 등식으로 이 경계를 대신하지 않는다. 소수 문항에서는 0과 1도 직접 검사해 본다.
+
+연습 1.3은 `Realizations.lean` → `Realizations/Assertions.lean` →
+`Realizations/Constructors.lean` 순서로 읽는다. 마지막 파일의 한 연습에서 식 (1.1)
+(p. 4)의 모든 정수 식·단언 생성자가 인자를 보존함을 증명한다. 이항 생성자의 결과는
+두 토큰 열을 이어 붙이므로, 앞 구의 끝을 유일하게 복원하는 접두사 자유성이 필요하다.
+양화 생성자는 변수 이름도 보존한다. 이 단계에서는 α-동치인 단언도 서로 다른 구문이다.
+
+*책과의 차이*: 책은 구의 세계와 생성자도 설계하라고 한다. 여기서는 문자열 대신
+구별되는 토큰과 올바른 토큰 열의 부분타입을 완성 자료로 주고, 생성자의 단사성을 푼다.
+빈 목록이나 인자가 모자란 목록은 구가 아니다. 아홉 연습은 서로 독립적으로 채점된다.
+
 # 연습 1.4 — 치환 결과를 직접 쓰기
 %%%
 tag := "ch01-substitution-calculation"
@@ -782,7 +831,7 @@ number := false
 
 * `Validity.lean` — §1.3 건전성과 규칙. *3개*
 * `FreeVars.lean`, `Substitution.lean` — 본문 명제 1.1 ~ 1.3. *5개*
-* `Realizations.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.4. *12개*
+* `Realizations/Constructors.lean`, `Ex.lean` — 책 연습 1.1 ~ 1.4. *12개*
 * `Ex/Summation.lean` — 책 연습 1.5 · 1.6. *6개*
 * `Design.lean` — 정의 선택과 정리의 성립. *3개*
 * `Depth/` — 심화 트랙. *6개*

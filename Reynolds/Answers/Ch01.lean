@@ -8,6 +8,7 @@ module
 public import Reynolds.Answers.Ch01.Syntax
 public import Reynolds.Answers.Ch01.Notation
 public import Reynolds.Answers.Ch01.Realizations
+public import Reynolds.Answers.Ch01.Realizations.Constructors
 public import Reynolds.Answers.Ch01.Semantics
 public import Reynolds.Answers.Ch01.Validity
 public import Reynolds.Answers.Ch01.FreeVars
@@ -32,7 +33,8 @@ public import Reynolds.Answers.Ch01.Depth.TermMonad
 5. `Validity.lean` — §1.3 타당성과 추론, 건전성
 6. `FreeVars.lean` — §1.4 자유 변수와 일치 정리
 7. `Substitution.lean` — §1.4 치환, 명제 1.2~1.5
-8. `Realizations.lean` — §1.1 실현 (연습 1.3)
+8. `Realizations.lean`, `Realizations/Assertions.lean`, `Realizations/Constructors.lean`
+   — §1.1 실현 (연습 1.3)
 9. `Ex.lean` — 책 연습문제 1.1~1.7
 10. `Ex/Summation.lean` — 연습 1.5·1.6 (합 식). 축소판 언어로 따로 세운다
 11. `Design.lean` — 정의를 왜 이렇게 써야 하나. 틀린 정의가 무엇을 깨뜨리는지

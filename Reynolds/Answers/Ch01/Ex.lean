@@ -7,6 +7,7 @@ module
 
 public import Reynolds.Answers.Ch01.Notation
 public import Reynolds.Answers.Ch01.Substitution
+public import Reynolds.Answers.Ch01.Ex.Specifications
 -- `#guard` 는 컴파일 시점에 계산하므로 meta 문맥이다 (AGENTS.md §10).
 public meta import Reynolds.Answers.Ch01.Notation
 public meta import Reynolds.Answers.Ch01.Substitution
@@ -19,14 +20,10 @@ Reynolds §1 의 연습문제 1.1~1.7 에 대응한다.
 
 ## 종이 문제를 어떻게 채점 가능하게 만드나
 
-1.1 과 1.2 는 "다음을 술어 논리로 표현하라" 다. 종이에서는 답이 맞았는지 사람이 읽고 판단한다.
-여기서는 두 단계로 나눈다.
-
-1. 객체 언어로 단언을 쓴다 (`⟪ … ⟫ₐ`)
-2. **그 단언의 뜻이 의도한 메타 수준 명제와 같음을 증명한다**
-
-2번이 있으면 답이 맞았는지가 기계적으로 판정된다.
-잘못 쓴 식은 의미 정리가 안 붙는다.
+Reynolds 연습 1.1·1.2(p. 22)는 단언을 직접 쓰는 문제다.
+각 답은 객체 언어 구문(`⟪ … ⟫ₐ`)과 그 뜻을 확인하는 증명을 함께 담는다.
+학생 파일에서는 두 부분을 함께 비우므로 정답 단언이 미리 주어지지 않는다.
+명세와 계산 보조 자료는 `Ex/Specifications.lean`에 있다.
 
 ## 읽는 순서
 1장 본문을 다 읽은 뒤. `Notation.lean` 의 표기를 쓴다.
@@ -43,109 +40,134 @@ open Reynolds Reynolds.Answers.Ch01
 
 /-! ## 연습 1.1 — 개수 세기
 
-정수의 개수를 술어 논리로 말하는 문제다. `=` 와 `≠` 만으로 "적어도 n 개", "많아야 n 개" 를
-표현하는 것이 요령이다. -/
+Reynolds p. 22의 고정 구간을 임의의 열린 구간 `(lo, hi)`로 일반화한 보조 실습이다.
+책의 구간만 검사하면 네 문장이 모두 참이라 `tt`를 답으로 쓸 수 있다.
+여기서는 끝점이 달라져도 개수를 올바르게 표현해야 한다.
+답의 첫 칸에 `fun lo hi => ⟪ … ⟫ₐ`를 쓰고, 둘째 칸에서 원소 수 명세를 증명한다.
+메타 수준 정수 `lo`는 `%(.num lo)`로 객체 언어에 넣는다. -/
 
-/-- 1.1(a) 0 보다 크고 2 보다 작은 정수가 **적어도 하나** 있다. -/
-def e11a : Assert String := ⟪ ∃ x, 0 < x ∧ x < 2 ⟫ₐ
-
+/-- Reynolds 연습 1.1(a)(p. 22). 구간에 적어도 하나의 정수가 있다는 단언을 만든다.
+책은 `(0,2)`다. -/
 @[exercise "Ex 1.1a" 1]
-theorem e11a_correct (σ : State String) :
-    (⟦e11a⟧ₐ σ ↔ ∃ n : Int, 0 < n ∧ n < 2) := by
-  simp [e11a, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]
+noncomputable def e11aAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ 1 ≤ intervalCount lo hi} := by
+  refine ⟨fun lo hi => ⟪ ∃ x, %(.num lo) < x ∧ x < %(.num hi) ⟫ₐ, ?_⟩
+  intro lo hi σ
+  rw [intervalCount, Finset.one_le_card]
+  simp [Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, Finset.Nonempty]
 
-/-- 1.1(b) 0 보다 크고 2 보다 작은 정수가 **많아야 하나** 있다. -/
-def e11b : Assert String := ⟪ ∀ x, ∀ y, (0 < x ∧ x < 2) ∧ (0 < y ∧ y < 2) ⇒ x = y ⟫ₐ
-
+/-- Reynolds 연습 1.1(b)(p. 22). 구간에 많아야 하나의 정수가 있다는 단언을 만든다.
+책은 `(0,2)`다. -/
 @[exercise "Ex 1.1b" 2]
-theorem e11b_correct (σ : State String) :
-    (⟦e11b⟧ₐ σ ↔ ∀ m n : Int, (0 < m ∧ m < 2) ∧ (0 < n ∧ n < 2) → m = n) := by
-  simp [e11b, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval]
+noncomputable def e11bAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ intervalCount lo hi ≤ 1} := by
+  refine ⟨fun lo hi => ⟪ ∀ x, ∀ y,
+    (%(.num lo) < x ∧ x < %(.num hi)) ∧ (%(.num lo) < y ∧ y < %(.num hi))
+      ⇒ x = y ⟫ₐ, ?_⟩
+  intro lo hi σ
+  change (∀ x y : Int, (lo < x ∧ x < hi) ∧ (lo < y ∧ y < hi) → x = y) ↔ _
+  rw [intervalCount, Finset.card_le_one]
+  simp only [Finset.mem_Ioo, and_imp]
+  constructor
+  · intro h x hx₁ hx₂ y hy₁ hy₂
+    exact h x y hx₁ hx₂ hy₁ hy₂
+  · intro h x y hx₁ hx₂ hy₁ hy₂
+    exact h x hx₁ hx₂ y hy₁ hy₂
 
-/-- 1.1(c) 0 보다 크고 3 보다 작은 **서로 다른** 정수가 적어도 둘 있다. -/
-def e11c : Assert String :=
-  ⟪ ∃ x, ∃ y, (x ≠ y) ∧ (0 < x ∧ x < 3) ∧ (0 < y ∧ y < 3) ⟫ₐ
-
+/-- Reynolds 연습 1.1(c)(p. 22). 구간에 서로 다른 정수가 적어도 둘 있다는 단언을 만든다.
+책은 `(0,3)`다. -/
 @[exercise "Ex 1.1c" 2]
-theorem e11c_correct (σ : State String) :
-    (⟦e11c⟧ₐ σ ↔ ∃ m n : Int, m ≠ n ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3)) := by
-  simp [e11c, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, and_assoc]
+noncomputable def e11cAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ 2 ≤ intervalCount lo hi} := by
+  refine ⟨fun lo hi => ⟪ ∃ x, ∃ y, x ≠ y ∧
+    (%(.num lo) < x ∧ x < %(.num hi)) ∧ (%(.num lo) < y ∧ y < %(.num hi)) ⟫ₐ, ?_⟩
+  intro lo hi σ
+  change _ ↔ 1 < (Finset.Ioo lo hi).card
+  rw [Finset.one_lt_card_iff]
+  simp [Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval,
+    and_assoc, and_left_comm, and_comm]
 
-/--
-1.1(d) 0 보다 크고 3 보다 작은 서로 다른 정수가 **많아야 둘** 있다.
-
-셋을 잡으면 그중 둘은 같아야 한다는 식으로 쓴다.
--/
-def e11d : Assert String :=
-  ⟪ ∀ x, ∀ y, ∀ z,
-      (0 < x ∧ x < 3) ∧ (0 < y ∧ y < 3) ∧ (0 < z ∧ z < 3)
-        ⇒ (x = y ∨ x = z ∨ y = z) ⟫ₐ
-
+/-- Reynolds 연습 1.1(d)(p. 22). 구간에 서로 다른 정수가 많아야 둘이라는 단언을 만든다.
+책은 `(0,3)`다. -/
 @[exercise "Ex 1.1d" 2]
-theorem e11d_correct (σ : State String) :
-    (⟦e11d⟧ₐ σ ↔ ∀ l m n : Int,
-      (0 < l ∧ l < 3) ∧ (0 < m ∧ m < 3) ∧ (0 < n ∧ n < 3) →
-        (l = m ∨ l = n ∨ m = n)) := by
-  simp [e11d, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, and_assoc, or_assoc]
+noncomputable def e11dAnswer :
+    {p : Int → Int → Assert String //
+      ∀ lo hi σ, ⟦p lo hi⟧ₐ σ ↔ intervalCount lo hi ≤ 2} := by
+  refine ⟨fun lo hi => ⟪ ∀ x, ∀ y, ∀ z,
+    (%(.num lo) < x ∧ x < %(.num hi)) ∧ (%(.num lo) < y ∧ y < %(.num hi))
+      ∧ (%(.num lo) < z ∧ z < %(.num hi)) ⇒ (x = y ∨ x = z ∨ y = z) ⟫ₐ, ?_⟩
+  intro lo hi σ
+  change (∀ x y z : Int, ((lo < x ∧ x < hi) ∧ (lo < y ∧ y < hi))
+    ∧ (lo < z ∧ z < hi) → (x = y ∨ x = z) ∨ y = z) ↔ _
+  rw [intervalCount, ← not_lt, Finset.two_lt_card_iff]
+  simp only [Finset.mem_Ioo, ne_eq, exists_and_left, not_exists, not_and,
+    Decidable.not_not, and_imp]
+  constructor
+  · intro h x hx₁ hx₂ y hy₁ hy₂ z hz₁ hz₂ hxy hxz
+    rcases h x y z hx₁ hx₂ hy₁ hy₂ hz₁ hz₂ with (h | h) | h
+    · exact False.elim (hxy h)
+    · exact False.elim (hxz h)
+    · exact h
+  · intro h x y z hx₁ hx₂ hy₁ hy₂ hz₁ hz₂
+    by_cases hxy : x = y
+    · exact Or.inl (Or.inl hxy)
+    by_cases hxz : x = z
+    · exact Or.inl (Or.inr hxz)
+    exact Or.inr (h x hx₁ hx₂ y hy₁ hy₂ z hz₁ hz₂ hxy hxz)
 
 /-! ## 연습 1.2 — 나눗셈 없이 정수론 말하기
 
-Reynolds 의 단서: 변수와 식이 자연수만 훑는다고 가정하고, `÷` 와 `rem` 을 쓰지 말 것.
-
-`÷` 없이 "나눈다" 를 말하는 방법이 이 문제의 전부다. `a` 가 `b` 를 나눈다는 것은
-`b = a × k` 인 `k` 가 있다는 뜻이고, 그 `k` 를 양화사로 잡으면 된다.
-
-**책과의 차이**: 우리 의미론에서 변수는 ℤ 를 훑는다. (a)(b) 는 ℤ 에서도 그대로 맞고,
-Mathlib 의 `∣`(나눗셈 관계)가 정확히 같은 정의라서 의미 정리가 거의 `rfl` 이다.
-(c)(d) 는 음수 때문에 뜻이 달라질 수 있어서, 양수 조건을 식 안에 명시했다.
+Reynolds p. 22는 변수와 식의 범위를 자연수로 제한하고 `÷`·`rem`을 금한다.
+각 `NatAnswer`의 첫 칸에 단언을 쓰고, 허용 구문 검사와 모든 자연수 상태에서의 뜻을 증명한다.
+자연수 양화는 `evalNat`가 맡으므로 답 안에 정수 양화의 범위 제한을 덧붙일 필요가 없다.
+네 문항에 충분한 자연수 산술 조각과 그 선택의 범위는 `Specifications.lean`에 설명한다.
 -/
 
-/-- 1.2(a) `a` 가 `b` 를 나눈다. -/
-def e12a : Assert String := ⟪ ∃ k, b = a × k ⟫ₐ
-
+/-- Reynolds 연습 1.2(a)(p. 22). 자연수 `a`가 `b`의 약수라는 단언을 직접 만든다. -/
 @[exercise "Ex 1.2a" 1]
-theorem e12a_correct (σ : State String) :
-    (⟦e12a⟧ₐ σ ↔ σ "a" ∣ σ "b") := by
-  simp [e12a, Assert.eval, Cmp.denote, IntExp.eval, IntOp.denote, dvd_def]
+noncomputable def e12aAnswer : NatAnswer (fun σ => σ "a" ∣ σ "b") := by
+  refine ⟨⟪ ∃ k, b = a × k ⟫ₐ, rfl, ?_⟩
+  intro σ
+  simp [evalNat, Cmp.denote, IntExp.eval, IntOp.denote,
+    ← Int.natCast_mul, -Nat.cast_mul, dvd_def]
 
-/-- 1.2(b) `a` 가 `b` 와 `c` 의 공약수다. -/
-def e12b : Assert String := ⟪ (∃ k, b = a × k) ∧ (∃ k, c = a × k) ⟫ₐ
-
+/-- Reynolds 연습 1.2(b)(p. 22). 자연수 `a`가 `b`, `c`의 공약수라는 단언을 만든다. -/
 @[exercise "Ex 1.2b" 1]
-theorem e12b_correct (σ : State String) :
-    (⟦e12b⟧ₐ σ ↔ (σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")) := by
-  simp [e12b, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote, dvd_def]
+noncomputable def e12bAnswer :
+    NatAnswer (fun σ => σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c") := by
+  refine ⟨⟪ (∃ k, b = a × k) ∧ (∃ k, c = a × k) ⟫ₐ, rfl, ?_⟩
+  intro σ
+  simp [evalNat, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote,
+    ← Int.natCast_mul, -Nat.cast_mul, dvd_def]
 
 /--
-1.2(c) `a` 가 `b` 와 `c` 의 최대공약수다.
-
-"공약수이면서, 모든 공약수보다 크거나 같다" 로 쓴다.
+Reynolds 연습 1.2(c)(p. 22). 자연수 공약수 집합의 최대 원소라는 단언을 만든다.
+`b = c = 0`이면 최대가 없으므로 어떤 `a`에서도 거짓이어야 한다.
+이는 `Nat.gcd 0 0 = 0`이라는 별도 규약과 다르다.
 -/
-def e12c : Assert String :=
-  ⟪ ((∃ k, b = a × k) ∧ (∃ k, c = a × k))
-      ∧ (∀ d, ((∃ k, b = d × k) ∧ (∃ k, c = d × k)) ⇒ d ≤ a) ⟫ₐ
-
 @[exercise "Ex 1.2c" 2]
-theorem e12c_correct (σ : State String) :
-    (⟦e12c⟧ₐ σ ↔
-      ((σ "a" ∣ σ "b" ∧ σ "a" ∣ σ "c")
-        ∧ ∀ d : Int, (d ∣ σ "b" ∧ d ∣ σ "c") → d ≤ σ "a")) := by
-  simp [e12c, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote, dvd_def]
+noncomputable def e12cAnswer :
+    NatAnswer (fun σ => GreatestCommonDivisor (σ "a") (σ "b") (σ "c")) := by
+  refine ⟨⟪ ((∃ k, b = a × k) ∧ (∃ k, c = a × k))
+    ∧ (∀ d, ((∃ k, b = d × k) ∧ (∃ k, c = d × k)) ⇒ d ≤ a) ⟫ₐ, rfl, ?_⟩
+  intro σ
+  simp [evalNat, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote,
+    ← Int.natCast_mul, -Nat.cast_mul, dvd_def,
+    GreatestCommonDivisor, IsGreatest, upperBounds, and_imp]
 
 /--
-1.2(d) `p` 가 소수다.
-
-`1` 보다 크고, 양의 약수가 `1` 과 자기 자신뿐이라는 뜻이다.
-양수 조건을 명시한 것은 ℤ 에서 `-1` 과 `-p` 도 약수이기 때문이다.
+Reynolds 연습 1.2(d)(p. 22). 자연수 `p`가 소수라는 단언을 만든다.
+명세는 Mathlib의 `Nat.Prime`이다. `0`, `1`이 소수가 아니라는 조건도 표현해야 한다.
 -/
-def e12d : Assert String :=
-  ⟪ p > 1 ∧ (∀ d, (d > 0 ∧ (∃ k, p = d × k)) ⇒ (d = 1 ∨ d = p)) ⟫ₐ
-
 @[exercise "Ex 1.2d" 2]
-theorem e12d_correct (σ : State String) :
-    (⟦e12d⟧ₐ σ ↔
-      (σ "p" > 1 ∧ ∀ d : Int, (d > 0 ∧ d ∣ σ "p") → (d = 1 ∨ d = σ "p"))) := by
-  simp [e12d, Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote, dvd_def]
+noncomputable def e12dAnswer : NatAnswer (fun σ => Nat.Prime (σ "p")) := by
+  refine ⟨⟪ p > 1 ∧ (∀ d, (∃ k, p = d × k) ⇒ (d = 1 ∨ d = p)) ⟫ₐ, rfl, ?_⟩
+  intro σ
+  simp [evalNat, LogOp.denote, Cmp.denote, IntExp.eval, IntOp.denote,
+    ← Int.natCast_mul, -Nat.cast_mul, dvd_def, Nat.prime_def, Nat.succ_le_iff]
 
 /-! ## 연습 1.4 — 치환 계산하기
 

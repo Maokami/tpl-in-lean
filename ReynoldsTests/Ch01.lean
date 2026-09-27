@@ -143,4 +143,76 @@ def naiveBad : Assert ℕ := .quant .ex 1 (.cmp .gt (.var 1) yPlus1)
 #guard (Ex.e14c /ₛ Ex.e14cSubst) == ⟪ ∀ xx, ∃ y, xx < x ⇒ xx < y ∧ y < x ⟫ₐ
 #guard (Ex.e14c /ₛ Ex.e14cSubst).fv == ({"x"} : Finset String)
 
+-- 연습 1.1(p. 22)의 실제 끝점을 대입해 단언 구문을 확인한다.
+example : Ex.e11aAnswer.val 0 2 = ⟪ ∃ x, 0 < x ∧ x < 2 ⟫ₐ := rfl
+example : Ex.e11bAnswer.val 0 2 =
+    ⟪ ∀ x, ∀ y, (0 < x ∧ x < 2) ∧ (0 < y ∧ y < 2) ⇒ x = y ⟫ₐ := rfl
+example : Ex.e11cAnswer.val 0 3 =
+    ⟪ ∃ x, ∃ y, x ≠ y ∧ (0 < x ∧ x < 3) ∧ (0 < y ∧ y < 3) ⟫ₐ := rfl
+example : Ex.e11dAnswer.val 0 3 =
+    ⟪ ∀ x, ∀ y, ∀ z, (0 < x ∧ x < 3) ∧ (0 < y ∧ y < 3)
+      ∧ (0 < z ∧ z < 3) ⇒ (x = y ∨ x = z ∨ y = z) ⟫ₐ := rfl
+
+-- 구간이 바뀌면 항상 참인 단언으로는 답할 수 없다.
+example (σ : State String) : ¬⟦Ex.e11aAnswer.val 0 1⟧ₐ σ := by
+  rw [Ex.e11aAnswer.property]
+  simp [Ex.intervalCount]
+example (σ : State String) : ¬⟦Ex.e11bAnswer.val 0 3⟧ₐ σ := by
+  rw [Ex.e11bAnswer.property]
+  simp [Ex.intervalCount]
+example (σ : State String) : ¬⟦Ex.e11cAnswer.val 0 2⟧ₐ σ := by
+  rw [Ex.e11cAnswer.property]
+  simp [Ex.intervalCount]
+example (σ : State String) : ¬⟦Ex.e11dAnswer.val 0 4⟧ₐ σ := by
+  rw [Ex.e11dAnswer.property]
+  simp [Ex.intervalCount]
+
+-- 연습 1.2의 금지된 연산과 범위 밖 상수는 구문 검사에서 탈락한다.
+#guard Ex.naturalSyntax ⟪ a ÷ b = 0 ⟫ₐ == false
+#guard Ex.naturalSyntax ⟪ a rem b = 0 ⟫ₐ == false
+#guard Ex.naturalArithmetic (.num (-1)) == false
+#guard Ex.naturalArithmetic (.bin .sub (.var "a") (.var "b")) == false
+example : Ex.e12aAnswer.val = ⟪ ∃ k, b = a × k ⟫ₐ := rfl
+example : Ex.e12bAnswer.val = ⟪ (∃ k, b = a × k) ∧ (∃ k, c = a × k) ⟫ₐ := rfl
+example : Ex.e12cAnswer.val =
+    ⟪ ((∃ k, b = a × k) ∧ (∃ k, c = a × k))
+      ∧ (∀ d, ((∃ k, b = d × k) ∧ (∃ k, c = d × k)) ⇒ d ≤ a) ⟫ₐ := rfl
+example : Ex.e12dAnswer.val =
+    ⟪ p > 1 ∧ (∀ d, (∃ k, p = d × k) ⇒ (d = 1 ∨ d = p)) ⟫ₐ := rfl
+
+-- (0,0)의 최대 원소 부재는 Nat.gcd의 함수 규약과 구별된다.
+example : ¬Ex.evalNat Ex.e12cAnswer.val (fun _ => 0) := by
+  rw [Ex.e12cAnswer.property.2]
+  exact Ex.no_greatestCommonDivisor_zero_zero 0
+#guard Nat.gcd 0 0 == 0
+example : Ex.GreatestCommonDivisor 6 12 18 := by
+  refine ⟨⟨by decide, by decide⟩, ?_⟩
+  intro d hd
+  have hdiv := Nat.dvd_gcd hd.1 hd.2
+  change d ∣ 6 at hdiv
+  exact Nat.le_of_dvd (by decide) hdiv
+example : ¬Ex.evalNat Ex.e12dAnswer.val (fun _ => 0) := by
+  rw [Ex.e12dAnswer.property.2]
+  decide
+example : ¬Ex.evalNat Ex.e12dAnswer.val (fun _ => 1) := by
+  rw [Ex.e12dAnswer.property.2]
+  decide
+example : Ex.evalNat Ex.e12dAnswer.val (fun _ => 2) := by
+  rw [Ex.e12dAnswer.property.2]
+  decide
+example : ¬Ex.evalNat Ex.e12dAnswer.val (fun _ => 4) := by
+  rw [Ex.e12dAnswer.property.2]
+  decide
+
+-- 단언 접두 표기는 양화자의 이름과 각 생성자 머리 토큰을 보존한다.
+#guard (⟪ ∀ x, ¬(x = 0) ∨ tt ⟫ₐ).toPrefix ==
+  [.quant .all, .var "x", .log .or, .assertNot, .cmp .eq, .var "x", .num 0, .truth true]
+#guard (⟪ ff ⟫ₐ).toPrefix == [.truth false]
+example (p : Assert String) : p.toPrefix ≠ [] := by
+  cases p <;> simp [Assert.toPrefix]
+example (p : AssertPrefixPhrase) (x y : String)
+    (h : AssertPrefixPhrase.quant .all x p = AssertPrefixPhrase.quant .all y p) : x = y := by
+  have hp : (x, p) = (y, p) := prefixConstructors_injective.quant .all h
+  exact congrArg Prod.fst hp
+
 end Reynolds.Answers.Ch01
