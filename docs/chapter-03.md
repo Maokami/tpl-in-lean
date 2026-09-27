@@ -219,10 +219,14 @@ inductive Hoare : Assert V → Comm V → Assert V → Prop where
   /-- 반복. `i` 가 **불변식**(invariant)이다 (§3.5). -/
   | wh {i : Assert V} {b : BoolExp V} {c : Comm V} :
       Hoare (i ⋀ b.toAssert) c i → Hoare i (.wh b c) (i ⋀ ¬b.toAssert)
-  /-- 변수 선언. 지역 변수는 밖의 단언에 나오지 않아야 한다 (§3.6). -/
-  | newvar {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-      (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv) :
-      Hoare (p ⋀ (.cmp .eq (.var v) e)) c q → Hoare p (.newvar v e c) q
+  /-- DC (§3.5 p.67). 사후조건에만 지역 변수가 나타나지 않아야 한다. -/
+  | dc (s : List (Comm V)) {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+      (hq : v ∉ q.fv) :
+      Hoare p (Comm.seqs s (.seq (.assign v e) c)) q →
+      Hoare p (Comm.seqs s (.newvar v e c)) q
+  /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
+  | rename {p q : Assert V} {c c' : Comm V} :
+      Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
   /-- 결과 규칙. 사전조건은 강하게, 사후조건은 약하게 바꿔도 된다 (§3.2). -/
   | conseq {p p' q q' : Assert V} {c : Comm V} :
       Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
@@ -476,30 +480,19 @@ Scott 귀납법이 아니다. §3.1 에서 말했듯 전체 정확성은 극한�
 
 ---
 
-## §3.6 변수 선언 규칙
+## §3.5 변수 선언 DC와 이름 바꾸기 RN (pp.67–68)
 
-```
-{ p ∧ v = e } c { q }
--------------------------------   v ∉ FV(p) ∪ FV(q) ∪ FV(e)
-{ p } newvar v := e in c { q }
-```
+DC는 `{p} s; v := e; c {q}`에서 `{p} s; newvar v := e in c {q}`를 얻는다.
+조건은 `v ∉ FV(q)` 하나다. 초기값은 바깥 상태에서 계산하고, 복원할 값은 앞부분 `s`가
+끝난 상태에서 가져온다. `p`와 `e`에는 `v`가 나타나도 된다.
 
-안쪽에서 `v` 는 `e` 의 값으로 시작하고, 밖의 `p`·`q` 는 `v` 를 모른다.
+RN은 `w ∉ FV(c) \ {v}`이면 지역 결합 이름을 `v`에서 `w`로 바꿀 수 있다.
+초기값 식은 그대로 두고 본체만 포획 회피 치환한다. 여기서는 명령 앞부분 뒤의 선언에
+한정한 `Comm.PrefixRename`을 두 방향으로 제공한다. 책의 일반 RN보다 좁은 표현이다.
 
-건전성에 드는 것:
-
-- `⟦newvar v := e in c⟧ σ = restore v σ (⟦c⟧ (σ[v := ⟦e⟧ σ]))` (§2.2).
-- 갱신된 상태에서 `p` 가 여전히 참 — `v ∉ FV(p)` 와 명제 1.1 (`coincidence_assert`).
-- 갱신된 상태에서 `v = e` 가 참 — `v ∉ FV(e)` 라 `e` 의 값이 안 변한다 (`coincidence_intExp`).
-- 복원된 상태에서 `q` 가 여전히 참 — `v ∉ FV(q)` 와 명제 1.1.
-
-세 신선함 조건이 각각 다른 자리에서 쓰인다. §2.6 의 `forV3_eq_fold` 에서 `w ∉ FV(e₀)`
-가 필요했던 것과 같은 모양이다.
-
-`v` 가 `p` 나 `q` 에 나오면 어떻게 하나? **이름을 바꾼다.** §2.5 의 `Comm.newvar_rename`
-이 결합자를 신선한 이름으로 바꿔도 뜻이 같음을 보장하므로, 규칙을 신선한 결합자에
-적용하고 그 등식으로 옮겨 오면 된다. 규칙에 신선함 조건을 붙이는 것과 α-변환이 한
-짝이라는 것이 1장 §1.4 부터 이어지는 주제다.
+`Semantic.lean`의 `dc_sound`와 `rn_sound`는 각각 부분·전체 정확성을 함께 묻는다.
+이전 `newvar_sound` 연습은 DC로 옮겼다. `Hoare.newvar`와 `HoareT.newvar`는
+기존 세 신선함 조건을 유지하는 파생 API로 남아 VCG와 wp의 호출을 보존한다.
 
 ---
 
@@ -721,7 +714,8 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 
 ## 연습문제 매핑
 
-책의 연습 목록을 받은 뒤 채운다. 그와 별개로 본문 안에 낸 채점 연습 (19 개):
+현재 본문 규칙과 선택한 책 문제의 채점 연습은 20개다. 책의 모든 연습을 Lean 과제로
+옮기는 목표는 두지 않는다. 이번에는 연습 3.9의 DC 건전성을 추가한다.
 
 | 연습 | 내용 | 별점 |
 |---|---|---|
@@ -736,7 +730,8 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 | `§3.4 vcg-sound` | 검증 조건 생성기의 건전성 | ★★★ |
 | `§3.5 cd-sound` | 의미 단언 CD의 부분·전체 정확성 | ★ |
 | `§3.4 wht-sound` | 의미 단언의 전체 정확성 `while` 규칙 — 변항 귀납 | ★★★ |
-| `§3.6 newvar-sound` | 변수 선언 규칙 — 명제 1.1 세 번 | ★★ |
+| `Ex 3.9 dc-sound` | DC의 부분·전체 건전성 — 사후조건 지역성 | ★★ |
+| `§3.5 rn-sound` | RN의 부분·전체 건전성 — 명령 앞부분 판 | ★★ |
 | `§3.7 constancy` | 상수 규칙 — 명제 2.6(b) | ★★ |
 | `§3.7 ghost-exists` | ∃ 규칙 — 명제 2.6(a) | ★★ |
 | `§3.7 subst-rule` | 치환 규칙 — 연습 2.8 의 약한 조건 | ★★★ |

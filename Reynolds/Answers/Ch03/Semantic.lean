@@ -10,7 +10,7 @@ public import Reynolds.Answers.Ch03.Spec
 /-!
 # §3.3–§3.5 의미 단언 위의 규칙
 
-Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP), 전체 반복(WHT)을 다룬다.
+Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP), 전체 반복(WHT), 변수 선언(DC), 이름 바꾸기(RN)를 다룬다.
 
 ## 이 파일에서 다루는 것
 부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD를 각각 한 연습으로 증명한다.
@@ -25,7 +25,8 @@ WHP는 Scott 귀납법, WHT는 변항의 자연수 상계에 대한 귀납법으
 `Spec.lean` → 이 파일 → `Hoare.lean` → `Soundness.lean`.
 
 ## 책과의 차이
-구문 단언 대신 상태 술어를 사용한다. `fib`와 거듭제곱을 쓰는 예제에도 적용할 수 있다.
+대부분의 규칙은 구문 단언 대신 상태 술어를 사용한다. `fib`와 거듭제곱 예제에도 적용할 수 있다.
+**책과의 차이**: RN은 같은 명령 앞부분 뒤의 지역 선언 이름 바꾸기만 표현한다.
 -/
 
 @[expose] public section
@@ -37,6 +38,99 @@ open Reynolds Reynolds.Answers.Ch01 Reynolds.Answers.Ch02
 universe u
 
 variable {V : Type u} [DecidableEq V]
+
+/-- DC의 앞부분 `s`를 명령 `c` 앞에 순서대로 붙인다. 빈 목록이면 `c`다. -/
+def Comm.seqs : List (Comm V) → Comm V → Comm V
+  | [], c => c
+  | d :: ds, c => .seq d (Comm.seqs ds c)
+
+/-- 명령 목록을 실행한 뒤 마지막 명령을 실행한다. -/
+theorem Comm.eval_seqs (s : List (Comm V)) (c : Comm V) (σ : State V) :
+    (Comm.seqs s c).eval σ = Flat.bind ((Comm.seqs s .skip).eval σ) c.eval := by
+  induction s generalizing σ with
+  | nil => rfl
+  | cons d ds ih =>
+    simp only [Comm.seqs, Comm.eval]
+    rw [Flat.bind_assoc]
+    congr 1
+    funext ρ
+    exact ih ρ
+
+/-- 같은 의미의 명령은 같은 앞부분 뒤에서도 같은 의미를 갖는다. -/
+theorem Comm.seqs_congr (s : List (Comm V)) {c c' : Comm V} (h : c.eval = c'.eval) :
+    (Comm.seqs s c).eval = (Comm.seqs s c').eval := by
+  funext σ
+  rw [Comm.eval_seqs s c σ, Comm.eval_seqs s c' σ, h]
+
+/-- §3.5 RN의 명령 앞부분 판. 초기값 식은 결합 범위 밖이므로 그대로 둔다.
+책의 일반 RN 중 이 형태만 표현하며, 두 방향과 반복 적용을 허용한다. -/
+inductive Comm.PrefixRename [HasFresh V] : Comm V → Comm V → Prop where
+  /-- 지역 결합 이름을 신선한 이름으로 바꾼다. -/
+  | forward (s : List (Comm V)) (v w : V) (e : IntExp V) (c : Comm V)
+      (hfresh : w ∉ c.fv.erase v) :
+      PrefixRename (seqs s (.newvar v e c))
+        (seqs s (.newvar w e (c /ᶜ Function.update id v w)))
+  /-- 같은 이름 바꾸기를 거꾸로 적용한다. -/
+  | backward (s : List (Comm V)) (v w : V) (e : IntExp V) (c : Comm V)
+      (hfresh : w ∉ c.fv.erase v) :
+      PrefixRename (seqs s (.newvar w e (c /ᶜ Function.update id v w)))
+        (seqs s (.newvar v e c))
+
+-- ANCHOR: dcSound
+-- ANCHOR: stmtDcSound
+/-- DC (§3.5 p.67, 연습 3.9). 사후조건만 지역 변수를 무시하면 된다.
+앞부분이 끝난 상태의 변수 값을 복원하므로 사전조건과 초기값에는 신선함을 요구하지 않는다. -/
+@[exercise "Ex 3.9 dc-sound" 2]
+theorem dc_sound (s : List (Comm V)) (P Q : State V → Prop)
+    (v : V) (e : IntExp V) (c : Comm V)
+    (hQ : ∀ (σ : State V) (n : Int), Q (σ[v := n]) ↔ Q σ) :
+    (PartialCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      PartialCorrectS P (Comm.seqs s (.newvar v e c)) Q) ∧
+    (TotalCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      TotalCorrectS P (Comm.seqs s (.newvar v e c)) Q)
+-- ANCHOR_END: stmtDcSound
+    := by
+  constructor
+  · intro h σ hp τ ht
+    rw [Comm.eval_seqs] at ht
+    obtain ⟨ρ, hρ, ht⟩ := Flat.bind_eq_some_iff.mp ht
+    change Flat.map (fun τ => τ[v := ρ v]) (c.eval (ρ[v := e.eval ρ])) = .some τ at ht
+    obtain ⟨υ, hυ, rfl⟩ := Flat.map_eq_some_iff.mp ht
+    apply (hQ υ (ρ v)).mpr
+    apply h σ hp υ
+    rw [Comm.eval_seqs, hρ]
+    exact hυ
+  · intro h σ hp
+    obtain ⟨τ, ht, hq⟩ := h σ hp
+    rw [Comm.eval_seqs] at ht
+    obtain ⟨ρ, hρ, ht⟩ := Flat.bind_eq_some_iff.mp ht
+    refine ⟨τ[v := ρ v], ?_, (hQ τ (ρ v)).mpr hq⟩
+    rw [Comm.eval_seqs, hρ]
+    change Flat.map (fun τ => τ[v := ρ v]) (c.eval (ρ[v := e.eval ρ])) = _
+    change c.eval (ρ[v := e.eval ρ]) = .some τ at ht
+    rw [ht]
+    rfl
+-- ANCHOR_END: dcSound
+
+-- ANCHOR: rnSound
+-- ANCHOR: stmtRnSound
+/-- RN (§3.5 p.68)의 명령 앞부분 판. §2.5의 지역 이름 바꾸기는 전체 상태의 의미를 보존한다. -/
+@[exercise "§3.5 rn-sound" 2]
+theorem rn_sound [HasFresh V] (p q : Assert V) {c c' : Comm V}
+    (h : Comm.PrefixRename c c') :
+    (PartialCorrect p c q → PartialCorrect p c' q) ∧
+    (TotalCorrect p c q → TotalCorrect p c' q)
+-- ANCHOR_END: stmtRnSound
+    := by
+  have heq : c.eval = c'.eval := by
+    cases h with
+    | forward s v w e c hfresh =>
+      exact Comm.seqs_congr s (Comm.newvar_rename v w e c hfresh).symm
+    | backward s v w e c hfresh =>
+      exact Comm.seqs_congr s (Comm.newvar_rename v w e c hfresh)
+  constructor <;> intro hc <;> simpa only [PartialCorrect, PartialCorrectS,
+    TotalCorrect, TotalCorrectS, heq] using hc
+-- ANCHOR_END: rnSound
 
 -- ANCHOR: asSound
 -- ANCHOR: stmtAsSound

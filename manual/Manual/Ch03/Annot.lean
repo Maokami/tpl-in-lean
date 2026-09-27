@@ -155,9 +155,14 @@ inductive HoareT [HasFresh V] : Assert V → Comm V → Assert V → Prop where
       (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e)) :
       HoareT (i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)) c (i ⋀ .cmp .lt e (.var z)) →
       HoareT i (.wh b c) (i ⋀ .not b.toAssert)
-  | newvar {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-      (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv) :
-      HoareT (p ⋀ .cmp .eq (.var v) e) c q → HoareT p (.newvar v e c) q
+  | dc (s : List (Comm V)) {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+      (hq : v ∉ q.fv) :
+      HoareT p (Comm.seqs s (.seq (.assign v e) c)) q →
+      HoareT p (Comm.seqs s (.newvar v e c)) q
+  /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
+  | rename {p q : Assert V} {c c' : Comm V} :
+      Comm.PrefixRename c c' → HoareT p c q → HoareT p c' q
+  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
   | conseq {p p' q q' : Assert V} {c : Comm V} :
       Stronger p' p → HoareT p c q → Stronger q q' → HoareT p' c q'
 ```

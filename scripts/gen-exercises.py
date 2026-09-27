@@ -1246,6 +1246,37 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem dc_sound",
+        "-- ANCHOR_END: dcSound",
+        """theorem dc_sound (s : List (Comm V)) (P Q : State V → Prop)
+    (v : V) (e : IntExp V) (c : Comm V)
+    (hQ : ∀ (σ : State V) (n : Int), Q (σ[v := n]) ↔ Q σ) :
+    (PartialCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      PartialCorrectS P (Comm.seqs s (.newvar v e c)) Q) ∧
+    (TotalCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      TotalCorrectS P (Comm.seqs s (.newvar v e c)) Q) := by
+  -- 힌트: `Comm.eval_seqs`로 앞부분을 분리하고 `Flat.bind_eq_some_iff`로 중간 상태를 꺼낸다.
+  -- 복원에는 그 중간 상태의 값을 쓴다. `Flat.map_eq_some_iff`와 `hQ`를 적용한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem rn_sound",
+        "-- ANCHOR_END: rnSound",
+        """theorem rn_sound [HasFresh V] (p q : Assert V) {c c' : Comm V}
+    (h : Comm.PrefixRename c c') :
+    (PartialCorrect p c q → PartialCorrect p c' q) ∧
+    (TotalCorrect p c q → TotalCorrect p c' q) := by
+  -- 힌트: `Comm.newvar_rename`과 `Comm.seqs_congr`로 명령 의미의 등식을 얻는다.
+  -- `PrefixRename`의 두 방향을 나눈 뒤 부분·전체 정확성의 정의에 등식을 쓴다.
+  sorry
+
+""",
+    ),
     # ── §3.3–§3.5 의미 규칙
     (
         "Ch03/Semantic.lean",
@@ -1320,26 +1351,6 @@ BLANKS: list[tuple[str, str, str, str]] = [
 """,
     ),
 
-    # ── 변수 선언의 구문 건전성
-    (
-        "Ch03/Soundness.lean",
-        "theorem newvar_sound",
-        "-- ANCHOR_END: newvarSound",
-        """theorem newvar_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-    (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
-    (h : ｛p ⋀ .cmp .eq (.var v) e｝c｛q｝) : ｛p｝(Comm.newvar v e c)｛q｝ := by
-  -- 먼저 볼 것: §1.4 의 `coincidence_assert` · `coincidence_intExp` (명제 1.1),
-  --            `State.subst_self` · `State.subst_of_ne`.
-  -- 힌트 1: `⟦newvar v := e in c⟧ᶜ σ` 는 정의상 `restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]))` 다.
-  --         `rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])` 로 나누고, `Flat.some ρ` 면
-  --         `simp only [restore, Flat.map_some, Flat.some.injEq] at hτ` 로 `τ = ρ[v := σ v]`.
-  -- 힌트 2: 안쪽 사전조건 두 조각 — `p` 는 `v` 를 안 보니 갱신해도 참(`hp`), `v = e` 는
-  --         `State.subst_self` 와 `e` 가 `v` 를 안 본다는 것(`he`)으로.
-  -- 힌트 3: 안쪽 결과 `⟦q⟧ₐ ρ` 에서 `v` 를 복원해도 `q` 는 `v` 를 안 본다(`hq`).
-  sorry
-
-""",
-    ),
     # ── §3.3 대입 공리의 방향
     (
         "Ch03/Assign.lean",

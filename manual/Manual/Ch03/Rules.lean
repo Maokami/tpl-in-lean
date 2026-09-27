@@ -35,7 +35,7 @@ Reynolds의 가로선 노릇을 한다.
 
 ```anchor hoare (module := Reynolds.Answers.Ch03.Hoare)
 /--
-부분 정확성의 추론 체계. Reynolds §3.2~3.6 의 규칙들이다.
+부분 정확성의 추론 체계. Reynolds §3.2–§3.5의 규칙들이다.
 
 `[HasFresh V]` 가 붙는 이유는 대입 공리의 치환 `q /[v := e]` 가 새 결합자를 뽑기
 때문이다 (§1.4).
@@ -58,12 +58,15 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   조건이 거짓이다. -/
   | wh {i : Assert V} {b : BoolExp V} {c : Comm V} :
       Hoare (i ⋀ b.toAssert) c i → Hoare i (.wh b c) (i ⋀ .not b.toAssert)
-  /-- 변수 선언. 지역 변수는 밖의 단언과 초기값 식에 나오지 않아야 한다. 나오면 이름을
-  바꾼다 (§2.5 `Comm.newvar_rename`). -/
-  | newvar {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-      (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv) :
-      Hoare (p ⋀ .cmp .eq (.var v) e) c q → Hoare p (.newvar v e c) q
-  /-- 결과 규칙. 사전조건은 강하게, 사후조건은 약하게. 전제가 단언의 **타당성**이다. -/
+  /-- DC (§3.5 p.67). 사후조건에만 지역 변수가 나타나지 않아야 한다. -/
+  | dc (s : List (Comm V)) {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
+      (hq : v ∉ q.fv) :
+      Hoare p (Comm.seqs s (.seq (.assign v e) c)) q →
+      Hoare p (Comm.seqs s (.newvar v e c)) q
+  /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
+  | rename {p q : Assert V} {c c' : Comm V} :
+      Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
+  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
   | conseq {p p' q q' : Assert V} {c : Comm V} :
       Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
 ```
@@ -154,44 +157,63 @@ theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
 §2.5의 명제 2.6, 명제 2.7에 이어 Scott 귀납법을 세 번째로 쓰는 자리다. 앞의 둘은 두 상태
 사이의 _관계_를 다뤘고 이번에는 한 상태의 _술어_라 더 단순하다.
 
-변수 선언 규칙에는 신선함 조건이 셋 붙는다. 각각이 명제 1.1을 한 번씩 부른다.
+Reynolds §3.5 pp.67–68의 DC는 `s; v := e; c`의 명세를
+`s; newvar v := e in c`로 옮긴다. `s`는 비어 있을 수도 있는 앞부분이다.
+두 명령은 같은 본체를 실행하며, 선언만 끝에서 지역 변수 값을 복원한다.
+그래서 사후조건 `q`가 `v`를 보지 않으면 충분하다. 사전조건과 초기값 식에는 이 조건이 없다.
 
-```anchor newvarSound (module := Reynolds.Answers.Ch03.Soundness)
-/--
-**변수 선언 규칙의 건전성 — 명제 1.1 세 번.**
+예를 들어 바깥 `x = 3`에서 `newvar x := x + 1 in y := x`는 `y = 4`를 남긴다.
+초기값의 `x`는 바깥 값이다. 앞부분에서 `x := 7`을 실행했다면 본체는 `y = 8`을 만들고,
+선언이 끝난 뒤의 `x`는 7이다. 앞부분을 실행하기 전의 3으로 복원하면 안 된다.
 
-`⟦newvar v := e in c⟧ σ = restore v σ (⟦c⟧ (σ[v := ⟦e⟧ σ]))` 다. 세 신선함 조건이 각각
-다른 자리에서 쓰인다.
+연습 3.9의 DC 건전성을 부분·전체 정확성 한 쌍으로 증명한다.
+`hQ`는 지역 변수의 값만 바꾸어도 사후조건의 진릿값이 같다는 뜻이다.
 
-- `v ∉ FV(p)` — `v` 를 갱신해도 `p` 가 그대로 참이다.
-- `v ∉ FV(e)` — `v` 를 갱신해도 `e` 의 값이 그대로라 안쪽에서 `v = e` 가 참이다.
-- `v ∉ FV(q)` — `v` 를 복원해도 `q` 가 그대로 참이다.
--/
-@[exercise "§3.6 newvar-sound" 2]
-theorem newvar_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
-    (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
-    (h : ｛p ⋀ .cmp .eq (.var v) e｝c｛q｝) : ｛p｝(Comm.newvar v e c)｛q｝ := by
-  intro σ hpσ τ hτ
-  change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some τ at hτ
-  rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]) with _ | ρ
-  · rw [hc] at hτ; simp [restore] at hτ
-  · rw [hc] at hτ
-    simp only [restore, Flat.map_some, Flat.some.injEq] at hτ
-    subst hτ
-    -- 안쪽 사전조건. `p` 는 `v` 를 안 보고, `v = e` 는 갱신으로 참이다.
-    have hp' : ⟦p⟧ₐ (σ[v := ⟦e⟧ₑ σ]) :=
-      (coincidence_assert p σ _ fun w hw =>
-        (State.subst_of_ne σ v w _ fun (hwv : w = v) => hp (hwv ▸ hw)).symm).mp hpσ
-    have hv : ⟦Assert.cmp .eq (.var v) e⟧ₐ (σ[v := ⟦e⟧ₑ σ]) := by
-      change (σ[v := ⟦e⟧ₑ σ]) v = ⟦e⟧ₑ (σ[v := ⟦e⟧ₑ σ])
-      rw [State.subst_self]
-      exact coincidence_intExp e σ _ fun w hw =>
-        (State.subst_of_ne σ v w _ fun (hwv : w = v) => he (hwv ▸ hw)).symm
-    -- 안쪽 결과에서 `q` 가 참이고, `v` 를 복원해도 `q` 는 `v` 를 안 보므로 그대로다.
-    have hq' := h _ ((Assert.eval_and _ _ _).mpr ⟨hp', hv⟩) ρ hc
-    exact (coincidence_assert q ρ (ρ[v := σ v]) fun w hw =>
-      (State.subst_of_ne ρ v w _ fun (hwv : w = v) => hq (hwv ▸ hw)).symm).mp hq'
+```anchor stmtDcSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- DC (§3.5 p.67, 연습 3.9). 사후조건만 지역 변수를 무시하면 된다.
+앞부분이 끝난 상태의 변수 값을 복원하므로 사전조건과 초기값에는 신선함을 요구하지 않는다. -/
+@[exercise "Ex 3.9 dc-sound" 2]
+theorem dc_sound (s : List (Comm V)) (P Q : State V → Prop)
+    (v : V) (e : IntExp V) (c : Comm V)
+    (hQ : ∀ (σ : State V) (n : Int), Q (σ[v := n]) ↔ Q σ) :
+    (PartialCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      PartialCorrectS P (Comm.seqs s (.newvar v e c)) Q) ∧
+    (TotalCorrectS P (Comm.seqs s (.seq (.assign v e) c)) Q →
+      TotalCorrectS P (Comm.seqs s (.newvar v e c)) Q)
 ```
+
+힌트: `Comm.eval_seqs`로 앞부분을 분리한다. 부분 정확성에서는 선언의 종료 결과를,
+전체 정확성에서는 대입 판의 종료 결과를 출발점으로 삼는다.
+`Flat.bind_eq_some_iff`와 `Flat.map_eq_some_iff`로 중간 상태와 복원 전 상태를 찾는다.
+
+RN은 결합 이름을 바꾸어도 뜻이 같다는 규칙이다. 여기서는 같은 앞부분 뒤의 지역 선언을
+두 방향으로 바꾸는 `Comm.PrefixRename`을 사용한다. 초기값 `e`는 결합 범위 밖이므로
+그대로 두며, 새 이름 `w`의 조건은 정확히 `w ∉ FV(c) \ {v}`다.
+
+```anchor stmtRnSound (module := Reynolds.Answers.Ch03.Semantic)
+/-- RN (§3.5 p.68)의 명령 앞부분 판. §2.5의 지역 이름 바꾸기는 전체 상태의 의미를 보존한다. -/
+@[exercise "§3.5 rn-sound" 2]
+theorem rn_sound [HasFresh V] (p q : Assert V) {c c' : Comm V}
+    (h : Comm.PrefixRename c c') :
+    (PartialCorrect p c q → PartialCorrect p c' q) ∧
+    (TotalCorrect p c q → TotalCorrect p c' q)
+```
+
+힌트: §2.5의 `Comm.newvar_rename`과 `Comm.seqs_congr`를 연결한다.
+이 연습은 DC의 답을 사용하지 않는다.
+
+책 p.68의 `{x = 0} newvar x := 1 in x := x + 1 {x = 0}`에는 DC를 바로 쓸 수 없다.
+사후조건에 `x`가 있기 때문이다. 먼저 지역 이름을 `y`로 두고 DC를 적용한다.
+그 명령을 RN으로 `x`로 바꾸면 바깥 `x = 0`을 유지하는 원래 명세를 얻는다.
+`ReynoldsTests/Ch03.lean`은 이 유도를 부분·전체 정확성에서 각각 검사한다.
+
+**책과의 차이**: 책의 RN은 단언과 명령에서 여러 결합 이름을 바꾸는 일반 규칙이다.
+여기서는 앞부분 뒤의 지역 선언에 한정한다. 여러 번의 명령 이름 바꾸기는 규칙을 반복
+적용하고, 단언의 이름 바꾸기는 의미 함의인 결과 규칙으로 옮긴다.
+
+기존 `Hoare.newvar`와 `HoareT.newvar`는 AS·SQ·DC로 유도한 제공 API다.
+그 API의 세 신선함 조건은 검증 조건 생성기와 최약 사전조건 코드의 기존 사용을 보존한다.
+직접 DC를 사용할 때는 사후조건의 조건만 필요하다.
 
 절들을 모으면 건전성이다.
 
@@ -211,7 +233,9 @@ theorem Hoare.sound [HasFresh V] {p q : Assert V} {c : Comm V} :
   | seq _ _ ih₀ ih₁ => exact seq_sound ih₀ ih₁
   | ite _ _ ih₀ ih₁ => exact ite_sound ih₀ ih₁
   | wh _ ih => exact wh_sound ih
-  | newvar hp hq he _ ih => exact newvar_sound hp hq he ih
+  | dc s hq _ ih =>
+    exact (dc_sound s _ _ _ _ _ (Assert.eval_update_of_notMem hq)).1 ih
+  | rename hr _ ih => exact (rn_sound _ _ hr).1 ih
   | conseq hp _ hq ih => exact PartialCorrect.conseq hp ih hq
 ```
 

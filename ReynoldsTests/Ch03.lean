@@ -132,4 +132,120 @@ example : ∀ σ : State String, False → ∃ τ,
 example : ［⟪ x ≤ 100 ⟫ₐ］⟪ while x < 100 do x := x + 1 ⟫ᶜ［⟪ x = 100 ⟫ₐ］ :=
   HoareT.sound countTo100_total
 
+-- 초기값이 바깥 x를 읽어도 DC는 적용된다.
+example : Hoare (⟪ x = 3 ⟫ₐ) (.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ) (⟪ y = 4 ⟫ₐ) := by
+  apply Hoare.dc [] (by simp [Assert.fv, IntExp.fv])
+  refine Hoare.strengthen ?_ (Hoare.seq (Hoare.assign _ "x" _) (Hoare.assign _ "y" _))
+  intro σ h
+  simp [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote, IntOp.denote,
+    Function.update] at h ⊢
+  omega
+
+-- 책 p.68: 보조 이름 y로 DC를 쓴 뒤 RN으로 바깥 x와 같은 이름을 다시 쓴다.
+example : Hoare (⟪ x = 0 ⟫ₐ)
+    (.newvar "x" (.num 1) ⟪ x := x + 1 ⟫ᶜ) (⟪ x = 0 ⟫ₐ) := by
+  have h : Hoare (⟪ x = 0 ⟫ₐ)
+      (.newvar "y" (.num 1) ⟪ y := y + 1 ⟫ᶜ) (⟪ x = 0 ⟫ₐ) := by
+    apply Hoare.dc [] (by simp [Assert.fv, IntExp.fv])
+    refine Hoare.strengthen ?_ (Hoare.seq (Hoare.assign _ "y" _) (Hoare.assign _ "y" _))
+    intro σ hσ
+    simpa [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote,
+      Function.update] using hσ
+  have hr := Hoare.rename (Comm.PrefixRename.forward [] "y" "x" (.num 1)
+    ⟪ y := y + 1 ⟫ᶜ (by simp [Comm.fv, IntExp.fv])) h
+  simpa [Comm.seqs, Comm.subst, IntExp.subst, Function.update] using hr
+
+-- 초기값이 바깥 x를 읽어도 DC는 적용된다.
+example : HoareT (⟪ x = 3 ⟫ₐ) (.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ) (⟪ y = 4 ⟫ₐ) := by
+  apply HoareT.dc [] (by simp [Assert.fv, IntExp.fv])
+  refine HoareT.strengthen ?_ (HoareT.seq (HoareT.assign _ "x" _) (HoareT.assign _ "y" _))
+  intro σ h
+  simp [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote, IntOp.denote,
+    Function.update] at h ⊢
+  omega
+
+-- 책 p.68: 보조 이름 y로 DC를 쓴 뒤 RN으로 바깥 x와 같은 이름을 다시 쓴다.
+example : HoareT (⟪ x = 0 ⟫ₐ)
+    (.newvar "x" (.num 1) ⟪ x := x + 1 ⟫ᶜ) (⟪ x = 0 ⟫ₐ) := by
+  have h : HoareT (⟪ x = 0 ⟫ₐ)
+      (.newvar "y" (.num 1) ⟪ y := y + 1 ⟫ᶜ) (⟪ x = 0 ⟫ₐ) := by
+    apply HoareT.dc [] (by simp [Assert.fv, IntExp.fv])
+    refine HoareT.strengthen ?_ (HoareT.seq (HoareT.assign _ "y" _) (HoareT.assign _ "y" _))
+    intro σ hσ
+    simpa [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote,
+      Function.update] using hσ
+  have hr := HoareT.rename (Comm.PrefixRename.forward [] "y" "x" (.num 1)
+    ⟪ y := y + 1 ⟫ᶜ (by simp [Comm.fv, IntExp.fv])) h
+  simpa [Comm.seqs, Comm.subst, IntExp.subst, Function.update] using hr
+
+-- 앞부분에서 바뀐 x=7을 복원한다. 전체 프로그램 시작 값 x=3을 복원하지 않는다.
+#guard ((Comm.seqs [⟪ x := 7 ⟫ᶜ] (.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ)).run 10
+  (State.const 3)).map (fun σ => (σ "x", σ "y")) == .some (7, 8)
+#guard ((.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ : Comm String).run 10
+  (State.const 3)).map (fun σ => (σ "x", σ "y")) == .some (3, 4)
+#guard ((.newvar "x" (.num 1) ⟪ x := x + 1 ⟫ᶜ : Comm String).run 10
+  (State.const 0)).map (fun σ => σ "x") == .some 0
+
+-- DC에서 사후조건의 지역성은 필요하다: 대입은 x=1, 선언은 바깥 x=0을 남긴다.
+#guard ((.seq (.assign "x" (.num 1)) .skip : Comm String).run 10
+  (State.const 0)).map (fun σ => σ "x") == .some 1
+#guard ((.newvar "x" (.num 1) .skip : Comm String).run 10
+  (State.const 0)).map (fun σ => σ "x") == .some 0
+
+-- RN은 초기값에 새 이름 y가 있어도 허용한다. 본체의 자유 변수만 검사한다.
+example : Comm.PrefixRename (.newvar "x" (.var "y") ⟪ z := x ⟫ᶜ)
+    (.newvar "y" (.var "y") ⟪ z := y ⟫ᶜ) := by
+  simpa [Comm.seqs, Comm.subst, IntExp.subst, Function.update] using
+    Comm.PrefixRename.forward [] "x" "y" (.var "y") ⟪ z := x ⟫ᶜ
+      (by simp [Comm.fv, IntExp.fv])
+
+#guard ((.newvar "x" (.var "y") ⟪ z := x ⟫ᶜ : Comm String).run 10
+  ((State.const 0)["y" := (9 : Int)])).map (fun σ => (σ "x", σ "y", σ "z")) == .some (0, 9, 9)
+#guard ((.newvar "y" (.var "y") ⟪ z := y ⟫ᶜ : Comm String).run 10
+  ((State.const 0)["y" := (9 : Int)])).map (fun σ => (σ "x", σ "y", σ "z")) == .some (0, 9, 9)
+
+-- 본체에서 y가 이미 자유로우면 포획된다. 이 바꾸기는 RN의 전제를 만족하지 않는다.
+example : "y" ∈ (⟪ y := x ⟫ᶜ : Comm String).fv.erase "x" := by
+  simp [Comm.fv, IntExp.fv]
+#guard ((.newvar "x" (.num 1) ⟪ y := x ⟫ᶜ : Comm String).run 10
+  (State.const 0)).map (fun σ => σ "y") == .some 1
+#guard ((.newvar "y" (.num 1) ⟪ y := y ⟫ᶜ : Comm String).run 10
+  (State.const 0)).map (fun σ => σ "y") == .some 0
+
+-- 비어 있지 않은 앞부분을 가진 DC도 두 유도 체계에서 적용한다.
+example : Hoare (⟪ x = 3 ⟫ₐ)
+    (Comm.seqs [⟪ x := 7 ⟫ᶜ] (.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ)) (⟪ y = 8 ⟫ₐ) := by
+  apply Hoare.dc [⟪ x := 7 ⟫ᶜ] (by simp [Assert.fv, IntExp.fv])
+  refine Hoare.strengthen ?_ (Hoare.seq (Hoare.assign _ "x" _)
+    (Hoare.seq (Hoare.assign _ "x" _) (Hoare.assign _ "y" _)))
+  intro σ _
+  norm_num [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote,
+    IntOp.denote, Function.update]
+
+example : HoareT (⟪ x = 3 ⟫ₐ)
+    (Comm.seqs [⟪ x := 7 ⟫ᶜ] (.newvar "x" ⟪ x + 1 ⟫ₑ ⟪ y := x ⟫ᶜ)) (⟪ y = 8 ⟫ₐ) := by
+  apply HoareT.dc [⟪ x := 7 ⟫ᶜ] (by simp [Assert.fv, IntExp.fv])
+  refine HoareT.strengthen ?_ (HoareT.seq (HoareT.assign _ "x" _)
+    (HoareT.seq (HoareT.assign _ "x" _) (HoareT.assign _ "y" _)))
+  intro σ _
+  norm_num [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, Cmp.denote,
+    IntOp.denote, Function.update]
+
+-- 발산하는 앞부분과 본체에서도 DC의 부분 정확성 성분은 거짓 사후조건을 보존한다.
+example : PartialCorrectS (fun _ : State String => True)
+    (Comm.seqs [diverge] (.newvar "x" (.num 0) .skip)) (fun _ => False) := by
+  refine (dc_sound [diverge] (fun _ => True) (fun _ => False) "x" (.num 0) .skip
+    (fun _ _ => Iff.rfl)).1 ?_
+  intro σ _ τ ht
+  change Flat.bind (diverge.eval σ) _ = .some τ at ht
+  simp [eval_diverge] at ht
+
+example : PartialCorrectS (fun _ : State String => True)
+    (.newvar "x" (.num 0) diverge) (fun _ => False) := by
+  refine (dc_sound [] (fun _ => True) (fun _ => False) "x" (.num 0) diverge
+    (fun _ _ => Iff.rfl)).1 ?_
+  intro σ _ τ ht
+  change diverge.eval (σ["x" := 0]) = .some τ at ht
+  simp [eval_diverge] at ht
+
 end
