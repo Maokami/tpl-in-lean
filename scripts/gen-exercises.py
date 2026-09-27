@@ -1291,6 +1291,86 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem sp_sound",
+        "-- ANCHOR_END: spSound",
+        """theorem sp_sound {P P' Q : State V → Prop} {c : Comm V}
+    (hp : ∀ σ, P' σ → P σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P' c Q) ∧
+    (TotalCorrectS P c Q → TotalCorrectS P' c Q) := by
+  -- 힌트: 사전조건의 함의를 적용한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem wc_sound",
+        "-- ANCHOR_END: wcSound",
+        """theorem wc_sound {P Q Q' : State V → Prop} {c : Comm V}
+    (hq : ∀ σ, Q σ → Q' σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P c Q') ∧
+    (TotalCorrectS P c Q → TotalCorrectS P c Q') := by
+  -- 힌트: 종료 상태에 사후조건의 함의를 적용한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem ca_sound",
+        "-- ANCHOR_END: caSound",
+        """theorem ca_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) := by
+  -- 힌트: 전체 판의 두 종료 상태가 같음을 Flat.some.inj로 보인다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem da_sound",
+        "-- ANCHOR_END: daSound",
+        """theorem da_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) := by
+  -- 힌트: 사전조건의 선언을 경우로 나눈다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem csp_sound",
+        "-- ANCHOR_END: cspSound",
+        """theorem csp_sound {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) :
+    PartialCorrect p c p := by
+  -- 힌트: Comm.eval_agree_outside_fa와 coincidence_assert를 쓴다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/Semantic.lean",
+        "theorem cst_sound",
+        "-- ANCHOR_END: cstSound",
+        """theorem cst_sound {P Q : State V → Prop} {r : Assert V} {c : Comm V}
+    (hr : Disjoint c.fa r.fv) :
+    (PartialCorrectS P c Q →
+      PartialCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) ∧
+    (TotalCorrectS P c Q →
+      TotalCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) := by
+  -- 힌트: 전제에서 종료 상태를 얻고 쓰이지 않는 단언을 보존한다.
+  sorry
+
+""",
+    ),
     # ── §3.3–§3.5 의미 규칙
     (
         "Ch03/Semantic.lean",

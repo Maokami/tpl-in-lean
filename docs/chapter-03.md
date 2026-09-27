@@ -55,13 +55,13 @@
 | 파일 | 책 | 내용 |
 |---|---|---|
 | `Ch03/Spec.lean` | §3.1 | `Sat`, `PartialCorrect(S)`, `TotalCorrect(S)`, 표기, 허용 가능성, 둘의 관계 |
-| `Ch03/Hoare.lean` | §3.2–3.6 | `inductive Hoare` (부분 정확성 규칙들), 결과 규칙의 두 반쪽, 첫 유도 |
+| `Ch03/Hoare.lean` | §3.2–3.6 | `Hoare`: SP·WC·CA·DA·CSP 생성자, 유도 규칙 `conseq`, 첫 유도 |
 | `Ch03/Soundness.lean` | §3.2–3.6 | 규칙마다 건전성, `Hoare.sound` |
 | `Ch03/Assign.lean` | §3.3 | 대입 공리가 거꾸로인 이유 — Floyd 의 앞으로 가는 판과 힘이 같다 |
 | `Ch03/Annot.lean` | §3.4 | 주석 명령과 검증 조건 생성기 `vcg`, `Annot.vcg_sound` |
 | `Ch03/Total.lean` | §3.5 | `inductive HoareT` 와 `HoareT.sound`, 변항과 정초 귀납 |
-| `Ch03/Derived.lean` | §3.7 | 상수 규칙, 연언·선언 규칙, ∃ 규칙, 치환 규칙 — 의미 수준에서 |
-| `Ch03/Semantic.lean` | §3.8 준비 | 의미 단언 위의 규칙 (대입은 치환 대신 상태 갱신) |
+| `Ch03/Derived.lean` | §3.5·보충 | 부분 CST 유도(CSP·CA), 의미 판 CA·DA, ∃·치환 보충 규칙 |
+| `Ch03/Semantic.lean` | §3.3–§3.5 | AS·SQ·SP·WC·CA·DA·CSP·CST·DC·RN·WHP·WHT의 독립 건전성 연습 |
 | `Ch03/Examples/Fib.lean` | §3.8 | 피보나치 — 의미 단언으로 끝까지 |
 | `Ch03/Examples/FastExp.lean` | §3.9 | 빠른 거듭제곱 — 의미 단언으로 끝까지 |
 | `Ch03/Wlp.lean` | §3.10 | 의미적 wlp 와 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성, 한계 |
@@ -227,19 +227,30 @@ inductive Hoare : Assert V → Comm V → Assert V → Prop where
   /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
   | rename {p q : Assert V} {c c' : Comm V} :
       Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
-  /-- 결과 규칙. 사전조건은 강하게, 사후조건은 약하게 바꿔도 된다 (§3.2). -/
-  | conseq {p p' q q' : Assert V} {c : Comm V} :
-      Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
+  /-- SP (§3.3 p.59). 사전조건을 강화한다. -/
+  | strengthen {p p' q : Assert V} {c : Comm V} :
+      Stronger p' p → Hoare p c q → Hoare p' c q
+  /-- WC (§3.3 p.59). 사후조건을 약화한다. -/
+  | weaken {p q q' : Assert V} {c : Comm V} :
+      Hoare p c q → Stronger q q' → Hoare p c q'
+  /-- CA (§3.5 p.68). 같은 명령의 두 명세를 연언으로 합친다. -/
+  | conj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ → Hoare (p₀ ⋀ p₁) c (q₀ ⋀ q₁)
+  /-- DA (§3.5 p.68). 서로 다른 사후조건도 선언으로 합친다. -/
+  | disj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ →
+      Hoare (.bin .or p₀ p₁) c (.bin .or q₀ q₁)
+  /-- CSP (§3.5 p.68). 쓰이지 않는 변수의 단언은 종료한 실행에서 보존된다. -/
+  | constancy {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) : Hoare p c p
 -- ANCHOR_END: hoare
 ```
 
 `b.toAssert` 는 §2.2 에서 만든 불 식 → 단언 변환이다 (`boolExp_eval_iff` 가 뜻을 잇는다).
 `⋀` 는 `Assert.bin .and` 의 표기다. 2장 DSL 과 겹치지 않게 고른다.
 
-Reynolds 는 결과 규칙을 둘로 나눈다 — 전제 강화(strengthening precedent)와 결론
-약화(weakening consequent). 하나로 합쳐도 되고 둘로 두어도 된다. 둘로 두면 Reynolds 의
-유도를 그대로 옮길 수 있고, 하나로 합치면 유도가 짧아진다. **둘 다 두고 하나를 다른 것으로
-유도**하는 정리를 붙이면 관계가 드러난다.
+Reynolds의 전제 강화(strengthening precedent, SP)와 결론 약화(weakening consequent, WC)를
+각각 생성자로 둔다. 기존 `conseq`는 `strengthen` 뒤 `weaken`을 적용하는 유도 정리다.
+CA·DA는 두 명세를 연언·선언으로 합치며, CSP는 명세 전제 없이 쓰이지 않는 단언을 보존한다.
 
 ### ★ 결과 규칙의 전제는 "타당하다" 다
 
@@ -732,7 +743,7 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 | `§3.4 wht-sound` | 의미 단언의 전체 정확성 `while` 규칙 — 변항 귀납 | ★★★ |
 | `Ex 3.9 dc-sound` | DC의 부분·전체 건전성 — 사후조건 지역성 | ★★ |
 | `§3.5 rn-sound` | RN의 부분·전체 건전성 — 명령 앞부분 판 | ★★ |
-| `§3.7 constancy` | 상수 규칙 — 명제 2.6(b) | ★★ |
+| `§3.5 constancy` | 상수 규칙 — 명제 2.6(b) | ★★ |
 | `§3.7 ghost-exists` | ∃ 규칙 — 명제 2.6(a) | ★★ |
 | `§3.7 subst-rule` | 치환 규칙 — 연습 2.8 의 약한 조건 | ★★★ |
 | `§3.8 fib-body` | 피보나치 한 바퀴가 불변식을 지킨다 | ★★ |
