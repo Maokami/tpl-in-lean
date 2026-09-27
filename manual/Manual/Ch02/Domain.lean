@@ -283,6 +283,45 @@ number := false
 평평한 사슬의 극한은 새 값이 아니라 사슬이 실제로 지나간 값이므로, 극한에서 갑자기 생길
 정보가 없다.
 
+# 바닥을 더한 함수는 어떻게 합성하는가
+%%%
+tag := "ch02-lifting-laws"
+file := "ch02-lifting-laws"
+number := false
+%%%
+
+값을 바꾸는 함수 `f : α → β`를 계산 결과에 적용하려면 `Flat.map f`를 쓴다.
+바닥 입력은 바닥으로, `Flat.some a`는 `Flat.some (f a)`로 간다.
+반면 `g : α → D`의 공역이 이미 바닥을 갖고 있다면 결과에 바닥을 또 더할 필요가 없다.
+
+```anchor sourceLift (module := Reynolds.Answers.Ch02.Domain.LiftingLaws)
+/-- §2.3(p. 34)의 source-lifting. 입력에 바닥을 더하고 그 바닥을 공역의 바닥으로 보낸다. -/
+def sourceLift [Bot β] (f : α → β) : Flat α → β
+  | .none => ⊥
+  | .some a => f a
+```
+
+`g : State V → Flat (State V)`로 놓으면 `sourceLift g`가 앞서 쓴 `liftBot g`다.
+이 둘은 함수 타입부터 다르다. `Flat.map g`의 결과는 `Flat (Flat (State V))`지만,
+`sourceLift g`의 결과는 `Flat (State V)`다.
+
+Reynolds 명제 2.4(p. 35)의 다섯 항을 `Domain/LiftingLaws.lean`에서 직접 증명한다.
+
+* (a) 바닥에서 바닥, 값에서 `Flat.some (f a)`를 내는 확장은 `Flat.map f` 하나다.
+* (b) 바닥에서 바닥, 값에서 `g a`를 내는 확장은 `sourceLift g` 하나다.
+* (c) `Flat.map (g ∘ f) = Flat.map g ∘ Flat.map f`
+* (d) `sourceLift (g ∘ f) = sourceLift g ∘ Flat.map f`
+* (e) `h ⊥ = ⊥`이면 `sourceLift (h ∘ g) = h ∘ sourceLift g`
+
+(e)의 가설은 값 입력에서는 필요하지 않다. 바닥 입력에서 왼쪽은 바닥이고 오른쪽은
+`h ⊥`다. `h`를 언제나 `Flat.some 1`을 내는 함수로 잡으면 두 값이 달라진다.
+파일의 `nonstrict_counterexample`은 이 반례를 확인한다.
+
+*책과의 차이*: 책의 입력 `P`는 임의의 프리도메인이다. 이 실습은 이산 집합의
+`Flat` 리프팅에 한정한다. 공역 `D`는 평평할 필요가 없으며, 순서와 바닥을 갖추면
+`sourceLift_continuous`가 연속성을 보인다. 기존의 비이산 순서를 보존하는 일반
+`P⊥` 구성과 리프팅 모나드의 법칙은 별도 후속 실습이다.
+
 # 상태 변환 함수의 극한은 입력마다 잰다
 %%%
 tag := "ch02-function-space"

@@ -75,10 +75,10 @@ number := false
 2. `Notation.lean` — §2.1 명령을 Lean 안에서 쓰는 DSL
 3. `Semantics.lean` — §2.2 불 식의 계산과 명령 의미의 명세
 4. `Domain.lean` — §2.3 사슬, 프리도메인, 연속성
-5. `Domain/Lifting.lean` — §2.3 `Flat`에 평평한 정보 순서를 주는 방법
+5. `Domain/Lifting.lean`·`Domain/LiftingLaws.lean` — §2.3 평평한 순서와 리프팅 법칙
 6. `Domain/FunctionSpace.lean` — §2.3 상태 변환 함수들의 점별 순서와 극한
 7. `Fixpoint.lean` — §2.4 반복 사슬과 최소 고정점 정리
-8. `Eval.lean` — §2.4 최소 고정점으로 정의한 `Comm.eval`
+8. `Eval.lean`·`Approximation.lean`·`SumApproximation.lean` — §2.4 의미·근사 명령·합산 계산
 9. `Interpreter.lean` — §2.4 연료 해석기와 적합성
 10. `FreeVars.lean` — §2.5 자유 변수 두 종류와 명제 2.6
 11. `Substitution.lean` — §2.5 명령의 치환, 별칭, 지역 변수 이름 바꾸기

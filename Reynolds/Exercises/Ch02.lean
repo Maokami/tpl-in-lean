@@ -11,9 +11,12 @@ public import Reynolds.Answers.Ch02.DenoteBool
 public import Reynolds.Exercises.Ch02.Semantics
 public import Reynolds.Exercises.Ch02.Domain
 public import Reynolds.Exercises.Ch02.Domain.Lifting
+public import Reynolds.Exercises.Ch02.Domain.LiftingLaws
 public import Reynolds.Exercises.Ch02.Domain.FunctionSpace
 public import Reynolds.Exercises.Ch02.Fixpoint
 public import Reynolds.Exercises.Ch02.Eval
+public import Reynolds.Exercises.Ch02.Approximation
+public import Reynolds.Exercises.Ch02.SumApproximation
 public import Reynolds.Exercises.Ch02.Interpreter
 public import Reynolds.Exercises.Ch02.FreeVars
 public import Reynolds.Exercises.Ch02.Substitution
@@ -45,10 +48,10 @@ public import Reynolds.Exercises.Ch02.Ex.DoTwice
 2. `Notation.lean` — §2.1 구체 구문. 명령 DSL
 3. `Semantics.lean` — §2.2 표시적 의미론과 `while`의 풀기 방정식
 4. `Domain.lean` — §2.3 사슬·프리도메인(predomain)·연속성
-5. `Domain/Lifting.lean` — §2.3 평평한 리프팅과 명제 2.4
+5. `Domain/Lifting.lean`·`Domain/LiftingLaws.lean` — §2.3 평평한 리프팅과 명제 2.4
 6. `Domain/FunctionSpace.lean` — §2.3 함수 공간과 명제 2.2·2.3
 7. `Fixpoint.lean` — §2.4 반복 사슬과 최소 고정점 정리
-8. `Eval.lean` — §2.4 `while`의 표시적 의미
+8. `Eval.lean`·`Approximation.lean`·`SumApproximation.lean` — §2.4 의미·근사 명령·합산 계산
 9. `Interpreter.lean` — §2.4 연료 해석기와 적합성
 10. `FreeVars.lean` — §2.5 자유 변수 두 종류와 명제 2.6
 11. `Substitution.lean` — §2.5 명령의 치환, 별칭, 지역 변수 이름 바꾸기

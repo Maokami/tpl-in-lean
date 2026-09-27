@@ -9,7 +9,7 @@
 
 1장에는 비종료가 없었다. 2장에서 `while`이 들어오면 모든 명령이 결과 상태를 내는 것은
 아니다. 의미 함수 자체는 `State V → SigmaBot V`인 전함수(total function)로 두고,
-`SigmaBot V = Option (State V)`의 `none`으로 결과가 없는 계산을 나타낸다. Reynolds는 이
+`SigmaBot V = Flat (State V)`의 `Flat.none`으로 결과가 없는 계산을 나타낸다. Reynolds는 이
 부분함수의 정보 순서와 극한을 다루기 위해 §2.3–2.4에서 도메인 이론(domain theory)을
 도입한다.
 
@@ -28,7 +28,7 @@ Lean 형식화에서 따로 설명해야 할 지점은 다음 세 가지다.
 | `while`이 계산 불가능 | 표시적 의미(비계산) + **연료(fuel) 기반 해석기**(계산 가능) 둘 다 제공하고, 일치 정리를 증명 |
 | 도메인 이론을 Mathlib에서 가져올까 | **직접 만든다.** §2.3–2.4가 그것 자체이므로. Mathlib 대응물은 `MathlibBridge.lean`에 대조표로 |
 | `newvar`를 언제 넣을까 | `Comm`에 **처음부터** 넣는다. §2.5까지는 쓰지 않는다 (docstring에 명시) |
-| Σ⊥ 표현 | `Option (State V)`. `⊥ = none`. **`Option.bind`가 Reynolds의 `f⊥⊥`와 정확히 같다** |
+| Σ⊥ 표현 | 전용 `Flat (State V)`. `⊥ = Flat.none`. `Flat.bind`가 상태 함수의 순 확장이다 |
 
 ---
 
@@ -41,9 +41,12 @@ Lean 형식화에서 따로 설명해야 할 지점은 다음 세 가지다.
 | `Ch02/Semantics.lean` | §2.2 | `BoolExp.eval`, 의미 방정식의 명세와 비유일성 |
 | `Ch02/Domain.lean` | §2.3 | `Chain`, `Predomain`, `Domain`, `Continuous` |
 | `Ch02/Domain/Lifting.lean` | §2.3 | 평평한 리프팅 `SigmaBot`의 도메인 구조 |
+| `Ch02/Domain/LiftingLaws.lean` | §2.3 | 명제 2.4(a–e)의 이산 입력 특수화, 순 조건 반례 |
 | `Ch02/Domain/FunctionSpace.lean` | §2.3 | 전체 함수 공간과 연속 함수 공간 |
 | `Ch02/Fixpoint.lean` | §2.4 | 반복 사슬, 최소 고정점 정리, Scott 귀납법 |
 | `Ch02/Eval.lean` | §2.4 | `Comm.eval`과 `while`의 최소 고정점 의미 |
+| `Ch02/Approximation.lean` | §2.4 | 실제 근사 명령 `wₙ`, 의미 반복과의 대응 |
+| `Ch02/SumApproximation.lean` | §2.4 | 책 pp. 37–38 합산 반복문의 유한 근사와 가설 없는 극한 정리 |
 | `Ch02/Interpreter.lean` | §2.4 | 연료 기반 해석기 `Comm.run` + 적합성(adequacy) |
 | `Ch02/FreeVars.lean` | §2.5 | `FV_comm`, `FA`, 명제 2.6 |
 | `Ch02/Substitution.lean` | §2.5 | 명령 치환, 별칭, 명제 2.7 · 2.8 |
@@ -139,14 +142,14 @@ theorem boolExp_eval_iff (b : BoolExp V) (σ : State V) :
 
 **Lean에서의 보너스**: Reynolds가 §2.2에서 도입하는 "함수를 ⊥를 포함하도록 확장"
     `f⊥⊥ x = if x = ⊥ then ⊥ else f x`
-는 정확히 `Option.bind`다. 즉
+는 상태 결과에서 `Flat.bind`다. 즉
 
-    ⟦c₀ ; c₁⟧ σ = (⟦c₁⟧)⊥⊥ (⟦c₀⟧ σ)  =  (⟦c₀⟧ σ) >>= ⟦c₁⟧
+    ⟦c₀ ; c₁⟧ σ = (⟦c₁⟧)⊥⊥ (⟦c₀⟧ σ) = Flat.bind (⟦c₀⟧ σ) ⟦c₁⟧
 
-순차 합성(sequential composition)이 **Option 모나드의 bind**로 드러난다.
+순차 합성(sequential composition)이 `Flat.bind`로 드러난다. 모나드 법칙은 후속 실습이다.
 5장에서 연속체(continuation)와 재개(resumption)로 이어질 때 이 관점이 계속 쓰인다.
 -/
-abbrev SigmaBot (V : Type u) := Option (State V)
+abbrev SigmaBot (V : Type u) := Flat (State V)
 -- ANCHOR_END: SigmaBot
 ```
 
@@ -241,14 +244,14 @@ def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β
 | Reynolds의 예 | Lean |
 |---|---|
 | 이산 순서로 본 집합 | `Discrete α` (타입 동의어 + `x ≤ y ↔ x = y`) |
-| 리프팅 `P⊥` | `Option (Discrete α)`, `none = ⊥` |
-| **평평한 도메인(flat domain)** | 위와 같음. `Σ⊥`가 그 예 |
+| 일반 리프팅 `P⊥` | 기존 순서를 보존하는 `WithBot` 구성은 후속 실습 |
+| **평평한 도메인(flat domain)** | `Flat α`, `Flat.none = ⊥`. 이산 입력의 리프팅이며 `Σ⊥`가 그 예 |
 | 유한·무한 정수 열 | `Stream'`/`List ⊕ Stream'` — 5.2절 예고. **선택** |
 | 멱집합 도메인 `𝒫 S` | `Set S`, `⊆` |
 | **수직 자연수 `ℕ⊤`** | Mathlib `ENat` — 연속하지 않은 단조 함수의 반례에 필요 |
 
 > **타입 동의어 주의**: `State V = V → Int`에는 Mathlib의 Pi 순서 인스턴스가 이미 붙는다.
-> 평평한 도메인을 만들려면 `def Discrete (α) := α` 로 감싸야 한다. (`DESIGN.md` §10-4)
+> 전용 귀납 타입 `Flat`의 순서는 입력 타입의 순서와 무관하게 바닥 또는 등식으로 정의한다.
 
 ### 명제 2.1 ~ 2.4
 
@@ -274,7 +277,8 @@ theorem exists_monotone_not_continuous …
 
 /-- **명제 2.4 (a)~(e)** — 리프팅 `f⊥`, 원천 리프팅 `f⊥⊥`, 주입 `ι` 의 성질.
     (a)(b)는 "유일한 순 확장(strict extension)"이라는 주장이다.
-    Lean에서 `f⊥ = Option.map f`, `g⊥⊥ = Option.elim ⊥ g` 임을 확인한다. -/
+    현재 실습은 이산 입력에서 `f⊥ = Flat.map f`, `g⊥⊥ = FlatLift.sourceLift g`다.
+    일반 순서의 프리도메인 리프팅과 리프팅 모나드는 별도 후속 실습이다. -/
 @[exercise "Prop 2.4" 2]
 ```
 
@@ -391,12 +395,12 @@ theorem whileF_continuous …
     #eval (⟪ y := 1; while x > 0 do (y := y × x; x := x - 1) ⟫ᶜ).run 100 (fun _ => 5)
     -- some (…)   x ↦ 0, y ↦ 120
 -/
-def Comm.run : Comm V → ℕ → State V → Option (State V)
+def Comm.run : Comm V → ℕ → State V → Flat (State V)
   | .assign v e,   _, σ => some (σ[v := ⟦e⟧ₑ σ])
   | …
   | .wh _ _,       0, _ => none
   | .wh b c,   n + 1, σ =>
-      if ⟦b⟧ᵇ σ then Option.bind (c.run (n + 1) σ) ((Comm.wh b c).run n) else some σ
+      if ⟦b⟧ᵇ σ then Flat.bind (c.run (n + 1) σ) ((Comm.wh b c).run n) else Flat.some σ
 -- ANCHOR_END: Comm.run
 
 /-- 연료를 늘리면 결과가 나빠지지 않는다. `Σ → Σ⊥`의 순서로 말하면 `run n ⊑ run (n+1)`. -/
@@ -473,7 +477,7 @@ def Comm.fa [DecidableEq V] : Comm V → Finset V
     `⟦c⟧σ`와 `⟦c⟧σ'`가 **둘 다 ⊥** 이거나, **둘 다 상태이고 `FV(c)` 위에서 일치**한다.
 (b) `⟦c⟧σ ≠ ⊥` 이면 `w ∉ FA(c)` 인 모든 `w`에 대해 `(⟦c⟧σ) w = σ w`.
 
-**Lean에서의 진술 설계**: `Option`의 두 경우를 다 다뤄야 하므로 그냥
+**Lean에서의 진술 설계**: `Flat`의 두 경우를 다 다뤄야 하므로 그냥
 `⟦c⟧σ = ⟦c⟧σ'` 라고 쓸 수 없다. 관계로 정의하는 편이 낫다:
 
     def AgreeOn (S : Finset V) : SigmaBot V → SigmaBot V → Prop
@@ -662,7 +666,7 @@ inductive Ctx (V : Type u) where
 def Ctx.fill : Ctx V → Comm V → Comm V
 
 /-- 관찰(observation) — 초기 상태에서 시작해 종료 여부와 어떤 변수의 값을 본다. -/
-def observe (σ : State V) (v : V) (c : Comm V) : Option Int := (c.eval σ).map (· v)
+def observe (σ : State V) (v : V) (c : Comm V) : Option Int := ((c.eval σ).map (· v)).toOption
 
 /-- **건전(sound)** — 뜻이 같다고 한 것이 어떤 문맥에서도 다르게 관찰되지 않는다. -/
 def Sound (den : Comm V → α) : Prop :=
@@ -732,7 +736,7 @@ theorem obs_eq_2 : ⟦⟪ x := 0; while x < 100 do x := x+1 ⟫⟧ = ⟦⟪ x :=
 | `Continuous f` | `OmegaCompletePartialOrder.ωScottContinuous f` |
 | `D →𝒸 D` | `α →𝒄 β` (`ContinuousHom`) |
 | `Y f` (최소 고정점) | `Part.fix` (부분 함수판), `OrderHom.lfp` (완비 격자판) |
-| `Option (State V)` | `Part (State V)` 또는 `WithBot` |
+| `Flat (State V)` | 부분 결과에는 `Part`; 기존 순서 보존에는 `WithBot` |
 | `scott_induction` | `Part.fix_le`, `Part.fix_eq_ωSup_of_ωScottContinuous` |
 
 **CSlib 쪽 대응** (6장 예고): Reynolds가 §2.8에서 "관찰(observation)에 따라 완전 추상성이
@@ -771,7 +775,7 @@ theorem obs_eq_2 : ⟦⟪ x := 0; while x < 100 do x := x+1 ⟫⟧ = ⟦⟪ x :=
 
 1. **왜 비종료가 의미론을 어렵게 만드는가** — 풀기 방정식의 해가 여럿이라는 것을 직접 증명
 2. **도메인·연속성·최소 고정점**을 직접 만들어 본 경험 (Mathlib에서 꺼내 쓴 것이 아니라)
-3. **`Option` 모나드 = 리프팅** — 순차 합성이 bind라는 관점
+3. **리프팅 모나드 (후속)** — 순차 합성의 bind와 대수 법칙을 연결하는 관점
 4. **연료 해석기 ↔ 표시적 의미**의 다리. 실행과 증명이 같은 것을 말한다는 확인
 5. **별칭이 실제 버그다** — 실행해서 눈으로 확인
 6. **좋은 구문 설탕 설계**가 왜 어려운지 (`for`의 네 판본)
