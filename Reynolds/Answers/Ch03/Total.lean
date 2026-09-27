@@ -8,7 +8,7 @@ module
 public import Reynolds.Answers.Ch03.Annot
 
 /-!
-# §3.5 전체 정확성의 `while` 규칙 — 변항
+# §3.4 전체 정확성의 `while` 규칙 — 변항
 
 부분 정확성의 `while` 규칙은 끝나면 무엇이 참인지만 말한다. 끝난다는 것까지 말하려면
 한 바퀴마다 **줄어드는 양**이 있어야 한다.
@@ -19,11 +19,12 @@ public import Reynolds.Answers.Ch03.Annot
               [ i ] while b do c [ i ∧ ¬b ]
 ```
 
-`e` 가 **변항**(variant)이다. 한 바퀴마다 줄고 0 아래로 못 내려가므로 무한히 돌 수 없다.
-`z` 는 한 바퀴 시작 때의 `e` 값을 붙들어 두는 신선한 변수다 — "줄었다" 를 말하려면 전과
-후를 비교해야 하고, 그러려면 전의 값을 어딘가에 기억해야 한다. **유령 변수**(§3.10)의 첫
-등장이다. `z ∉ FV(c)` 가 필요한 이유는 명제 2.6(b) 다 — 본체가 `z` 를 안 건드려야 "전의 값"
-이 살아남는다.
+`e`가 **변항**(variant)이다. 본체가 시작할 때 비음수이고 매번 엄격히 줄므로 무한히 돌 수 없다.
+마지막 실행 뒤 조건이 거짓이면 `e`가 음수가 되어도 된다.
+`z`는 본체 실행 전의 `e` 값을 기억하는 **유령 변수**(§3.4)다. 명세에는 나타나지만
+명령에는 자유롭게 나타나지 않는다. `z ∉ FV(c)`에서 명제 2.6(b)는 본체가 `z`에 저장한
+값을 보존함을, 명제 2.6(a)는 `z`를 바꾼 입력의 본체 결과를 원래 입력의 실행에
+옮길 수 있음을 준다. 값을 보존하는 데만 필요한 `z ∉ FA(c)`보다 강한 조건이다.
 
 ## 건전성은 Scott 귀납법이 아니라 정초 귀납이다
 
@@ -129,98 +130,73 @@ theorem iteT_sound {p q : Assert V} {b : BoolExp V} {c₀ c₁ : Comm V}
 
 -- ANCHOR: whTSound
 /--
-**전체 정확성 `while` 규칙의 건전성 — 정초 귀납.**
+§3.4 WHT의 구문 판. 신선한 변수 `z`에 본체 실행 전 변항을 기록해 의미 판에 전달한다.
 
-측도는 `n` 으로, "`⟦e⟧ σ < n` 인 모든 `σ` 에서 루프가 끝난다" 를 `n` 에 대한 귀납으로 보인다.
-
-- `n = 0` — 조건이 참이면 `0 ≤ e` 인데 `e < 0` 이라 모순. 거짓이면 그 자리에서 끝난다.
-- `n + 1` — 조건이 참이면 유령 변수에 지금의 `e` 값을 적어 둔 상태 `σ[z := ⟦e⟧ σ]` 에서
-  본체를 돌린다 (전제). 본체는 `z` 를 안 건드리므로 (명제 2.6(b)) 끝난 상태에서 `e < ⟦e⟧ σ`,
-  곧 측도가 줄었고, 귀납 가설이 나머지를 끝낸다. 마지막으로 `σ` 와 `σ[z := …]` 는 `z` 를 뺀
-  모든 곳에서 같으니 루프의 결과도 그렇다 (명제 2.6(a)) — `z` 는 사후조건에 없다.
-
-명제 2.6 의 (a)·(b) 가 둘 다 들고, 그것이 규칙에 `z ∉ FV(c)` 가 붙는 이유다.
+`z`를 바꾼 상태에서 얻은 본체의 결과를 명제 2.6(a)로 원래 입력의 실행에 옮긴다.
+명제 2.6(b)는 본체가 `z`를 바꾸지 않아 변항의 전후 값을 비교할 수 있음을 보인다.
+종료를 보이는 귀납법은 `TotalCorrectS.wh`가 맡는다.
 -/
-@[exercise "§3.5 whT-sound" 3]
 theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z : V}
     (hzi : z ∉ i.fv) (hzb : z ∉ b.fv) (hzc : z ∉ c.fv) (hze : z ∉ e.fv)
     (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e))
     (hbody : ［i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)］c［i ⋀ .cmp .lt e (.var z)］) :
     ［i］(Comm.wh b c)［i ⋀ .not b.toAssert］ := by
-  have whileEq : ∀ τ : State V, ⟦Comm.wh b c⟧ᶜ τ
-      = if ⟦b⟧ᵇ τ then Flat.bind (⟦c⟧ᶜ τ) ⟦Comm.wh b c⟧ᶜ else Flat.some τ :=
-    fun τ => Comm.eval_isSemantics.2.2.2.2.1 _ _ τ
-  -- 조건이 거짓이면 그 자리에서 끝난다.
-  have stop : ∀ σ, ⟦i⟧ₐ σ → ¬ ⟦b⟧ᵇ σ = true →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := fun σ hi hb =>
-    ⟨σ, by rw [whileEq σ, if_neg hb],
-      (Assert.eval_and _ _ _).mpr
-        ⟨hi, (Assert.eval_not _ _).mpr fun h => hb ((boolExp_eval_iff b σ).mp h)⟩⟩
-  -- `z` 를 뺀 곳에서 같은 두 상태는 `b` 를 같게 계산한다.
-  have hbz : ∀ σ, ⟦b⟧ᵇ (σ[z := ⟦e⟧ₑ σ]) = ⟦b⟧ᵇ σ := fun σ =>
-    (BoolExp.fv_coincidence b σ _ fun w hw =>
-      (State.subst_of_ne σ z w _ fun (h : w = z) => hzb (h ▸ hw)).symm).symm
-  have key : ∀ (n : Nat) (σ : State V), ⟦i⟧ₐ σ → ⟦e⟧ₑ σ < n →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := by
-    intro n
-    induction n with
-    | zero =>
-      intro σ hi hlt
-      by_cases hb : ⟦b⟧ᵇ σ = true
-      · exfalso
-        have h0 := hnonneg σ ((Assert.eval_and _ _ _).mpr ⟨hi, (boolExp_eval_iff b σ).mpr hb⟩)
-        change (0 : Int) ≤ ⟦e⟧ₑ σ at h0
-        omega
-      · exact stop σ hi hb
-    | succ n ih =>
-      intro σ hi hlt
-      by_cases hb : ⟦b⟧ᵇ σ = true
-      · -- 유령 변수에 지금의 `e` 값을 적어 두고 본체를 돌린다.
-        have hpre : ⟦i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)⟧ₐ (σ[z := ⟦e⟧ₑ σ]) := by
-          refine (Assert.eval_and _ _ _).mpr ⟨(Assert.eval_and _ _ _).mpr ⟨?_, ?_⟩, ?_⟩
-          · exact (coincidence_assert i σ _ fun w hw =>
-              (State.subst_of_ne σ z w _ fun (h : w = z) => hzi (h ▸ hw)).symm).mp hi
-          · exact (boolExp_eval_iff b _).mpr ((hbz σ).trans hb)
-          · change ⟦e⟧ₑ (σ[z := ⟦e⟧ₑ σ]) = (σ[z := ⟦e⟧ₑ σ]) z
-            rw [State.subst_self]
-            exact (coincidence_intExp e σ _ fun w hw =>
-              (State.subst_of_ne σ z w _ fun (h : w = z) => hze (h ▸ hw)).symm).symm
-        obtain ⟨ρ, hρ, hpost⟩ := hbody _ hpre
-        obtain ⟨hiρ, hlt'⟩ := (Assert.eval_and _ _ _).mp hpost
-        change ⟦e⟧ₑ ρ < ρ z at hlt'
-        -- 본체는 `z` 를 안 건드린다 (명제 2.6(b)). 그러니 `ρ z` 는 시작 때의 `⟦e⟧ σ` 다.
-        have hz : ρ z = ⟦e⟧ₑ σ := by
-          rw [Comm.eval_agree_outside_fa c _ ρ hρ z fun h => hzc (Comm.fa_subset_fv c h)]
-          exact State.subst_self σ z _
-        -- 측도가 줄었다. 귀납 가설이 `ρ` 에서 루프를 끝낸다.
-        obtain ⟨τ', hτ', hqτ'⟩ := ih ρ hiρ (by omega)
-        have hloop : ⟦Comm.wh b c⟧ᶜ (σ[z := ⟦e⟧ₑ σ]) = Flat.some τ' := by
-          rw [whileEq, if_pos ((hbz σ).trans hb), hρ]
-          exact hτ'
-        -- `σ` 와 `σ[z := …]` 는 `z` 를 뺀 모든 곳에서 같다. 루프의 결과도 그렇다 (명제 2.6(a)).
-        have hag := Comm.coincidence_general (Comm.wh b c)
-          ((Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv) Finset.subset_union_left
-          σ (σ[z := ⟦e⟧ₑ σ]) fun w hw =>
-            (State.subst_of_ne σ z w _ fun (h : w = z) => by
-              subst h
-              rcases Finset.mem_union.mp hw with h₁ | h₁
-              · rcases Finset.mem_union.mp h₁ with h₂ | h₂
-                · exact hzb h₂
-                · exact hzc h₂
-              · rw [Assert.fv, Assert.fv, BoolExp.fv_toAssert] at h₁
-                rcases Finset.mem_union.mp h₁ with h₂ | h₂
-                · exact hzi h₂
-                · exact hzb h₂).symm
-        rw [hloop] at hag
-        rcases hτ : ⟦Comm.wh b c⟧ᶜ σ with _ | τ
-        · rw [hτ] at hag; simp [AgreeOn] at hag
-        · rw [hτ] at hag
-          change ∀ w ∈ _, τ w = τ' w at hag
-          exact ⟨τ, rfl, (coincidence_assert _ τ τ' fun w hw =>
-            hag w (Finset.mem_union_right _ hw)).mpr hqτ'⟩
-      · exact stop σ hi hb
+  have hbodyS : ∀ n : Int, TotalCorrectS
+      (fun σ => ⟦i⟧ₐ σ ∧ ⟦b⟧ᵇ σ = true ∧ ⟦e⟧ₑ σ = n) c
+      (fun σ => ⟦i⟧ₐ σ ∧ ⟦e⟧ₑ σ < n) := by
+    intro n σ ⟨hi, hb, he⟩
+    have hi' : ⟦i⟧ₐ (σ[z := n]) :=
+      (coincidence_assert i σ _ fun w hw =>
+        (State.subst_of_ne σ z w n fun h => hzi (h ▸ hw)).symm).mp hi
+    have hb' : ⟦b⟧ᵇ (σ[z := n]) = true :=
+      (BoolExp.fv_coincidence b σ _ fun w hw =>
+        (State.subst_of_ne σ z w n fun h => hzb (h ▸ hw)).symm).symm.trans hb
+    have he' : ⟦e⟧ₑ (σ[z := n]) = n :=
+      (coincidence_intExp e σ _ fun w hw =>
+        (State.subst_of_ne σ z w n fun h => hze (h ▸ hw)).symm).symm.trans he
+    have hpre : ⟦i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)⟧ₐ (σ[z := n]) := by
+      refine (Assert.eval_and _ _ _).mpr
+        ⟨(Assert.eval_and _ _ _).mpr ⟨hi', (boolExp_eval_iff b _).mpr hb'⟩, ?_⟩
+      change ⟦e⟧ₑ (σ[z := n]) = (σ[z := n]) z
+      rw [State.subst_self]
+      exact he'
+    obtain ⟨ρ', hρ', hpost⟩ := hbody _ hpre
+    obtain ⟨hiρ', hdec⟩ := (Assert.eval_and _ _ _).mp hpost
+    change ⟦e⟧ₑ ρ' < ρ' z at hdec
+    have hz : ρ' z = n := by
+      rw [Comm.eval_agree_outside_fa c _ ρ' hρ' z fun h => hzc (Comm.fa_subset_fv c h)]
+      exact State.subst_self σ z n
+    -- 유령 변수를 바꾸지 않은 입력에서의 본체 결과로 불변식과 변항 값을 옮긴다.
+    have hag := Comm.coincidence_general c ((c.fv ∪ i.fv) ∪ e.fv)
+      (fun w hw => Finset.mem_union_left _ (Finset.mem_union_left _ hw))
+      σ (σ[z := n]) (fun w hw =>
+        (State.subst_of_ne σ z w n fun h => by
+          subst h
+          rcases Finset.mem_union.mp hw with hci | he
+          · rcases Finset.mem_union.mp hci with hc | hi
+            · exact hzc hc
+            · exact hzi hi
+          · exact hze he).symm)
+    rw [hρ'] at hag
+    cases hρ : ⟦c⟧ᶜ σ with
+    | none => rw [hρ] at hag; simp [AgreeOn] at hag
+    | some ρ =>
+      rw [hρ] at hag
+      change ∀ w ∈ (c.fv ∪ i.fv) ∪ e.fv, ρ w = ρ' w at hag
+      refine ⟨ρ, rfl, ?_, ?_⟩
+      · exact (coincidence_assert i ρ ρ' fun w hw =>
+          hag w (Finset.mem_union_left _ (Finset.mem_union_right _ hw))).mpr hiρ'
+      · rw [coincidence_intExp e ρ ρ' fun w hw => hag w (Finset.mem_union_right _ hw)]
+        exact hz ▸ hdec
+  have hnonnegS : ∀ σ, ⟦i⟧ₐ σ → ⟦b⟧ᵇ σ = true → 0 ≤ ⟦e⟧ₑ σ := by
+    intro σ hi hb
+    exact hnonneg σ ((Assert.eval_and _ _ _).mpr ⟨hi, (boolExp_eval_iff b σ).mpr hb⟩)
   intro σ hi
-  exact key ((⟦e⟧ₑ σ).toNat + 1) σ hi (by omega)
+  obtain ⟨τ, hτ, hiτ, hbτ⟩ := TotalCorrectS.wh hbodyS hnonnegS σ hi
+  refine ⟨τ, hτ, (Assert.eval_and _ _ _).mpr ⟨hiτ, (Assert.eval_not _ _).mpr ?_⟩⟩
+  intro hb
+  have := (boolExp_eval_iff b τ).mp hb
+  simp [hbτ] at this
 -- ANCHOR_END: whTSound
 
 theorem newvarT_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}

@@ -162,113 +162,45 @@ inductive HoareT [HasFresh V] : Assert V → Comm V → Assert V → Prop where
       Stronger p' p → HoareT p c q → Stronger q q' → HoareT p' c q'
 ```
 
-`z`는 한 바퀴를 시작할 때의 `e` 값을 붙들어 두는 _유령 변수_다. "줄었다"는 전과 후의
-비교이므로 전의 값을 어딘가에 기억해야 한다. `z ∉ FV(c)`는 본체가 그 기억을 건드리지
-않는다는 조건이다.
+`z`는 본체 실행 전의 `e` 값을 기억하는 _유령 변수_다. 명세에는 나오지만 명령에는
+자유롭게 나오지 않는다. `z ∉ FV(c)`는 본체가 이 값을 보존한다는 사실뿐 아니라,
+`z`를 바꾼 입력에서의 실행 결과를 원래 입력으로 옮기는 데도 쓰인다. 값의 보존만
+말할 때는 더 약한 `z ∉ FA(c)`로 충분하다.
 
 §3.1에서 보았듯 전체 정확성은 극한을 통과하지만, `⊥`에서 종료를 보일 수 없어 Scott
 귀납법의 시작 조건이 막힌다. 그래서 건전성 증명은 측도 위의 정초 귀납을 쓴다.
 2장에서 구체적인 루프의 값을 계산할 때 손으로
 잡던 측도를 이제는 규칙이 인자로 받는다.
 
-```anchor whTSound (module := Reynolds.Answers.Ch03.Total)
+의미 단언에서는 실행 전 변항 값을 `n : Int`로 기억한다. 연습에서는 변항보다 큰
+자연수 상계를 줄이는 귀납법을 구성한다. 비음수 조건은 반복 조건이 참일 때만 필요하므로,
+마지막 본체 실행이 변항을 음수로 만들어도 다음 조건이 거짓이면 된다.
+
+```anchor stmtWhtSound (module := Reynolds.Answers.Ch03.Semantic)
 /--
-**전체 정확성 `while` 규칙의 건전성 — 정초 귀납.**
+WHT (§3.4). 본체가 불변식을 보존하고 정수 변항을 엄격히 줄이면 반복이 종료한다.
+변항의 비음수 조건은 불변식과 반복 조건이 참인 상태에만 요구한다.
+마지막 실행 뒤 조건이 거짓이면 변항은 음수여도 된다.
 
-측도는 `n` 으로, "`⟦e⟧ σ < n` 인 모든 `σ` 에서 루프가 끝난다" 를 `n` 에 대한 귀납으로 보인다.
-
-- `n = 0` — 조건이 참이면 `0 ≤ e` 인데 `e < 0` 이라 모순. 거짓이면 그 자리에서 끝난다.
-- `n + 1` — 조건이 참이면 유령 변수에 지금의 `e` 값을 적어 둔 상태 `σ[z := ⟦e⟧ σ]` 에서
-  본체를 돌린다 (전제). 본체는 `z` 를 안 건드리므로 (명제 2.6(b)) 끝난 상태에서 `e < ⟦e⟧ σ`,
-  곧 측도가 줄었고, 귀납 가설이 나머지를 끝낸다. 마지막으로 `σ` 와 `σ[z := …]` 는 `z` 를 뺀
-  모든 곳에서 같으니 루프의 결과도 그렇다 (명제 2.6(a)) — `z` 는 사후조건에 없다.
-
-명제 2.6 의 (a)·(b) 가 둘 다 들고, 그것이 규칙에 `z ∉ FV(c)` 가 붙는 이유다.
+**책과의 차이**: 책 p64의 유령 변수 대신 본체 실행 전의 값을 `n : Int`로 고정한다.
+구문 단언의 유령 변수 규칙은 `Total.lean`에서 이 정리의 따름정리로 얻는다.
 -/
-@[exercise "§3.5 whT-sound" 3]
-theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z : V}
-    (hzi : z ∉ i.fv) (hzb : z ∉ b.fv) (hzc : z ∉ c.fv) (hze : z ∉ e.fv)
-    (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e))
-    (hbody : ［i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)］c［i ⋀ .cmp .lt e (.var z)］) :
-    ［i］(Comm.wh b c)［i ⋀ .not b.toAssert］ := by
-  have whileEq : ∀ τ : State V, ⟦Comm.wh b c⟧ᶜ τ
-      = if ⟦b⟧ᵇ τ then Flat.bind (⟦c⟧ᶜ τ) ⟦Comm.wh b c⟧ᶜ else Flat.some τ :=
-    fun τ => Comm.eval_isSemantics.2.2.2.2.1 _ _ τ
-  -- 조건이 거짓이면 그 자리에서 끝난다.
-  have stop : ∀ σ, ⟦i⟧ₐ σ → ¬ ⟦b⟧ᵇ σ = true →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := fun σ hi hb =>
-    ⟨σ, by rw [whileEq σ, if_neg hb],
-      (Assert.eval_and _ _ _).mpr
-        ⟨hi, (Assert.eval_not _ _).mpr fun h => hb ((boolExp_eval_iff b σ).mp h)⟩⟩
-  -- `z` 를 뺀 곳에서 같은 두 상태는 `b` 를 같게 계산한다.
-  have hbz : ∀ σ, ⟦b⟧ᵇ (σ[z := ⟦e⟧ₑ σ]) = ⟦b⟧ᵇ σ := fun σ =>
-    (BoolExp.fv_coincidence b σ _ fun w hw =>
-      (State.subst_of_ne σ z w _ fun (h : w = z) => hzb (h ▸ hw)).symm).symm
-  have key : ∀ (n : Nat) (σ : State V), ⟦i⟧ₐ σ → ⟦e⟧ₑ σ < n →
-      ∃ τ, ⟦Comm.wh b c⟧ᶜ σ = Flat.some τ ∧ ⟦i ⋀ .not b.toAssert⟧ₐ τ := by
-    intro n
-    induction n with
-    | zero =>
-      intro σ hi hlt
-      by_cases hb : ⟦b⟧ᵇ σ = true
-      · exfalso
-        have h0 := hnonneg σ ((Assert.eval_and _ _ _).mpr ⟨hi, (boolExp_eval_iff b σ).mpr hb⟩)
-        change (0 : Int) ≤ ⟦e⟧ₑ σ at h0
-        omega
-      · exact stop σ hi hb
-    | succ n ih =>
-      intro σ hi hlt
-      by_cases hb : ⟦b⟧ᵇ σ = true
-      · -- 유령 변수에 지금의 `e` 값을 적어 두고 본체를 돌린다.
-        have hpre : ⟦i ⋀ b.toAssert ⋀ .cmp .eq e (.var z)⟧ₐ (σ[z := ⟦e⟧ₑ σ]) := by
-          refine (Assert.eval_and _ _ _).mpr ⟨(Assert.eval_and _ _ _).mpr ⟨?_, ?_⟩, ?_⟩
-          · exact (coincidence_assert i σ _ fun w hw =>
-              (State.subst_of_ne σ z w _ fun (h : w = z) => hzi (h ▸ hw)).symm).mp hi
-          · exact (boolExp_eval_iff b _).mpr ((hbz σ).trans hb)
-          · change ⟦e⟧ₑ (σ[z := ⟦e⟧ₑ σ]) = (σ[z := ⟦e⟧ₑ σ]) z
-            rw [State.subst_self]
-            exact (coincidence_intExp e σ _ fun w hw =>
-              (State.subst_of_ne σ z w _ fun (h : w = z) => hze (h ▸ hw)).symm).symm
-        obtain ⟨ρ, hρ, hpost⟩ := hbody _ hpre
-        obtain ⟨hiρ, hlt'⟩ := (Assert.eval_and _ _ _).mp hpost
-        change ⟦e⟧ₑ ρ < ρ z at hlt'
-        -- 본체는 `z` 를 안 건드린다 (명제 2.6(b)). 그러니 `ρ z` 는 시작 때의 `⟦e⟧ σ` 다.
-        have hz : ρ z = ⟦e⟧ₑ σ := by
-          rw [Comm.eval_agree_outside_fa c _ ρ hρ z fun h => hzc (Comm.fa_subset_fv c h)]
-          exact State.subst_self σ z _
-        -- 측도가 줄었다. 귀납 가설이 `ρ` 에서 루프를 끝낸다.
-        obtain ⟨τ', hτ', hqτ'⟩ := ih ρ hiρ (by omega)
-        have hloop : ⟦Comm.wh b c⟧ᶜ (σ[z := ⟦e⟧ₑ σ]) = Flat.some τ' := by
-          rw [whileEq, if_pos ((hbz σ).trans hb), hρ]
-          exact hτ'
-        -- `σ` 와 `σ[z := …]` 는 `z` 를 뺀 모든 곳에서 같다. 루프의 결과도 그렇다 (명제 2.6(a)).
-        have hag := Comm.coincidence_general (Comm.wh b c)
-          ((Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv) Finset.subset_union_left
-          σ (σ[z := ⟦e⟧ₑ σ]) fun w hw =>
-            (State.subst_of_ne σ z w _ fun (h : w = z) => by
-              subst h
-              rcases Finset.mem_union.mp hw with h₁ | h₁
-              · rcases Finset.mem_union.mp h₁ with h₂ | h₂
-                · exact hzb h₂
-                · exact hzc h₂
-              · rw [Assert.fv, Assert.fv, BoolExp.fv_toAssert] at h₁
-                rcases Finset.mem_union.mp h₁ with h₂ | h₂
-                · exact hzi h₂
-                · exact hzb h₂).symm
-        rw [hloop] at hag
-        rcases hτ : ⟦Comm.wh b c⟧ᶜ σ with _ | τ
-        · rw [hτ] at hag; simp [AgreeOn] at hag
-        · rw [hτ] at hag
-          change ∀ w ∈ _, τ w = τ' w at hag
-          exact ⟨τ, rfl, (coincidence_assert _ τ τ' fun w hw =>
-            hag w (Finset.mem_union_right _ hw)).mpr hqτ'⟩
-      · exact stop σ hi hb
-  intro σ hi
-  exact key ((⟦e⟧ₑ σ).toNat + 1) σ hi (by omega)
+@[exercise "§3.4 wht-sound" 3]
+theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
+    {b : BoolExp V} {c : Comm V}
+    (hbody : ∀ n : Int, TotalCorrectS
+      (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true ∧ E σ = n) c (fun σ => I σ ∧ E σ < n))
+    (hnonneg : ∀ σ, I σ → ⟦b⟧ᵇ σ = true → 0 ≤ E σ) :
+    TotalCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
 ```
 
+구문 판 `whT_sound`는 책 p64의 유령 변수 규칙을 그대로 유지하는 제공 정리다.
+본체를 `σ[z := n]`에서 실행한 뒤, 명제 2.6으로 `z` 밖의 결과를 원래 입력의 실행에
+옮긴다. 이 과정은 의미 규칙에 줄 전제를 만들며, 반복의 종료는 위 연습이 증명한다.
+
+
 명제 2.6의 두 반쪽이 모두 쓰인다. (b)는 본체가 `z`를 건드리지 않음을, (a)는 `z`만 다른 두
-시작 상태에서 루프의 결과가 사후조건이 보는 변수들 위에서 같음을 준다.
+시작 상태에서 본체의 결과가 불변식과 변항이 보는 변수들 위에서 같음을 준다.
 
 §2.8의 백까지 세기를 규칙만으로 유도하면, 이번에는 끝난다는 것까지 얻는다.
 

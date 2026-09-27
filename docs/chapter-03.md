@@ -443,25 +443,23 @@ theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
               [ i ] while b do c [ i ∧ ¬b ]
 ```
 
-`e` 가 **변항**(variant)이다. 한 바퀴마다 줄고 0 아래로 못 내려가므로 무한히 돌 수 없다.
+`e`가 **변항**(variant)이다. 본체를 시작할 때 비음수이고 실행할 때마다 엄격히 줄어든다.
+조건이 거짓이 된 최종 상태에서는 변항이 음수여도 된다.
 `z` 는 한 바퀴 시작 때의 `e` 값을 붙들어 두는 신선한 변수다 — "줄었다" 를 말하려면 전과
 후를 비교해야 하고, 그러려면 전의 값을 어딘가에 기억해야 한다. 유령 변수(§3.10)의 첫 등장이다.
 
-책의 정확한 진술은 대조가 필요하다. 변항을 자연수 값으로 두는지, `0 ≤ e` 를 별도 전제로
-두는지가 판본마다 다르다. 위는 정수 위에서 쓰는 표준형이다.
+Reynolds §3.4 p64의 규칙이다. 변항은 정수 식이며 `i ∧ b ⇒ 0 ≤ e`가 별도 전제다.
+`whT_sound`는 이 구문 계약을 유지하는 제공 정리이고, 채점 연습은 의미 판에 둔다.
 
 ### ★ 건전성은 정초 귀납이다
 
 ```lean
-theorem whT_sound {i : Assert V} {b : BoolExp V} {c : Comm V} {e : IntExp V} {z : V}
-    (hz : z ∉ i.fv ∧ z ∉ b.fv ∧ z ∉ c.fv ∧ z ∉ e.fv)
-    (hbody : TotalCorrect (i ⋀ b.toAssert ⋀ (.cmp .eq e (.var z))) c
-                          (i ⋀ (.cmp .lt e (.var z))))
-    (hnonneg : Stronger (i ⋀ b.toAssert) (.cmp .le (.num 0) e)) :
-    TotalCorrect i (.wh b c) (i ⋀ ¬b.toAssert) := by
-  -- 측도 `(⟦e⟧ σ).toNat` 에 대한 강한 귀납.
-  -- 조건 거짓 : 그 자리에서 끝난다.
-  -- 조건 참   : 본체가 끝나고(전제) `e` 가 줄었으므로 측도가 줄고, 귀납 가설이 나머지를 준다.
+theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
+    {b : BoolExp V} {c : Comm V}
+    (hbody : ∀ n : Int, TotalCorrectS
+      (fun σ => I σ ∧ ⟦b⟧ᵇ σ = true ∧ E σ = n) c (fun σ => I σ ∧ E σ < n))
+    (hnonneg : ∀ σ, I σ → ⟦b⟧ᵇ σ = true → 0 ≤ E σ) :
+    TotalCorrectS I (.wh b c) (fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
 ```
 
 Scott 귀납법이 아니다. §3.1 에서 말했듯 전체 정확성은 극한을 통과해도 `⊥`에서
@@ -723,10 +721,11 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 
 ## 연습문제 매핑
 
-책의 연습 목록을 받은 뒤 채운다. 그와 별개로 본문 안에 낸 채점 연습 (18 개):
+책의 연습 목록을 받은 뒤 채운다. 그와 별개로 본문 안에 낸 채점 연습 (19 개):
 
 | 연습 | 내용 | 별점 |
 |---|---|---|
+| `§3.1 total-admissible` | 전체 정확성의 사슬 극한 보존과 바닥에서의 실패 | ★★ |
 | `§3.1 total-to-partial` | 전체 정확성 → 부분 정확성 | ★ |
 | `§3.1 halts-iff` | 전체 = 부분 + 종료 | ★ |
 | `§3.3 as-sound` | 의미 단언 AS의 부분·전체 정확성 | ★ |
@@ -736,7 +735,7 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 | `§3.4 whp-sound` | 의미 단언 WHP — Scott 귀납법 | ★★★ |
 | `§3.4 vcg-sound` | 검증 조건 생성기의 건전성 | ★★★ |
 | `§3.5 cd-sound` | 의미 단언 CD의 부분·전체 정확성 | ★ |
-| `§3.5 whT-sound` | 전체 정확성 `while` 규칙 — 정초 귀납 | ★★★ |
+| `§3.4 wht-sound` | 의미 단언의 전체 정확성 `while` 규칙 — 변항 귀납 | ★★★ |
 | `§3.6 newvar-sound` | 변수 선언 규칙 — 명제 1.1 세 번 | ★★ |
 | `§3.7 constancy` | 상수 규칙 — 명제 2.6(b) | ★★ |
 | `§3.7 ghost-exists` | ∃ 규칙 — 명제 2.6(a) | ★★ |
@@ -749,8 +748,8 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 `Hoare.sound` 자체는 각 절이 이미 연습이라 완성본으로 남긴다 (연습 독립성 원칙).
 
 `sat_admissible`과 `wlp_wh_greatest`는 각각 재사용할 허용 가능성 증명과 WHP의 귀결로
-제공한다. 이 두 항목은 채점에서 제외했다. WHT는 기존 구문 단언 연습을 유지하며,
-의미 WHT와 전체 정확성의 사슬 극한 보존 연습은 다음 이관 범위다.
+제공한다. 이 두 항목은 채점에서 제외했다. WHT는 의미 단언 연습으로 옮기고 구문 유령 변수 판은 따름정리로 제공한다.
+전체 정확성의 사슬 극한 보존과 바닥에서의 실패는 새 `total-admissible` 연습이다.
 
 ---
 
