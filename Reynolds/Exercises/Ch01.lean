@@ -15,6 +15,7 @@ public import Reynolds.Exercises.Ch01.FreeVars
 public import Reynolds.Exercises.Ch01.Substitution
 public import Reynolds.Exercises.Ch01.Ex
 public import Reynolds.Exercises.Ch01.Ex.Summation
+public import Reynolds.Exercises.Ch01.Ex.Summation.Substitution
 public import Reynolds.Exercises.Ch01.Design
 public import Reynolds.Exercises.Ch01.Background
 public import Reynolds.Exercises.Ch01.Depth.Algebra

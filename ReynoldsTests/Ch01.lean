@@ -215,4 +215,39 @@ example (p : AssertPrefixPhrase) (x y : String)
   have hp : (x, p) = (y, p) := prefixConstructors_injective.quant .all h
   exact congrArg Prod.fst hp
 
+-- 합의 경계는 바깥 변수를 읽고 본체만 결합한다. 포획 회피가 없으면 14가 아니라 3이 된다.
+open Summation in
+#guard (SExp.subst (.sum "i" (.num 1) (.num 2) (.var "a"))
+  (Function.update SExp.var "a" (.var "i"))).eval (State.const 7) == 14
+
+open Summation in
+#guard (SExp.subst (.sum "i" (.num 1) (.var "i") (.var "i"))
+  (Function.update SExp.var "i" (.num 3))).eval (State.const 9) == 6
+
+-- 같은 이름의 중첩 결합에서도 안쪽 상계는 바깥 결합의 값을 읽는다.
+open Summation in
+#guard (SExp.sum "i" (.num 1) (.num 2)
+  (.sum "i" (.num 1) (.var "i") (.var "i"))).eval (State.const 99) == 4
+
+open Summation in
+example (e : SExp String) (δ : SSubst String) (σ : State String) :
+    (e.subst δ).eval σ = e.eval (fun w => (δ w).eval σ) :=
+  substitution_sExp coincidence_sExp e δ _ σ (fun _ _ => rfl)
+
+-- 이름 바꾸기의 신선성은 본체에만 적용한다. 새 이름이 상계에 있어도 그 상계는 그대로다.
+open Summation in
+example (σ : State String) :
+    (SExp.sum "j" (.num 1) (.var "j")
+      ((SExp.var "i").subst (Function.update SExp.var "i" (.var "j")))).eval σ =
+    (SExp.sum "i" (.num 1) (.var "j") (.var "i")).eval σ := by
+  apply renaming_sum
+  simp [SExp.fv]
+
+open Summation in
+example (e : SExp String) : e.subst SExp.var = e := subst_var_sExp e
+
+open Summation in
+example (e : SExp String) (δ : SSubst String) :
+    (e.subst δ).fv = e.fv.biUnion (fun w => (δ w).fv) := fv_subst_sExp e δ
+
 end Reynolds.Answers.Ch01
