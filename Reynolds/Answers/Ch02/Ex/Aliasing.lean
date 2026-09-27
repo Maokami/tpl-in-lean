@@ -99,11 +99,11 @@ theorem seq_comm (c₀ c₁ : Comm V)
   -- 대우를 미리 뒤집어 둔다.
   have h₁' : ∀ w ∈ c₁.fv, w ∉ c₀.fa := fun w hw hfa => h₁ w hfa hw
   funext σ
-  change Option.bind (c₀.eval σ) c₁.eval = Option.bind (c₁.eval σ) c₀.eval
+  change Flat.bind (c₀.eval σ) c₁.eval = Flat.bind (c₁.eval σ) c₀.eval
   rcases h0 : c₀.eval σ with _ | τ₀ <;> rcases hI : c₁.eval σ with _ | τ₁
   · rfl
   · -- `c₀` 만 발산한다. `c₁` 을 먼저 돌려도 `c₀` 는 여전히 발산한다.
-    change (none : SigmaBot V) = c₀.eval τ₁
+    change (Flat.none : SigmaBot V) = c₀.eval τ₁
     have hag : ∀ w ∈ c₀.fv, σ w = τ₁ w := fun w hw =>
       (Comm.eval_agree_outside_fa c₁ σ τ₁ hI w (h₀ w hw)).symm
     have hc := Comm.coincidence_general c₀ c₀.fv (le_refl _) σ τ₁ hag
@@ -112,7 +112,7 @@ theorem seq_comm (c₀ c₁ : Comm V)
     · rfl
     · rw [hr] at hc; exact absurd hc (by simp)
   · -- `c₁` 만 발산한다. 대칭이다.
-    change c₁.eval τ₀ = (none : SigmaBot V)
+    change c₁.eval τ₀ = (Flat.none : SigmaBot V)
     have hag : ∀ w ∈ c₁.fv, σ w = τ₀ w := fun w hw =>
       (Comm.eval_agree_outside_fa c₀ σ τ₀ h0 w (h₁' w hw)).symm
     have hc := Comm.coincidence_general c₁ c₁.fv (le_refl _) σ τ₀ hag
@@ -139,7 +139,7 @@ theorem seq_comm (c₀ c₁ : Comm V)
     rw [hr₁] at hc₁
     rw [hr₀] at hc₀
     -- `ρ₁` 과 `ρ₀` 가 같은 상태임을 변수마다 확인한다.
-    refine congrArg some (funext fun w => ?_)
+    refine congrArg Flat.some (funext fun w => ?_)
     by_cases hw₀ : w ∈ c₀.fa
     · -- `c₀` 가 쓴 변수. `c₁` 은 건드리지 않는다.
       have hwv₀ : w ∈ c₀.fv := Comm.fa_subset_fv c₀ hw₀
@@ -177,8 +177,8 @@ def factSafe : Comm String :=
   ⟪ newvar t := x in (y := 1; while t > 0 do (y := y × t; t := t - 1)) ⟫ᶜ
 
 -- 별칭이 없으면 둘 다 3! = 6 을 낸다.
-#guard (factNaive.run 10 (State.const 3)).map (fun σ => σ "y") == some 6
-#guard (factSafe.run 10 (State.const 3)).map (fun σ => σ "y") == some 6
+#guard (factNaive.run 10 (State.const 3)).map (fun σ => σ "y") == Flat.some 6
+#guard (factSafe.run 10 (State.const 3)).map (fun σ => σ "y") == Flat.some 6
 
 /-- 입력과 출력을 같은 칸으로 묶는 이름 바꾸기. 단사가 아니다 — 이것이 별칭이다. -/
 def aliasToZ : Ren String := fun w => if w = "x" then "z" else if w = "y" then "z" else w
@@ -197,8 +197,8 @@ theorem factNaive_alias_eq : factNaive /ᶜ aliasToZ = factNaiveAliased := rfl
 theorem factSafe_alias_eq : factSafe /ᶜ aliasToZ = factSafeAliased := rfl
 
 -- 별칭이 생기면 갈린다. 순진한 판은 0, 안전한 판은 6.
-#guard (factNaiveAliased.run 10 (State.const 3)).map (fun σ => σ "z") == some 0
-#guard (factSafeAliased.run 10 (State.const 3)).map (fun σ => σ "z") == some 6
+#guard (factNaiveAliased.run 10 (State.const 3)).map (fun σ => σ "z") == Flat.some 0
+#guard (factSafeAliased.run 10 (State.const 3)).map (fun σ => σ "z") == Flat.some 6
 
 /--
 **연습 2.7 — 지역 변수가 별칭을 막는다.**
@@ -214,24 +214,24 @@ theorem factSafe_alias_eq : factSafe /ᶜ aliasToZ = factSafeAliased := rfl
 바깥 이름과 절대 합쳐지지 않으므로, 밖에서 무슨 별칭이 생기든 안쪽 계산이 지켜진다.
 
 `while` 이 있으므로 `run` 으로 계산한 뒤 `run_sound` 로 표시적 의미에 옮긴다.
-결과 상태를 손으로 적지 않으려고 `Option.map` 으로 `z` 만 뽑아 본다.
+결과 상태를 손으로 적지 않으려고 `Flat.map` 으로 `z` 만 뽑아 본다.
 -/
 @[exercise "Ex 2.7" 2]
 theorem fact_alias_safe_vs_naive :
-    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 6)
-      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 0) := by
+    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 6)
+      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 0) := by
   constructor
   · rw [factSafe_alias_eq]
-    have h : (factSafeAliased.run 4 (State.const 3)).map (fun σ => σ "z") = some 6 := by
+    have h : (factSafeAliased.run 4 (State.const 3)).map (fun σ => σ "z") = Flat.some 6 := by
       simp [factSafeAliased, Comm.run, restore, BoolExp.eval, IntExp.eval, IntOp.denote,
         Cmp.denoteBool, State.const, State.subst_def, Function.update]
-    obtain ⟨τ, hτ, hs⟩ := Option.map_eq_some_iff.mp h
+    obtain ⟨τ, hτ, hs⟩ := Flat.map_eq_some_iff.mp h
     exact ⟨τ, Comm.run_sound hτ, hs⟩
   · rw [factNaive_alias_eq]
-    have h : (factNaiveAliased.run 2 (State.const 3)).map (fun σ => σ "z") = some 0 := by
+    have h : (factNaiveAliased.run 2 (State.const 3)).map (fun σ => σ "z") = Flat.some 0 := by
       simp [factNaiveAliased, Comm.run, BoolExp.eval, IntExp.eval, IntOp.denote,
         Cmp.denoteBool, State.subst_def, Function.update]
-    obtain ⟨τ, hτ, hs⟩ := Option.map_eq_some_iff.mp h
+    obtain ⟨τ, hτ, hs⟩ := Flat.map_eq_some_iff.mp h
     exact ⟨τ, Comm.run_sound hτ, hs⟩
 -- ANCHOR_END: fact
 

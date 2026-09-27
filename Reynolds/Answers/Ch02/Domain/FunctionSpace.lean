@@ -96,7 +96,7 @@ theorem Chain.lub_apply [PartialOrder β] [Predomain β] (c : Chain (α → β))
 이 순서에서 문장이 된다.
 -/
 theorem pi_flat_le_iff {V : Type u} {f g : State V → SigmaBot V} :
-    f ≤ g ↔ ∀ σ, f σ = none ∨ f σ = g σ := Iff.rfl
+    f ≤ g ↔ ∀ σ, f σ = Flat.none ∨ f σ = g σ := Iff.rfl
 
 /-! ## 2. 명제 2.3 — 연속 함수를 만드는 부품
 

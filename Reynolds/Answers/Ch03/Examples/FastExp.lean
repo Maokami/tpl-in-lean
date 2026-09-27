@@ -74,12 +74,12 @@ def expInv (σ : State String) : Prop :=
 -- 실행해 본다. `3 ^ 13 = 1594323`.
 set_option linter.hashCommand false
 #guard (expProg.run 100 ((State.const 0)["a" := (3 : Int)]["n" := (13 : Int)])).map
-  (fun σ => σ "y") == some 1594323
+  (fun σ => σ "y") == Flat.some 1594323
 
 /-- 초기화가 불변식을 세운다. -/
 theorem expInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") expInit expInv := by
   intro σ hn τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   refine ⟨by simp [State.subst_def, Function.update, IntExp.eval, hn], (σ "n").toNat, ?_, ?_⟩ <;>
     simp [State.subst_def, Function.update, IntExp.eval, hn]
 
@@ -92,11 +92,11 @@ theorem expBody_ok :
     PartialCorrectS (fun σ => expInv σ ∧ ⟦⟪ k > 0 ⟫ᵇ⟧ᵇ σ = true)
       (.ite ⟪ k rem 2 = 1 ⟫ᵇ expOdd expEven) expInv := by
   rintro σ ⟨⟨hn, m, hk, hinv⟩, hpos⟩ τ hτ
-  change (if ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ then ⟦expOdd⟧ᶜ σ else ⟦expEven⟧ᶜ σ) = some τ at hτ
+  change (if ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ then ⟦expOdd⟧ᶜ σ else ⟦expEven⟧ᶜ σ) = Flat.some τ at hτ
   by_cases hodd : ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ = true
   · -- 홀수 갈래.
     rw [if_pos hodd] at hτ
-    obtain rfl := Option.some.inj hτ
+    obtain rfl := Flat.some.inj hτ
     have hm : m % 2 = 1 ∧ 0 < m := by
       simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk] at hpos hodd
       omega
@@ -109,7 +109,7 @@ theorem expBody_ok :
   · -- 짝수 갈래.
     rw [if_neg hodd] at hτ
     have heven : ⟦⟪ k rem 2 = 1 ⟫ᵇ⟧ᵇ σ = false := Bool.eq_false_iff.mpr hodd
-    obtain rfl := Option.some.inj hτ
+    obtain rfl := Flat.some.inj hτ
     have hm : m % 2 = 0 := by
       simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk] at heven
       omega

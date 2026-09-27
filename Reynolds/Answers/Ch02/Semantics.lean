@@ -5,6 +5,7 @@ Authors: tpl-in-lean contributors
 -/
 module
 
+public import Reynolds.Answers.Ch02.Domain.Flat
 public import Reynolds.Answers.Ch02.Syntax
 public import Reynolds.Answers.Ch01.Semantics
 public import Reynolds.Answers.Ch02.DenoteBool
@@ -149,15 +150,15 @@ Reynolds 는 부분 함수 대신 `Σ → Σ⊥` 를 쓰는 쪽을 고른다. �
 결과로도 함께 읽지 않는다. Reynolds가 §2.7에서 산술 오류를 추가하면 의미 공간을 다시
 매개변수화해야 하고, 비결정성은 7장에서 멱집합이나 멱영역과 같은 다른 구조를 요구한다.
 
-`Option` 을 쓰는 것이 편의만은 아니다. Reynolds 가 §2.2 에서 손으로 도입하는 확장
+`Flat`은 종료 결과와 바닥을 갖는 전용 귀납 타입이다. Reynolds 가 §2.2 에서 손으로 도입하는 확장
 
 ```
 f⊥⊥ x = if x = ⊥ then ⊥ else f x
 ```
 
-이 정확히 `Option.bind` 다. 아래 `liftBot_eq_bind` 가 그것을 확인한다.
+이 정확히 `Flat.bind` 다. 아래 `liftBot_eq_bind` 가 그것을 확인한다.
 -/
-abbrev SigmaBot (V : Type u) := Option (State V)
+abbrev SigmaBot (V : Type u) := Flat (State V)
 -- ANCHOR_END: SigmaBot
 
 /--
@@ -166,25 +167,22 @@ Reynolds 의 `f⊥⊥` — 상태를 받는 함수를 `Σ⊥` 를 받도록 늘�
 정의를 그대로 옮겼다. `⊥` 가 들어오면 `⊥` 를 내고, 상태가 들어오면 원래 함수를 쓴다.
 -/
 def liftBot {V : Type u} (f : State V → SigmaBot V) : SigmaBot V → SigmaBot V
-  | none   => none
-  | some σ => f σ
+  | Flat.none   => Flat.none
+  | Flat.some σ => f σ
 
 /--
-Reynolds 의 `f⊥⊥` 는 이 `Option` 표현에서 `bind`와 같다.
+Reynolds 의 `f⊥⊥` 는 이 `Flat` 타입에서 `bind`와 같다.
 
-이 등식 하나로 §2.2 의 순차 합성 방정식이 `⟦c₀ ; c₁⟧ σ = ⟦c₀⟧ σ >>= ⟦c₁⟧` 가 된다.
-`Option.bind`의 타입은
+이 등식으로 §2.2의 순차 합성은 `Flat.bind (⟦c₀⟧ σ) ⟦c₁⟧`로 표현된다.
+`Flat.bind`의 타입은
 `SigmaBot V → (State V → SigmaBot V) → SigmaBot V`이고, 첫 계산이 `none`이면 두 번째
 함수를 호출하지 않는다. 이 동작이 순차 합성의 비종료 전파와 일치한다.
 -/
 @[exercise "§2.2 lift-bind" 1]
 theorem liftBot_eq_bind {V : Type u} (f : State V → SigmaBot V) (x : SigmaBot V) :
-    liftBot f x = Option.bind x f := by
+    liftBot f x = Flat.bind x f := by
   cases x <;> rfl
 
-/-- `Option.bind` 가 곧 `>>=` 다. 타입을 적어 주면 Lean 도 같은 것으로 본다. -/
-example {V : Type u} (f : State V → SigmaBot V) (x : Option (State V)) :
-    Option.bind x f = x >>= f := rfl
 
 /-! ## 3. 의미 방정식
 
@@ -194,7 +192,7 @@ Reynolds §2.2 의 방정식들이다. `while` 을 뺀 다섯 개는 구문 지�
 ```
 ⟦v := e⟧ σ               = σ[v := ⟦e⟧ σ]
 ⟦skip⟧ σ                 = σ
-⟦c₀ ; c₁⟧ σ              = ⟦c₀⟧ σ >>= ⟦c₁⟧   (= Option.bind)
+⟦c₀ ; c₁⟧ σ              = Flat.bind (⟦c₀⟧ σ) ⟦c₁⟧
 ⟦if b then c₀ else c₁⟧ σ = if ⟦b⟧ σ then ⟦c₀⟧ σ else ⟦c₁⟧ σ
 ⟦newvar v := e in c⟧ σ   = (⟦c⟧ σ[v := ⟦e⟧ σ]).map (fun σ' => σ'[v := σ v])
 ```
@@ -202,7 +200,7 @@ Reynolds §2.2 의 방정식들이다. `while` 을 뺀 다섯 개는 구문 지�
 여섯 번째만 다르다.
 
 ```
-⟦while b do c⟧ σ         = if ⟦b⟧ σ then ⟦c⟧ σ >>= ⟦while b do c⟧ else σ
+⟦while b do c⟧ σ = if ⟦b⟧ σ then Flat.bind (⟦c⟧ σ) ⟦while b do c⟧ else Flat.some σ
 ```
 
 우변의 `⟦while b do c⟧` 가 좌변과 같은 구다.
@@ -219,7 +217,7 @@ Lean의 구조적 재귀 검사에 맞지 않는다는 컴파일 오류만 피�
 
 /-- `newvar` 절이 하는 일. 본체를 새 값으로 실행한 뒤 그 변수만 원래 값으로 되돌린다. -/
 def restore {V : Type u} [DecidableEq V] (v : V) (σ : State V) : SigmaBot V → SigmaBot V :=
-  Option.map fun σ' => σ'[v := σ v]
+  Flat.map fun σ' => σ'[v := σ v]
 
 -- ANCHOR: IsSemantics
 /--
@@ -232,11 +230,11 @@ def restore {V : Type u} [DecidableEq V] (v : V) (σ : State V) : SigmaBot V →
 §2.4 에서 이 조건을 만족하는 `Comm.eval` 을 만들고 `Comm.eval_isSemantics` 를 증명한다.
 -/
 def IsSemantics {V : Type u} [DecidableEq V] (m : Comm V → State V → SigmaBot V) : Prop :=
-  (∀ v e σ, m (.assign v e) σ = some (σ[v := ⟦e⟧ₑ σ]))
-  ∧ (∀ σ, m .skip σ = some σ)
-  ∧ (∀ c₀ c₁ σ, m (.seq c₀ c₁) σ = Option.bind (m c₀ σ) (m c₁))
+  (∀ v e σ, m (.assign v e) σ = Flat.some (σ[v := ⟦e⟧ₑ σ]))
+  ∧ (∀ σ, m .skip σ = Flat.some σ)
+  ∧ (∀ c₀ c₁ σ, m (.seq c₀ c₁) σ = Flat.bind (m c₀ σ) (m c₁))
   ∧ (∀ b c₀ c₁ σ, m (.ite b c₀ c₁) σ = if ⟦b⟧ᵇ σ then m c₀ σ else m c₁ σ)
-  ∧ (∀ b c σ, m (.wh b c) σ = if ⟦b⟧ᵇ σ then Option.bind (m c σ) (m (.wh b c)) else some σ)
+  ∧ (∀ b c σ, m (.wh b c) σ = if ⟦b⟧ᵇ σ then Flat.bind (m c σ) (m (.wh b c)) else Flat.some σ)
   ∧ (∀ v e c σ, m (.newvar v e c) σ = restore v σ (m c (σ[v := ⟦e⟧ₑ σ])))
 -- ANCHOR_END: IsSemantics
 
@@ -261,7 +259,7 @@ while x ≠ 0 do x := x - 2
 문제는 **방정식이 그 경우를 전혀 제약하지 않는다**는 것이다. -/
 
 /-- 예제 반복문의 본체 `x := x - 2` 의 뜻. 반복이 없어서 그냥 정해진다. -/
-def decrBody (σ : State String) : SigmaBot String := some (σ["x" := σ "x" - 2])
+def decrBody (σ : State String) : SigmaBot String := Flat.some (σ["x" := σ "x" - 2])
 
 /--
 `while x ≠ 0 do x := x - 2` 의 풀기(unwinding) 방정식.
@@ -270,7 +268,7 @@ def decrBody (σ : State String) : SigmaBot String := some (σ["x" := σ "x" - 2
 `⟦b⟧ᵇ σ` 는 `σ "x" ≠ 0` 이고 `⟦c⟧ σ` 는 `decrBody σ` 다.
 -/
 def UnwindsDecr (f : State String → SigmaBot String) : Prop :=
-  ∀ σ : State String, f σ = if σ "x" ≠ 0 then Option.bind (decrBody σ) f else some σ
+  ∀ σ : State String, f σ = if σ "x" ≠ 0 then Flat.bind (decrBody σ) f else Flat.some σ
 
 /-- 반복이 끝나는 상태들. `x` 가 0 이상의 짝수일 때. -/
 def decrHalts (σ : State String) : Prop := 0 ≤ σ "x" ∧ σ "x" % 2 = 0
@@ -280,7 +278,7 @@ instance : DecidablePred decrHalts := fun σ => by
 
 /-- 의도한 의미 후보. 끝나는 상태에서는 `x` 를 0 으로, 나머지에서는 `⊥`. -/
 def decrTrue (σ : State String) : SigmaBot String :=
-  if decrHalts σ then some (σ["x" := (0 : Int)]) else none
+  if decrHalts σ then Flat.some (σ["x" := (0 : Int)]) else Flat.none
 
 /--
 다른 해. 끝나는 상태에서는 `decrTrue`와 같고, 끝나지 않는 상태에서 임의의 상태를 낸다.
@@ -289,7 +287,7 @@ def decrTrue (σ : State String) : SigmaBot String :=
 방정식이 그 자리를 제약하지 않는다는 것이 요점이므로 아무 값이나 된다.
 -/
 def decrFake (σ : State String) : SigmaBot String :=
-  if decrHalts σ then some (σ["x" := (0 : Int)]) else some (σ["x" := (999 : Int)])
+  if decrHalts σ then Flat.some (σ["x" := (0 : Int)]) else Flat.some (σ["x" := (999 : Int)])
 
 /-! ### 두 함수가 모두 방정식을 만족한다
 
@@ -319,7 +317,7 @@ theorem State.subst_eq_self {V : Type u} [DecidableEq V] (σ : State V) (v : V) 
 -- ANCHOR: unwinding_not_unique
 /-- 한 걸음 간 상태. 네 갈래 계산에서 계속 쓴다. -/
 theorem decr_step (f : State String → SigmaBot String) (σ : State String) :
-    Option.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
+    Flat.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
 
 /-- 끝나는 상태에서 한 걸음 가도 여전히 끝나는 상태다. -/
 theorem decrHalts_step {σ : State String} (hh : decrHalts σ) (h0 : σ "x" ≠ 0) :
@@ -397,8 +395,8 @@ Reynolds 가 두 번째 예로 드는 것이고, 방정식이 뜻을 정하지 �
 -/
 @[exercise "§2.2 unwinding-trivial" 2]
 theorem unwinding_trivial (f : State String → SigmaBot String) :
-    ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Option.bind (some σ : SigmaBot String) f
-                else some σ := by
+    ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Flat.bind (Flat.some σ : SigmaBot String) f
+                else Flat.some σ := by
   intro σ
   simp [BoolExp.eval]
 

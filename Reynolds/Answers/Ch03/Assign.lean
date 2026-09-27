@@ -80,8 +80,8 @@ theorem assign_forward_sound [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntEx
     (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
     ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
   intro σ hp τ hτ
-  change some (σ[v := ⟦e⟧ₑ σ]) = some τ at hτ
-  obtain rfl := Option.some.inj hτ
+  change Flat.some (σ[v := ⟦e⟧ₑ σ]) = Flat.some τ at hτ
+  obtain rfl := Flat.some.inj hτ
   refine (Assert.eval_ex _ _ _).mpr ⟨σ v, (Assert.eval_and _ _ _).mpr ⟨?_, ?_⟩⟩
   · -- `p/v→v₀` : `v` 자리에 옛 값이 돌아오니 `p` 가 `σ` 에서 참인 것과 같다.
     refine (substitution_single p v _ _).mpr ((coincidence_assert p σ _ fun w hw => ?_).mp hp)

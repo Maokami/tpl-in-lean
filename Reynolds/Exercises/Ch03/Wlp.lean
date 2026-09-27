@@ -67,7 +67,7 @@ variable {V : Type u} [DecidableEq V]
 
 /-- 의미적 최약 자유 사전조건(weakest liberal precondition). `c` 가 끝나면 `Q` 가 참인 상태들. -/
 def wlp (c : Comm V) (Q : State V → Prop) : State V → Prop :=
-  fun σ => ∀ τ, ⟦c⟧ᶜ σ = some τ → Q τ
+  fun σ => ∀ τ, ⟦c⟧ᶜ σ = Flat.some τ → Q τ
 
 /-- 부분 정확성은 wlp 로 다시 쓰인다. 정의 그대로다. 그러니 `wlp c Q` 는 `{P} c {Q}` 를 만족하는
 가장 약한 `P` 다. -/

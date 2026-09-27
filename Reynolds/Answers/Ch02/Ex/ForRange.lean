@@ -102,12 +102,12 @@ theorem forWhileLt_eq_fold (v w : V) (c : Comm V)
   have hwv : w ≠ v := Ne.symm hvw
   have whileEq : ∀ σ : State V, (forWhileLt v w c).eval σ
       = if ⟦(.cmp .lt (.var v) (.var w) : BoolExp V)⟧ᵇ σ
-        then Option.bind ((forBody v c).eval σ) (forWhileLt v w c).eval
-        else some σ := fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
+        then Flat.bind ((forBody v c).eval σ) (forWhileLt v w c).eval
+        else Flat.some σ := fun σ => Comm.eval_isSemantics.2.2.2.2.1 _ _ σ
   have hBeval : ∀ σ : State V,
       ⟦(.cmp .lt (.var v) (.var w) : BoolExp V)⟧ᵇ σ = decide (σ v < σ w) := fun _ => rfl
   have bodyEq : ∀ σ : State V, (forBody v c).eval σ
-      = Option.bind (c.eval σ) (fun σ'' => some (σ''[v := σ'' v + 1])) := fun _ => rfl
+      = Flat.bind (c.eval σ) (fun σ'' => Flat.some (σ''[v := σ'' v + 1])) := fun _ => rfl
   intro m
   induction m with
   | zero =>
@@ -138,8 +138,8 @@ theorem forWhileLt_eq_fold (v w : V) (c : Comm V)
 -/
 theorem forFold_succ_back (v : V) (c : Comm V) :
     ∀ (n : Nat) (σ : State V), forFold v c (n + 1) σ
-      = Option.bind (Option.bind (forFold v c n σ) c.eval)
-          (fun τ => some (τ[v := τ v + 1])) := by
+      = Flat.bind (Flat.bind (forFold v c n σ) c.eval)
+          (fun τ => Flat.some (τ[v := τ v + 1])) := by
   intro n
   induction n with
   | zero => intro σ; rfl
@@ -154,7 +154,7 @@ theorem forFold_succ_back (v : V) (c : Comm V) :
 
 /-- 복원이 마지막 증가를 지운다. 두 판본의 유일한 차이가 여기서 사라진다. -/
 theorem restore_bind_incr (v : V) (σ₁ : State V) (X : SigmaBot V) :
-    restore v σ₁ (Option.bind X (fun τ => some (τ[v := τ v + 1]))) = restore v σ₁ X := by
+    restore v σ₁ (Flat.bind X (fun τ => Flat.some (τ[v := τ v + 1]))) = restore v σ₁ X := by
   cases X with
   | none => rfl
   | some τ => simp [restore, State.subst_def, Function.update_idem]
@@ -175,13 +175,13 @@ def forV4 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 
 -- 두 판본이 같은 답을 낸다. 1 부터 3 까지 더하면 6.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3) (.assign "s" (.bin .add (.var "s") (.var "i")))).run
-          20 (State.const 0)).map (fun σ => σ "s") == some 6
+          20 (State.const 0)).map (fun σ => σ "s") == Flat.some 6
 #guard ((forV4 "i" "hi" (.num 1) (.num 3) (.assign "s" (.bin .add (.var "s") (.var "i")))).run
-          20 (State.const 0)).map (fun σ => σ "s") == some 6
+          20 (State.const 0)).map (fun σ => σ "s") == Flat.some 6
 
 -- 구간이 비면 둘 다 본문을 한 번도 안 돈다.
 #guard ((forV4 "i" "hi" (.num 5) (.num 3) (.assign "s" (.bin .add (.var "s") (.num 1)))).run
-          20 (State.const 0)).map (fun σ => σ "s") == some 0
+          20 (State.const 0)).map (fun σ => σ "s") == Flat.some 0
 
 /-! ## 3. 두 판본의 뜻이 같다 -/
 
@@ -261,7 +261,7 @@ theorem forV4_eval_eq_forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
     have hloop := forWhileLt_eq_fold v w c hv hw hvw _
       ((σ[w := ⟦e₁⟧ₑ σ])[v := ⟦e₀⟧ₑ σ]) (by rw [hv₂, hw₂])
     change restore w σ (restore v (σ[w := ⟦e₁⟧ₑ σ])
-        (Option.bind ((forWhileLt v w c).eval _) c.eval)) = _
+        (Flat.bind ((forWhileLt v w c).eval _) c.eval)) = _
     rw [hloop, ← hm, forFold_succ_back v c, restore_bind_incr]
   · -- 구간이 비었다. 양쪽 다 본문을 안 돈다.
     rw [if_neg (by simp [hle])]

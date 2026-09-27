@@ -88,7 +88,7 @@ def doubleThenInc : Comm String := ⟪ y := y × 2; x := x + 1 ⟫ᶜ
 
 -- 반복은 실제로 백 번 돈다. 연료가 모자라면 `none` 이다.
 #guard (countTo100.run 100 (State.const 0)).isNone
-#guard (countTo100.run 102 (State.const 0)).map (fun σ => σ "x") == some 100
+#guard (countTo100.run 102 (State.const 0)).map (fun σ => σ "x") == Flat.some 100
 
 /-! ## 2. 첫째 쌍 — 대입 두 번은 대입 한 번이다
 
@@ -105,8 +105,8 @@ def doubleThenInc : Comm String := ⟪ y := y × 2; x := x + 1 ⟫ᶜ
 @[exercise "§2.8 obs-eq-inc" 1]
 theorem incTwice_eq_incByTwo : incTwice.eval = incByTwo.eval := by
   funext σ
-  change some ((σ["x" := σ "x" + 1])["x" := (σ["x" := σ "x" + 1]) "x" + 1])
-      = some (σ["x" := σ "x" + 2])
+  change Flat.some ((σ["x" := σ "x" + 1])["x" := (σ["x" := σ "x" + 1]) "x" + 1])
+      = Flat.some (σ["x" := σ "x" + 2])
   rw [State.subst_self]
   simp only [State.subst_def, Function.update_idem]
   norm_num [add_assoc]
@@ -136,16 +136,16 @@ theorem incTwice_eq_incByTwo : incTwice.eval = incByTwo.eval := by
 -/
 @[exercise "§2.8 loop-eval" 3]
 theorem countLoop_eval (σ : State String) (h : σ "x" ≤ 100) :
-    countLoop.eval σ = some (σ["x" := (100 : Int)]) := by
+    countLoop.eval σ = Flat.some (σ["x" := (100 : Int)]) := by
   have whileEq : ∀ τ : State String, countLoop.eval τ
       = if ⟦(.cmp .lt (.var "x") (.num 100) : BoolExp String)⟧ᵇ τ
-        then Option.bind ((Comm.assign "x" (.bin .add (.var "x") (.num 1))).eval τ) countLoop.eval
-        else some τ := fun τ => Comm.eval_isSemantics.2.2.2.2.1 _ _ τ
+        then Flat.bind ((Comm.assign "x" (.bin .add (.var "x") (.num 1))).eval τ) countLoop.eval
+        else Flat.some τ := fun τ => Comm.eval_isSemantics.2.2.2.2.1 _ _ τ
   have hB : ∀ τ : State String,
       ⟦(.cmp .lt (.var "x") (.num 100) : BoolExp String)⟧ᵇ τ = decide (τ "x" < 100) :=
     fun _ => rfl
   have key : ∀ (m : Nat) (τ : State String), (100 - τ "x").toNat = m → τ "x" ≤ 100 →
-      countLoop.eval τ = some (τ["x" := (100 : Int)]) := by
+      countLoop.eval τ = Flat.some (τ["x" := (100 : Int)]) := by
     intro m
     induction m with
     | zero =>
@@ -160,12 +160,12 @@ theorem countLoop_eval (σ : State String) (h : σ "x" ≤ 100) :
         have hlt : τ "x" < 100 := by omega
         rw [whileEq τ, hB τ, if_pos (by simp [hlt])]
         have hbody : (Comm.assign "x" (.bin .add (.var "x") (.num 1))).eval τ
-            = some (τ["x" := τ "x" + 1]) := rfl
+            = Flat.some (τ["x" := τ "x" + 1]) := rfl
         rw [hbody]
         have hnext : (100 - (τ["x" := τ "x" + 1]) "x").toNat = n := by
           rw [State.subst_self]; omega
         have hih := ih (τ["x" := τ "x" + 1]) hnext (by rw [State.subst_self]; omega)
-        change countLoop.eval (τ["x" := τ "x" + 1]) = some (τ["x" := (100 : Int)])
+        change countLoop.eval (τ["x" := τ "x" + 1]) = Flat.some (τ["x" := (100 : Int)])
         rw [hih]
         simp [State.subst_def, Function.update_idem]
   exact key _ σ rfl h
@@ -183,8 +183,9 @@ theorem countLoop_eval (σ : State String) (h : σ "x" ≤ 100) :
 -/
 theorem countTo100_eq_setTo100 : countTo100.eval = setTo100.eval := by
   funext σ
-  change Option.bind (some (σ["x" := (0 : Int)])) countLoop.eval = some (σ["x" := (100 : Int)])
-  change countLoop.eval (σ["x" := (0 : Int)]) = some (σ["x" := (100 : Int)])
+  change Flat.bind (Flat.some (σ["x" := (0 : Int)])) countLoop.eval
+      = Flat.some (σ["x" := (100 : Int)])
+  change countLoop.eval (σ["x" := (0 : Int)]) = Flat.some (σ["x" := (100 : Int)])
   rw [countLoop_eval _ (by rw [State.subst_self]; omega)]
   simp [State.subst_def, Function.update_idem]
 
@@ -204,8 +205,8 @@ theorem countTo100_eq_setTo100 : countTo100.eval = setTo100.eval := by
 @[exercise "§2.8 obs-eq-comm" 1]
 theorem incThenDouble_eq_doubleThenInc : incThenDouble.eval = doubleThenInc.eval := by
   funext σ
-  change some ((σ["x" := σ "x" + 1])["y" := (σ["x" := σ "x" + 1]) "y" * 2])
-      = some ((σ["y" := σ "y" * 2])["x" := (σ["y" := σ "y" * 2]) "x" + 1])
+  change Flat.some ((σ["x" := σ "x" + 1])["y" := (σ["x" := σ "x" + 1]) "y" * 2])
+      = Flat.some ((σ["y" := σ "y" * 2])["x" := (σ["y" := σ "y" * 2]) "x" + 1])
   rw [State.subst_of_ne _ _ _ _ (by decide : ("y" : String) ≠ "x"),
     State.subst_of_ne _ _ _ _ (by decide : ("x" : String) ≠ "y")]
   simp only [State.subst_def]
@@ -233,7 +234,7 @@ theorem incThenDouble_eq_doubleThenInc : incThenDouble.eval = doubleThenInc.eval
 -/
 theorem steps_break_soundness :
     countTo100.eval = setTo100.eval
-      ∧ countTo100.run 0 (State.const 0) = none
+      ∧ countTo100.run 0 (State.const 0) = Flat.none
       ∧ (setTo100.run 0 (State.const 0)).isSome := by
   refine ⟨countTo100_eq_setTo100, ?_, ?_⟩
   · simp [countTo100, Comm.run]

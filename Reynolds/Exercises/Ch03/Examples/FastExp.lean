@@ -72,12 +72,12 @@ def expInv (σ : State String) : Prop :=
 -- 실행해 본다. `3 ^ 13 = 1594323`.
 set_option linter.hashCommand false
 #guard (expProg.run 100 ((State.const 0)["a" := (3 : Int)]["n" := (13 : Int)])).map
-  (fun σ => σ "y") == some 1594323
+  (fun σ => σ "y") == Flat.some 1594323
 
 /-- 초기화가 불변식을 세운다. -/
 theorem expInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") expInit expInv := by
   intro σ hn τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   refine ⟨by simp [State.subst_def, Function.update, IntExp.eval, hn], (σ "n").toNat, ?_, ?_⟩ <;>
     simp [State.subst_def, Function.update, IntExp.eval, hn]
 
@@ -91,7 +91,7 @@ theorem expBody_ok :
   -- 먼저 볼 것: `Semantic.lean` 의 `PartialCorrectS.ite`, Mathlib 의 `pow_succ` · `pow_two` ·
   --            `pow_mul` · `Nat.two_mul_div_two_of_even` · `Nat.even_iff`.
   -- 힌트 1: `refine PartialCorrectS.ite ?_ ?_` 로 두 갈래를 나눈다. 각 갈래는 반복이 없어
-  --         `obtain rfl := Option.some.inj hτ` 로 결과 상태가 드러난다.
+  --         `obtain rfl := Flat.some.inj hτ` 로 결과 상태가 드러난다.
   -- 힌트 2: 조건들을 `simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk]` 로
   --         `m` 에 대한 사실(`m % 2 = 1 ∧ 0 < m`, 또는 `m % 2 = 0`)로 바꾼다 (`omega`).
   -- 힌트 3: 홀수 갈래 — 증인 `m - 1`. `m = j + 1` 로 쓰면 `y · x · x^j = y · x^(j+1)`.

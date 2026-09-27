@@ -80,7 +80,7 @@ def forV1 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 
 -- 판본 1 은 실제로 돈다. `for i := 1 to 3 do skip` 은 i 를 1,2,3 에서 돌고 4 에서 멈춘다.
 #guard ((forV1 "i" (.num 1) (.num 3) .skip).run 10 (State.const 0)).map (fun σ => σ "i")
-  == some 4
+  == Flat.some 4
 
 /-- **판본 1 의 결함: 제어 변수가 밖으로 샌다.** `v` 가 `FA` 에 들어 있다. -/
 theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
@@ -97,11 +97,11 @@ theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 @[exercise "§2.6 for-leaks" 1]
 theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = some τ ∧ τ "i" ≠ σ "i" := by
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
   -- 먼저 볼 것: `Comm.run_sound` (연료 실행이 표시적 의미와 일치).
   -- 힌트 1: 증인은 `σ := State.const 0`. `for i := 1 to 1 do skip` 은 한 바퀴 돌고
   --         i 를 2 로 남긴다.
-  -- 힌트 2: `run 2 (State.const 0) = some _` 를 `simp [forV1, forWhile, forBody, incr,
+  -- 힌트 2: `run 2 (State.const 0) = Flat.some _` 를 `simp [forV1, forWhile, forBody, incr,
   --         Comm.run, BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool]` 로 계산하고,
   --         `Comm.run_sound` 로 옮긴 뒤 `τ "i" ≠ σ "i"` 를 `decide` 로 닫는다.
   --         (`run` 은 정의 등식으로만 풀린다 — `rfl` 로는 안 된다.)
@@ -125,7 +125,7 @@ theorem forV2_no_leak (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 
 -- `for i := 1 to 3 do skip` 을 판본 2 로 돌리면 i 는 밖으로 새지 않는다 (입력 0 그대로).
 #guard ((forV2 "i" (.num 1) (.num 3) .skip).run 10 (State.const 0)).map (fun σ => σ "i")
-  == some 0
+  == Flat.some 0
 
 -- 그러나 상한이 제어 변수를 가리키면 발산한다. `for i := 1 to i do skip`.
 #guard ((forV2 "i" (.num 1) (.var "i") .skip).run 1000 (State.const 0)).isNone
@@ -144,14 +144,14 @@ Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어
 -/
 @[exercise "§2.6 for-diverges" 2]
 theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = none := by
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
   -- 먼저 볼 것: `Comm.run_complete` (표시적으로 종료하면 어떤 연료로 실행된다).
-  -- 힌트 1: 안쪽 while 이 어떤 연료·상태에서도 `none` 임을 연료 귀납으로 보인다.
+  -- 힌트 1: 안쪽 while 이 어떤 연료·상태에서도 `Flat.none` 임을 연료 귀납으로 보인다.
   --         조건 `v ≤ v` 는 언제나 참(`by_cases` 후 항상 참 쪽만 남는다).
-  -- 힌트 2: 한 바퀴는 본체가 `some (σ'[v := σ' v + 1])` 을 내고 남은 루프로 넘어간다.
+  -- 힌트 2: 한 바퀴는 본체가 `Flat.some (σ'[v := σ' v + 1])` 을 내고 남은 루프로 넘어간다.
   --         `rw [forWhile, Comm.run]` 로 한 스텝 풀고 귀납 가설을 쓴다.
-  -- 힌트 3: 표시적 의미가 `none` 임을 `Comm.run_complete` 의 대우로 얻고,
-  --         `newvar` 의 복원이 `none` 을 통과시킨다 (`change` 로 펼친 뒤 `simp [restore]`).
+  -- 힌트 3: 표시적 의미가 `Flat.none` 임을 `Comm.run_complete` 의 대우로 얻고,
+  --         `newvar` 의 복원이 `Flat.none` 을 통과시킨다 (`change` 로 펼친 뒤 `simp [restore]`).
   sorry
 
 
@@ -177,7 +177,7 @@ def forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 -- 상한이 얼어 있으므로 합이 제대로 계산된다. `for i := 1 to 3 do s := s + i` → s = 6.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3)
           (.assign "s" (.bin .add (.var "s") (.var "i")))).run 20 (State.const 0)).map
-        (fun σ => σ "s") == some 6
+        (fun σ => σ "s") == Flat.some 6
 
 /--
 **판본 3 은 두 제어 변수를 모두 감춘다.** `v` 도 `w` 도 `FA` 에서 지워진다.
@@ -197,7 +197,7 @@ theorem forV3_fa (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 된다.
 -/
 theorem forV3_control_restored (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
-    (σ τ : State V) (h : (forV3 v w e₀ e₁ c).eval σ = some τ) :
+    (σ τ : State V) (h : (forV3 v w e₀ e₁ c).eval σ = Flat.some τ) :
     τ v = σ v ∧ τ w = σ w :=
   ⟨Comm.eval_agree_outside_fa _ _ _ h v (forV3_fa v w e₀ e₁ c).1,
    Comm.eval_agree_outside_fa _ _ _ h w (forV3_fa v w e₀ e₁ c).2⟩

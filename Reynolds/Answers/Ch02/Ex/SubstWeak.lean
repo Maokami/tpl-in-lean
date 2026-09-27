@@ -157,7 +157,7 @@ theorem Comm.substitution_weak [HasFresh V] :
       have he : ⟦e /ₑ δ.toSubst⟧ₑ σ' = ⟦e⟧ₑ σ :=
         substitution_intExp e δ.toSubst σ σ' fun w hw =>
           h w (hS (by simp [Comm.fv, hw]))
-      change AgreeVia δ S (some (σ[v := ⟦e⟧ₑ σ])) (some (σ'[δ v := ⟦e /ₑ δ.toSubst⟧ₑ σ']))
+      change AgreeVia δ S (Flat.some (σ[v := ⟦e⟧ₑ σ])) (Flat.some (σ'[δ v := ⟦e /ₑ δ.toSubst⟧ₑ σ']))
       rw [AgreeVia.some_some, he]
       intro w hw
       by_cases hwv : w = v
@@ -177,8 +177,8 @@ theorem Comm.substitution_weak [HasFresh V] :
         hinj u (by simp [Comm.fa, hu])
       have hinj₁ : ∀ u ∈ c₁.fa, ∀ w ∈ S, δ u = δ w → u = w := fun u hu =>
         hinj u (by simp [Comm.fa, hu])
-      change AgreeVia δ S (Option.bind (c₀.eval σ) c₁.eval)
-        (Option.bind ((c₀ /ᶜ δ).eval σ') (c₁ /ᶜ δ).eval)
+      change AgreeVia δ S (Flat.bind (c₀.eval σ) c₁.eval)
+        (Flat.bind ((c₀ /ᶜ δ).eval σ') (c₁ /ᶜ δ).eval)
       have h₀ := ih₀ δ S hS₀ hinj₀ σ σ' h
       rcases h₀₁ : c₀.eval σ with _ | τ <;> rcases h₀₂ : (c₀ /ᶜ δ).eval σ' with _ | τ'
       · simp
@@ -303,7 +303,7 @@ theorem Comm.substitution_weak [HasFresh V] :
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner
-        simp only [restore, Option.map_some]
+        simp only [restore, Flat.map_some]
         rw [AgreeVia.some_some]
         intro w hw
         by_cases hwv : w = v

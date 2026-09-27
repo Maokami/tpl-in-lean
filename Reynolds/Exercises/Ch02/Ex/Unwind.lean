@@ -44,7 +44,7 @@ Reynolds 연습 2.5 에 대응한다.
 상계로 쓸 함수를 하나 만든다.
 
 ```
-U σ = if ⟦b⟧ᵇ σ then ⟦c⟧ σ >>= W2 else W2 σ
+U σ = if ⟦b⟧ᵇ σ then Flat.bind (⟦c⟧ σ) W2 else W2 σ
 ```
 
 "조건이 참이면 본체를 **한 번만** 돌고 나머지는 늘린 반복에 맡긴다" 는 함수다.
@@ -53,7 +53,7 @@ U σ = if ⟦b⟧ᵇ σ then ⟦c⟧ σ >>= W2 else W2 σ
 귀납이 돌아가는 이유는 보조 등식 하나다.
 
 ```
-(if ⟦b⟧ᵇ σ then ⟦c⟧ σ else some σ) >>= U  =  W2 σ
+Flat.bind (if ⟦b⟧ᵇ σ then ⟦c⟧ σ else Flat.some σ) U = W2 σ
 ```
 
 늘린 본체를 한 번 훑은 뒤 `U` 로 가면 정확히 `W2` 다. 이것이 있으면 귀납 단계가
@@ -92,19 +92,19 @@ def dblBody (b : BoolExp V) (c : Comm V) : Comm V := .seq c (.ite b c .skip)
 
 -- `while x > 0 do x := x-1` 은 3 에서 0 으로 간다.
 #guard ((⟪ while x > 0 do x := x - 1 ⟫ᶜ).run 10 (State.const 3)).map (fun σ => σ "x")
-  == some 0
+  == Flat.some 0
 
 -- 본체를 늘려도 같은 곳에 닿는다. 홀수(3)라서 마지막 바퀴는 `skip` 쪽으로 빠진다.
 #guard ((Comm.wh (.cmp .gt (.var "x") (.num 0))
           (dblBody (.cmp .gt (.var "x") (.num 0))
             (.assign "x" (.bin .sub (.var "x") (.num 1))))).run 10
-        (State.const 3)).map (fun σ => σ "x") == some 0
+        (State.const 3)).map (fun σ => σ "x") == Flat.some 0
 
 -- 단서를 뺀 `c; c` 라면 3 에서 -1 로 지나쳐 버린다. `if` 가 왜 필요한지가 여기 있다.
 #guard ((Comm.wh (.cmp .gt (.var "x") (.num 0))
           (.seq (.assign "x" (.bin .sub (.var "x") (.num 1)))
                 (.assign "x" (.bin .sub (.var "x") (.num 1))))).run 10
-        (State.const 3)).map (fun σ => σ "x") == some (-1)
+        (State.const 3)).map (fun σ => σ "x") == Flat.some (-1)
 
 /-! ## 2. 두 반복이 같다 -/
 
@@ -138,26 +138,26 @@ theorem while_eq_dblBody (b : BoolExp V) (c : Comm V) :
   -- 준비: `set s := c.eval`, `set W := (Comm.wh b c).eval`,
   --       `set W2 := (Comm.wh b (dblBody b c)).eval` 로 이름을 줄이고,
   --       두 반복의 한 바퀴 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ σ` 로 꺼낸다.
-  --       늘린 본체의 뒷부분 `h σ' = if ⟦b⟧ᵇ σ' then s σ' else some σ'` 도 이름을 준다
-  --       (`(dblBody b c).eval σ = Option.bind (s σ) h` 는 `rfl` 이다).
+  --       늘린 본체의 뒷부분 `h σ' = if ⟦b⟧ᵇ σ' then s σ' else Flat.some σ'` 도 이름을 준다
+  --       (`(dblBody b c).eval σ = Flat.bind (s σ) h` 는 `rfl` 이다).
   --
   -- 힌트 1 (`⊒`, 쉬운 쪽): `W` 가 **늘린** 반복의 풀기 방정식을 만족함을 보이면
   --         `whileF_fix_le` 가 끝낸다 (연습 독립성 원칙 때문에 `fix_least` 자신이
-  --         아니라 `whileF` 하나로 좁힌 그 독립적인 판을 쓴다). `Option.bind_assoc` 로
+  --         아니라 `whileF` 하나로 좁힌 그 독립적인 판을 쓴다). `Flat.bind_assoc` 로
   --         두 번 훑는 것을 펴고, 조건이 참인 갈래에서 `hW` 를 한 번 더 쓴다.
   --
   -- 힌트 2 (`⊑`, 어려운 쪽): 같은 수를 쓰면 **순환에 빠진다.** 최소성으로 환원하면
   --         증명하려던 것이 다시 나온다. 근사열을 직접 따라가야 한다.
   -- 힌트 3: 상계를 하나 만든다.
-  --           `U σ = if ⟦b⟧ᵇ σ then Option.bind (s σ) W2 else W2 σ`
+  --           `U σ = if ⟦b⟧ᵇ σ then Flat.bind (s σ) W2 else W2 σ`
   --         "조건이 참이면 본체를 한 번만 돌고 나머지는 `W2` 에 맡긴다" 는 함수다.
   -- 힌트 4: 보조 등식 둘을 먼저 세운다.
-  --           (C) `Option.bind ((dblBody b c).eval σ) W2 = Option.bind (s σ) U`
-  --           (D) `Option.bind (h σ) U = W2 σ`
+  --           (C) `Flat.bind ((dblBody b c).eval σ) W2 = Flat.bind (s σ) U`
+  --           (D) `Flat.bind (h σ) U = W2 σ`
   --         둘 다 조건으로 갈래를 나누는 계산이고, (D) 가 귀납을 굴리는 연료다.
   -- 힌트 5: `∀ n, (whileF b ((dblBody b c).eval))^[n] ⊥ ≤ U` 를 `n` 에 대해 귀납한다.
   --         `Function.iterate_succ_apply'` 로 한 겹 벗기고, 귀납 가설을
-  --         `Option.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
+  --         `Flat.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
   --         **귀납 가설을 다른 상태에서 쓴다**는 것이 요점이다.
   -- 힌트 6: 극한은 `Chain.lub_le` 로 올린다. 그러면 `W2 ≤ U` 이고,
   --         거기서 `W2` 가 원래 반복의 전고정점임이 나와 `whileF_fix_le` 가 끝낸다.

@@ -67,12 +67,12 @@ def fibInv (σ : State String) : Prop :=
 
 -- 실행해 본다. `fib 10 = 55`.
 set_option linter.hashCommand false
-#guard (fibProg.run 100 ((State.const 0)["n" := (10 : Int)])).map (fun σ => σ "f") == some 55
+#guard (fibProg.run 100 ((State.const 0)["n" := (10 : Int)])).map (fun σ => σ "f") == Flat.some 55
 
 /-- 초기화가 불변식을 세운다. 대입 셋을 정의대로 계산한다. -/
 theorem fibInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") fibInit fibInv := by
   intro σ hn τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   refine ⟨0, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [State.subst_def, Function.update, IntExp.eval, hn]
 
 /--
@@ -85,8 +85,8 @@ theorem fibInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") fibInit fibInv := 
 theorem fibBody_ok :
     PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
   -- 먼저 볼 것: Mathlib 의 `Nat.fib_add_two`, 이 파일 위의 `fibInit_ok`.
-  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Option.some.inj hτ`.
-  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `some (…)` 로 계산된다.
+  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Flat.some.inj hτ`.
+  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `Flat.some (…)` 로 계산된다.
   -- 힌트 2: 조건 `hb` 를 `simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool]` 로 `σ "k" ≠ σ "n"` 로.
   -- 힌트 3: 새 증인은 `m + 1`. 다섯 조각을 `simp [State.subst_def, Function.update, IntExp.eval,
   --         IntOp.denote, hk, hf, hg, Nat.fib_add_two]` 와 `omega` 로.

@@ -136,7 +136,7 @@ theorem Ctx.fill_congr (C : Ctx V) {c c' : Comm V} (h : c.eval = c'.eval) :
   -- 먼저 볼 것: 바로 위 `Comm.eval_wh_congr` (완성되어 있다). `wh` 절이 그것을 쓴다.
   -- 힌트 1: 문맥에 대한 구조적 귀납. `newvar` 분기는 `«newvar»` 로 쓴다.
   -- 힌트 2: `wh` 를 뺀 각 절은 `funext σ` 뒤에 `change` 로 그 생성자의 의미 방정식을
-  --         펼치고 귀납 가설을 `rw` 하면 끝난다 (`Option.bind`, `if`, `restore`).
+  --         펼치고 귀납 가설을 `rw` 하면 끝난다 (`Flat.bind`, `if`, `restore`).
   -- 힌트 3: `wh` 절만 `fix` 를 지나므로 `Comm.eval_wh_congr` 가 필요하다.
   sorry
 
@@ -148,7 +148,7 @@ theorem Ctx.fill_congr (C : Ctx V) {c c' : Comm V} (h : c.eval = c'.eval) :
 
 /-- 풍부한 관찰 — 종료 여부와 변수 `v` 의 최종 값. 발산은 `none` 이다. -/
 noncomputable def observe (σ : State V) (v : V) (c : Comm V) : Option Int :=
-  (c.eval σ).map (fun τ => τ v)
+  ((c.eval σ).map (fun τ => τ v)).toOption
 
 /-- 빈약한 관찰 — **종료했는가만** 본다. 최종 값은 보지 않는다. -/
 noncomputable def observeHalt (σ : State V) (c : Comm V) : Bool := (c.eval σ).isSome
@@ -195,7 +195,7 @@ def diverge : Comm V := .wh .tru .skip
 판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
-theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
+theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
   -- 힌트 1: 이 반복의 함수 연산자는 항등 함수다 — `whileF tru ⟦skip⟧ w = w` 가 `rfl` 로 된다.
   -- 힌트 2: 그러면 `⊥` 가 전고정점이므로 `whileF_fix_le` 가 `⟦diverge⟧ ≤ ⊥` 를 준다.
   --         (`fix_least` 자신은 다른 채점 연습이라 대신 쓴다.) 사슬을 펼칠 필요가 없다.
@@ -221,7 +221,7 @@ theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
 theorem obsEq_imp_eval_eq [Inhabited V] {c c' : Comm V} (h : ObsEq c c') : c.eval = c'.eval := by
   -- 힌트 1: 빈 문맥(`Ctx.hole`) 하나면 충분하다. `funext σ` 로 상태를 고정한다.
   -- 힌트 2: 두 결과를 `rcases h1 : c.eval σ with _ | τ` 로 네 갈래로 나눈다.
-  -- 힌트 3: 한쪽만 발산하는 갈래는 아무 변수(`default`)에서 `none` 과 `some _` 로 갈린다.
+  -- 힌트 3: 한쪽만 발산하는 갈래는 아무 변수(`default`)에서 `Flat.none` 과 `Flat.some _` 로 갈린다.
   --         둘 다 종료하는 갈래는 모든 변수에서 값이 같으므로 `funext` 로 상태가 같다.
   sorry
 
@@ -288,17 +288,17 @@ theorem haltEq_imp_eval_eq {c c' : Comm V} (h : HaltEq c c') : c.eval = c'.eval 
         (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)) σ
       simp only [observeHalt, Ctx.fill] at hdev
       have hleft : (Comm.seq c (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)).eval σ
-          = some τ := by
-        change Option.bind (c.eval σ) _ = some τ
+          = Flat.some τ := by
+        change Flat.bind (c.eval σ) _ = Flat.some τ
         rw [h1]
-        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ then _ else _) = some τ
+        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ then _ else _) = Flat.some τ
         rw [if_pos (by simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool])]
         rfl
       have hright : (Comm.seq c' (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)).eval σ
-          = none := by
-        change Option.bind (c'.eval σ) _ = none
+          = Flat.none := by
+        change Flat.bind (c'.eval σ) _ = Flat.none
         rw [h2]
-        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' then _ else _) = none
+        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' then _ else _) = Flat.none
         have hcond : ¬ (⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' = true) := by
           simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using Ne.symm hv
         rw [if_neg hcond]

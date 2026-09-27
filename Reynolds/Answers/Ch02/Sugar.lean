@@ -82,7 +82,7 @@ def forV1 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 
 -- 판본 1 은 실제로 돈다. `for i := 1 to 3 do skip` 은 i 를 1,2,3 에서 돌고 4 에서 멈춘다.
 #guard ((forV1 "i" (.num 1) (.num 3) .skip).run 10 (State.const 0)).map (fun σ => σ "i")
-  == some 4
+  == Flat.some 4
 
 /-- **판본 1 의 결함: 제어 변수가 밖으로 샌다.** `v` 가 `FA` 에 들어 있다. -/
 theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
@@ -100,10 +100,10 @@ theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 @[exercise "§2.6 for-leaks" 1]
 theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = some τ ∧ τ "i" ≠ σ "i" := by
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
   -- 연료 2 로 실행하면 종료하고, 그 결과 상태에서 i = 2 다.
   have hrun : (forV1 "i" (.num 1) (.num 1) .skip).run 2 (State.const 0)
-      = some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
+      = Flat.some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
     simp [forV1, forWhile, forBody, incr, Comm.run, BoolExp.eval, IntExp.eval,
       IntOp.denote, Cmp.denoteBool]
   exact ⟨State.const 0, _, Comm.run_sound hrun, by decide⟩
@@ -128,7 +128,7 @@ theorem forV2_no_leak (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 
 -- `for i := 1 to 3 do skip` 을 판본 2 로 돌리면 i 는 밖으로 새지 않는다 (입력 0 그대로).
 #guard ((forV2 "i" (.num 1) (.num 3) .skip).run 10 (State.const 0)).map (fun σ => σ "i")
-  == some 0
+  == Flat.some 0
 
 -- 그러나 상한이 제어 변수를 가리키면 발산한다. `for i := 1 to i do skip`.
 #guard ((forV2 "i" (.num 1) (.var "i") .skip).run 1000 (State.const 0)).isNone
@@ -148,10 +148,10 @@ Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어
 -/
 @[exercise "§2.6 for-diverges" 2]
 theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = none := by
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
   -- 안쪽 while 은 어떤 상태·연료에서도 종료하지 않는다.
   have hrun : ∀ (n : ℕ) (σ' : State V),
-      (forWhile v (.var v) (.skip : Comm V)).run n σ' = none := by
+      (forWhile v (.var v) (.skip : Comm V)).run n σ' = Flat.none := by
     intro n
     induction n with
     | zero => intro σ'; simp [forWhile, Comm.run]
@@ -161,13 +161,13 @@ theorem forV2_diverges (v : V) (σ : State V) :
         by_cases hb : ⟦(.cmp .le (.var v) (.var v) : BoolExp V)⟧ᵇ σ'
         · simp only [if_pos hb]
           have hbody : (forBody v (.skip : Comm V)).run (n + 1) σ'
-              = some (σ'[v := σ' v + 1]) := by
+              = Flat.some (σ'[v := σ' v + 1]) := by
             simp [forBody, incr, Comm.run, IntExp.eval, IntOp.denote]
           rw [hbody]
           exact ih (σ'[v := σ' v + 1])
         · simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool] at hb
   -- 표시적 의미도 `none`.
-  have heval : ∀ σ', (forWhile v (.var v) (.skip : Comm V)).eval σ' = none := by
+  have heval : ∀ σ', (forWhile v (.var v) (.skip : Comm V)).eval σ' = Flat.none := by
     intro σ'
     rcases h : (forWhile v (.var v) (.skip : Comm V)).eval σ' with _ | τ
     · rfl
@@ -176,7 +176,7 @@ theorem forV2_diverges (v : V) (σ : State V) :
       exact absurd hn (by simp)
   -- `newvar` 는 `none` 을 그대로 내보낸다.
   change restore v σ
-    ((forWhile v (.var v) (.skip : Comm V)).eval (σ[v := ⟦(.num 1 : IntExp V)⟧ₑ σ])) = none
+    ((forWhile v (.var v) (.skip : Comm V)).eval (σ[v := ⟦(.num 1 : IntExp V)⟧ₑ σ])) = Flat.none
   rw [heval]
   simp [restore]
 -- ANCHOR_END: forV2Diverges
@@ -205,7 +205,7 @@ def forV3 (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 -- 상한이 얼어 있으므로 합이 제대로 계산된다. `for i := 1 to 3 do s := s + i` → s = 6.
 #guard ((forV3 "i" "hi" (.num 1) (.num 3)
           (.assign "s" (.bin .add (.var "s") (.var "i")))).run 20 (State.const 0)).map
-        (fun σ => σ "s") == some 6
+        (fun σ => σ "s") == Flat.some 6
 
 -- ANCHOR: forV3NoLeak
 /--
@@ -227,7 +227,7 @@ theorem forV3_fa (v w : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 된다.
 -/
 theorem forV3_control_restored (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
-    (σ τ : State V) (h : (forV3 v w e₀ e₁ c).eval σ = some τ) :
+    (σ τ : State V) (h : (forV3 v w e₀ e₁ c).eval σ = Flat.some τ) :
     τ v = σ v ∧ τ w = σ w :=
   ⟨Comm.eval_agree_outside_fa _ _ _ h v (forV3_fa v w e₀ e₁ c).1,
    Comm.eval_agree_outside_fa _ _ _ h w (forV3_fa v w e₀ e₁ c).2⟩

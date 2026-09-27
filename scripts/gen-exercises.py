@@ -41,7 +41,7 @@ import sys
 # 게다가 DSL 은 연습 대상이 아니라 인프라라서 복제할 이유도 없다.
 # 매크로가 뱉는 이름(`IntExp.var` 등)은 한정되지 않아서, Exercises 이름공간 안에서
 # 쓰면 Exercises 의 정의로 해석된다.
-# `Ch02/Domain/Flat.lean` — `Option` 은 루트 타입이라 순서 인스턴스를 복제하면
+# `Ch02/Domain/Flat.lean` — `Flat` 은 공유 결과 타입이라 순서 인스턴스를 복제하면
 # 같은 타입에 두 벌이 등록된다 (구문 범주가 전역인 것과 같은 사정).
 # `Ch02/DenoteBool.lean` — 1장 이름공간(`Reynolds.Answers.Ch01`)에 선언을 더한다. Exercises 는
 # 앞 장의 Answers 를 import 하므로 (아래 `transform`), 복제하면 같은 이름이 두 벌 생긴다.
@@ -467,9 +467,9 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch02/Semantics.lean",
         "theorem liftBot_eq_bind",
-        "/-- `Option.bind` 가 곧 `>>=` 다.",
+        "/-! ## 3. 의미 방정식",
         """theorem liftBot_eq_bind {V : Type u} (f : State V → SigmaBot V) (x : SigmaBot V) :
-    liftBot f x = Option.bind x f := by
+    liftBot f x = Flat.bind x f := by
   -- 힌트: `x` 를 두 가지로 나누면 양변이 정의상 같아진다.
   sorry
 
@@ -494,8 +494,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem unwinding_trivial",
         "/-! ## 5. 해를 비교할 순서가 필요하다",
         """theorem unwinding_trivial (f : State String → SigmaBot String) :
-    ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Option.bind (some σ : SigmaBot String) f
-                else some σ := by
+    ∀ σ, f σ = if ⟦(.tru : BoolExp String)⟧ᵇ σ then Flat.bind (Flat.some σ : SigmaBot String) f
+                else Flat.some σ := by
   -- 힌트: 조건이 언제나 참이고 본체가 상태를 바꾸지 않으므로
   --       우변이 좌변과 같아진다. 정의를 펼치기만 하면 된다.
   sorry
@@ -603,7 +603,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem liftBot_unique",
         "-- ANCHOR_END: liftBot_unique",
         """theorem liftBot_unique {V : Type u} {f : State V → SigmaBot V} {g : SigmaBot V → SigmaBot V}
-    (hstrict : g none = none) (hext : ∀ σ, g (some σ) = f σ) : g = liftBot f := by
+    (hstrict : g Flat.none = Flat.none) (hext : ∀ σ, g (Flat.some σ) = f σ) : g = liftBot f := by
   -- 힌트: `funext x` 뒤 `cases x`. `Σ⊥` 에는 `⊥` 와 값밖에 없다.
   sorry
 
@@ -691,7 +691,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 먼저 볼 것: `Continuous`, `IsLUB`, `whileF_monotone`, `Chain.lub_apply`의 정의와 정리.
   -- 이 연습은 앞의 다른 연습 결과를 사용하지 않고 `Continuous` 정의에서 직접 증명한다.
   -- 힌트 1: 상계는 `c.le_lub`; 최소성은 상태 `σ`를 고정한 뒤 조건과 `s σ`로 나눈다.
-  -- 힌트 2: `s σ = some τ`이면 `Chain.lub_le`로 각 `c.seq n τ`가 상계 아래임을 보인다.
+  -- 힌트 2: `s σ = Flat.some τ`이면 `Chain.lub_le`로 각 `c.seq n τ`가 상계 아래임을 보인다.
   -- 힌트 3: 조건이 거짓이면 함수상의 0번째 항을 상계 가정에 넣는다.
   sorry
 
@@ -729,8 +729,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem swap_ok",
         "-- ANCHOR_END: swap",
         """theorem swap_ok (σ : State String) :
-    ∃ τ, swap.eval σ = some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
-  -- 힌트: `while` 이 없으므로 `swap.eval σ` 는 정의 등식만으로 `some _` 까지 계산된다.
+    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
+  -- 힌트: `while` 이 없으므로 `swap.eval σ` 는 정의 등식만으로 `Flat.some _` 까지 계산된다.
   --       첫 성분은 `rfl` 로 두고, 남는 두 등식을
   --       `simp [IntExp.eval, State.subst_def, Function.update]` 로 닫는다.
   sorry
@@ -744,11 +744,11 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "-- ANCHOR_END: forV1Leaks",
         """theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = some τ ∧ τ "i" ≠ σ "i" := by
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
   -- 먼저 볼 것: `Comm.run_sound` (연료 실행이 표시적 의미와 일치).
   -- 힌트 1: 증인은 `σ := State.const 0`. `for i := 1 to 1 do skip` 은 한 바퀴 돌고
   --         i 를 2 로 남긴다.
-  -- 힌트 2: `run 2 (State.const 0) = some _` 를 `simp [forV1, forWhile, forBody, incr,
+  -- 힌트 2: `run 2 (State.const 0) = Flat.some _` 를 `simp [forV1, forWhile, forBody, incr,
   --         Comm.run, BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool]` 로 계산하고,
   --         `Comm.run_sound` 로 옮긴 뒤 `τ "i" ≠ σ "i"` 를 `decide` 로 닫는다.
   --         (`run` 은 정의 등식으로만 풀린다 — `rfl` 로는 안 된다.)
@@ -761,14 +761,14 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem forV2_diverges",
         "-- ANCHOR_END: forV2Diverges",
         """theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = none := by
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
   -- 먼저 볼 것: `Comm.run_complete` (표시적으로 종료하면 어떤 연료로 실행된다).
-  -- 힌트 1: 안쪽 while 이 어떤 연료·상태에서도 `none` 임을 연료 귀납으로 보인다.
+  -- 힌트 1: 안쪽 while 이 어떤 연료·상태에서도 `Flat.none` 임을 연료 귀납으로 보인다.
   --         조건 `v ≤ v` 는 언제나 참(`by_cases` 후 항상 참 쪽만 남는다).
-  -- 힌트 2: 한 바퀴는 본체가 `some (σ'[v := σ' v + 1])` 을 내고 남은 루프로 넘어간다.
+  -- 힌트 2: 한 바퀴는 본체가 `Flat.some (σ'[v := σ' v + 1])` 을 내고 남은 루프로 넘어간다.
   --         `rw [forWhile, Comm.run]` 로 한 스텝 풀고 귀납 가설을 쓴다.
-  -- 힌트 3: 표시적 의미가 `none` 임을 `Comm.run_complete` 의 대우로 얻고,
-  --         `newvar` 의 복원이 `none` 을 통과시킨다 (`change` 로 펼친 뒤 `simp [restore]`).
+  -- 힌트 3: 표시적 의미가 `Flat.none` 임을 `Comm.run_complete` 의 대우로 얻고,
+  --         `newvar` 의 복원이 `Flat.none` 을 통과시킨다 (`change` 로 펼친 뒤 `simp [restore]`).
   sorry
 
 """,
@@ -786,7 +786,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 힌트 1: 보조 등식 셋을 `have` 로 깔아 두면 본 증명이 짧아진다. 셋 다 `rfl` 로 된다.
   --         (a) while 한 바퀴 펼치기 — `Comm.eval_isSemantics.2.2.2.2.1 _ _ σ`
   --         (b) 조건의 값 — `⟦cmp le (var v) (var w)⟧ᵇ σ = decide (σ v ≤ σ w)`
-  --         (c) 본체 — `⟦forBody v c⟧ᶜ σ = Option.bind (⟦c⟧ᶜ σ) fun σ'' => some σ''[v := σ'' v + 1]`
+  --         (c) 본체 — `⟦forBody v c⟧ᶜ σ = Flat.bind (⟦c⟧ᶜ σ) fun σ'' => Flat.some σ''[v := σ'' v + 1]`
   -- 힌트 2: `m` 에 대한 귀납. `σ` 는 `intro m` 뒤에 남겨 두어야 귀납 가설이 다음 상태에 쓰인다.
   -- 힌트 3: `if` 는 `if_pos`/`if_neg` 로 가른다. 조건이 `decide _ = true` 꼴이라
   --         `(by simp [hle])` / `(by simp [hgt])` 로 증거를 만든다. 두 부등식은 `omega`.
@@ -802,13 +802,13 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "-- ANCHOR_END: broken",
         """theorem forV3_broken_by_assigning_control :
     "i" ∈ doublingBody.fa ∧
-      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = some τ
+      ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = Flat.some τ
         ∧ τ "s" = 2 := by
   -- 힌트 1: 첫 성분은 `simp [doublingBody, Comm.fa]`.
   -- 힌트 2: 둘째 성분은 연료 8 로 실행한 뒤 `Comm.run_sound` 로 옮긴다.
-  --         결과 상태를 손으로 적지 않으려면 `Option.map` 으로 `s` 만 뽑아
-  --         `(run 8 _).map (fun σ => σ "s") = some 2` 를 `simp [...]` 로 계산하고,
-  --         `Option.map_eq_some_iff` 로 상태를 되찾는다.
+  --         결과 상태를 손으로 적지 않으려면 `Flat.map` 으로 `s` 만 뽑아
+  --         `(run 8 _).map (fun σ => σ "s") = Flat.some 2` 를 `simp [...]` 로 계산하고,
+  --         `Flat.map_eq_some_iff` 로 상태를 되찾는다.
   -- 힌트 3: simp 인자에 `forV3, forWhile, forBody, incr, doublingBody, Comm.run, restore,`
   --         `BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, State.const` 를 준다.
   sorry
@@ -872,7 +872,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 먼저 볼 것: 바로 위 `Comm.eval_wh_congr` (완성되어 있다). `wh` 절이 그것을 쓴다.
   -- 힌트 1: 문맥에 대한 구조적 귀납. `newvar` 분기는 `«newvar»` 로 쓴다.
   -- 힌트 2: `wh` 를 뺀 각 절은 `funext σ` 뒤에 `change` 로 그 생성자의 의미 방정식을
-  --         펼치고 귀납 가설을 `rw` 하면 끝난다 (`Option.bind`, `if`, `restore`).
+  --         펼치고 귀납 가설을 `rw` 하면 끝난다 (`Flat.bind`, `if`, `restore`).
   -- 힌트 3: `wh` 절만 `fix` 를 지나므로 `Comm.eval_wh_congr` 가 필요하다.
   sorry
 
@@ -882,7 +882,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "Ch02/FullAbstraction.lean",
         "theorem eval_diverge",
         "-- ANCHOR_END: diverge",
-        """theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
+        """theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
   -- 힌트 1: 이 반복의 함수 연산자는 항등 함수다 — `whileF tru ⟦skip⟧ w = w` 가 `rfl` 로 된다.
   -- 힌트 2: 그러면 `⊥` 가 전고정점이므로 `whileF_fix_le` 가 `⟦diverge⟧ ≤ ⊥` 를 준다.
   --         (`fix_least` 자신은 다른 채점 연습이라 대신 쓴다.) 사슬을 펼칠 필요가 없다.
@@ -898,7 +898,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem obsEq_imp_eval_eq [Inhabited V] {c c' : Comm V} (h : ObsEq c c') : c.eval = c'.eval := by
   -- 힌트 1: 빈 문맥(`Ctx.hole`) 하나면 충분하다. `funext σ` 로 상태를 고정한다.
   -- 힌트 2: 두 결과를 `rcases h1 : c.eval σ with _ | τ` 로 네 갈래로 나눈다.
-  -- 힌트 3: 한쪽만 발산하는 갈래는 아무 변수(`default`)에서 `none` 과 `some _` 로 갈린다.
+  -- 힌트 3: 한쪽만 발산하는 갈래는 아무 변수(`default`)에서 `Flat.none` 과 `Flat.some _` 로 갈린다.
   --         둘 다 종료하는 갈래는 모든 변수에서 값이 같으므로 `funext` 로 상태가 같다.
   sorry
 
@@ -924,7 +924,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem countLoop_eval",
         "-- ANCHOR_END: loopEval",
         """theorem countLoop_eval (σ : State String) (h : σ \"x\" ≤ 100) :
-    countLoop.eval σ = some (σ[\"x\" := (100 : Int)]) := by
+    countLoop.eval σ = Flat.some (σ[\"x\" := (100 : Int)]) := by
   -- 먼저 볼 것: §2.6 의 `forWhile_eq_fold`. 측도에 대한 귀납이라는 뼈대가 같다.
   -- 힌트 1: `while` 한 바퀴를 펼치는 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ τ` 로 꺼낸다.
   --         조건의 값 `⟦cmp lt (var \"x\") (num 100)⟧ᵇ τ = decide (τ \"x\" < 100)` 은 `rfl` 이다.
@@ -974,7 +974,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem simulAssign_eval (v\u2080 v\u2081 t : V) (e\u2080 e\u2081 : IntExp V)
     (ht : t \u2209 e\u2080.fv) (htv\u2080 : t \u2260 v\u2080) (htv\u2081 : t \u2260 v\u2081) (\u03c3 : State V) :
     (simulAssign v\u2080 v\u2081 t e\u2080 e\u2081).eval \u03c3
-      = some ((\u03c3[v\u2080 := \u27e6e\u2080\u27e7\u2091 \u03c3])[v\u2081 := \u27e6e\u2081\u27e7\u2091 \u03c3]) := by
+      = Flat.some ((\u03c3[v\u2080 := \u27e6e\u2080\u27e7\u2091 \u03c3])[v\u2081 := \u27e6e\u2081\u27e7\u2091 \u03c3]) := by
   -- \ud78c\ud2b8 1: `t` \ub97c \uae54\uc544\ub3c4 `e\u2080` \uc758 \uac12\uc740 \uadf8\ub300\ub85c\ub2e4 \u2014 1\uc7a5 `coincidence_intExp` \uacfc `t \u2209 FV(e\u2080)`.
   -- \ud78c\ud2b8 2: \ub2f4\uc544 \ub454 \uac12\uc740 `t \u2260 v\u2080` \ub355\ubd84\uc5d0 `v\u2080` \ub300\uc785\uc744 \uc9c0\ub098\ub3c4 \uadf8\ub300\ub85c\ub2e4
   --         (`State.subst_of_ne`, `State.subst_self`).
@@ -1000,7 +1000,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 힌트 2: `⊑` — 설탕 쪽 함수가 **`repeat` 의** 풀기 방정식을 만족함을 보이면
   --         `repeatF_fix_le` 가 곧바로 준다.
   -- 힌트 3: `⊒` — 이번에는 `whileF_fix_le` 를 쓴다. 후보는
-  --         `fun σ' => if ⟦b⟧ᵇ σ' then some σ' else repeatEval b c σ'` 이고,
+  --         `fun σ' => if ⟦b⟧ᵇ σ' then Flat.some σ' else repeatEval b c σ'` 이고,
   --         그것이 `whileF (¬b) ⟦c⟧` 의 고정점임을 보이면 된다.
   -- 힌트 4: 양쪽 모두 조건이 참인 갈래와 거짓인 갈래에서 두 방정식이 서로를 메운다.
   --         `⟦¬b⟧ᵇ σ = !(⟦b⟧ᵇ σ)` 는 `rfl` 이다.
@@ -1014,7 +1014,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem decrLoop_eval_of_halts",
         "-- ANCHOR_END: decrHalting",
         """theorem decrLoop_eval_of_halts :
-    ∀ (σ : State String), decrHalts σ → decrLoop.eval σ = some (σ["x" := (0 : Int)]) := by
+    ∀ (σ : State String), decrHalts σ → decrLoop.eval σ = Flat.some (σ["x" := (0 : Int)]) := by
   -- 먼저 볼 것: 바로 위 `unwindsDecr_eval` (완성본) 과 §2.2 의 `decrHalts_step`,
   --            `decr_step`, `State.subst_subst`, `State.subst_eq_self`.
   -- 힌트 1: 측도는 `(σ "x" / 2).toNat` — 남은 바퀴 수다. 한 바퀴마다 `x` 가 2 씩 줄므로
@@ -1042,26 +1042,26 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 준비: `set s := c.eval`, `set W := (Comm.wh b c).eval`,
   --       `set W2 := (Comm.wh b (dblBody b c)).eval` 로 이름을 줄이고,
   --       두 반복의 한 바퀴 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ σ` 로 꺼낸다.
-  --       늘린 본체의 뒷부분 `h σ' = if ⟦b⟧ᵇ σ' then s σ' else some σ'` 도 이름을 준다
-  --       (`(dblBody b c).eval σ = Option.bind (s σ) h` 는 `rfl` 이다).
+  --       늘린 본체의 뒷부분 `h σ' = if ⟦b⟧ᵇ σ' then s σ' else Flat.some σ'` 도 이름을 준다
+  --       (`(dblBody b c).eval σ = Flat.bind (s σ) h` 는 `rfl` 이다).
   --
   -- 힌트 1 (`⊒`, 쉬운 쪽): `W` 가 **늘린** 반복의 풀기 방정식을 만족함을 보이면
   --         `whileF_fix_le` 가 끝낸다 (연습 독립성 원칙 때문에 `fix_least` 자신이
-  --         아니라 `whileF` 하나로 좁힌 그 독립적인 판을 쓴다). `Option.bind_assoc` 로
+  --         아니라 `whileF` 하나로 좁힌 그 독립적인 판을 쓴다). `Flat.bind_assoc` 로
   --         두 번 훑는 것을 펴고, 조건이 참인 갈래에서 `hW` 를 한 번 더 쓴다.
   --
   -- 힌트 2 (`⊑`, 어려운 쪽): 같은 수를 쓰면 **순환에 빠진다.** 최소성으로 환원하면
   --         증명하려던 것이 다시 나온다. 근사열을 직접 따라가야 한다.
   -- 힌트 3: 상계를 하나 만든다.
-  --           `U σ = if ⟦b⟧ᵇ σ then Option.bind (s σ) W2 else W2 σ`
+  --           `U σ = if ⟦b⟧ᵇ σ then Flat.bind (s σ) W2 else W2 σ`
   --         "조건이 참이면 본체를 한 번만 돌고 나머지는 `W2` 에 맡긴다" 는 함수다.
   -- 힌트 4: 보조 등식 둘을 먼저 세운다.
-  --           (C) `Option.bind ((dblBody b c).eval σ) W2 = Option.bind (s σ) U`
-  --           (D) `Option.bind (h σ) U = W2 σ`
+  --           (C) `Flat.bind ((dblBody b c).eval σ) W2 = Flat.bind (s σ) U`
+  --           (D) `Flat.bind (h σ) U = W2 σ`
   --         둘 다 조건으로 갈래를 나누는 계산이고, (D) 가 귀납을 굴리는 연료다.
   -- 힌트 5: `∀ n, (whileF b ((dblBody b c).eval))^[n] ⊥ ≤ U` 를 `n` 에 대해 귀납한다.
   --         `Function.iterate_succ_apply'` 로 한 겹 벗기고, 귀납 가설을
-  --         `Option.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
+  --         `Flat.bind_le_bind` 로 밀어 넣은 뒤 (D) 로 닫는다.
   --         **귀납 가설을 다른 상태에서 쓴다**는 것이 요점이다.
   -- 힌트 6: 극한은 `Chain.lub_le` 로 올린다. 그러면 `W2 ≤ U` 이고,
   --         거기서 `W2` 가 원래 반복의 전고정점임이 나와 `whileF_fix_le` 가 끝낸다.
@@ -1079,10 +1079,10 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (Comm.seq c₀ c₁).eval = (Comm.seq c₁ c₀).eval := by
   -- 먼저 볼 것: §2.5 의 명제 2.6 **두 부분 모두** —
   --            `Comm.coincidence_general` (a) 와 `Comm.eval_agree_outside_fa` (b).
-  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 `Option.bind` 로 펴고, 두 결과를 네 갈래로 나눈다.
+  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 `Flat.bind` 로 펴고, 두 결과를 네 갈래로 나눈다.
   -- 힌트 2: 한쪽만 발산하는 갈래가 핵심이다. (b) 로 "다른 쪽을 지나도 내 자유 변수는
   --         그대로" 를 얻고, (a) 로 "그러므로 결과가 같다" 를 얻는다. `AgreeOn` 이
-  --         `none` 과 `some` 을 가르므로 모순이 나온다.
+  --         `Flat.none` 과 `Flat.some` 을 가르므로 모순이 나온다.
   -- 힌트 3: 둘 다 끝나는 갈래는 `funext w` 로 변수마다 따진다. 세 경우다 —
   --         `w ∈ FA(c₀)`, `w ∈ FA(c₁)`, 둘 다 아님. 첫 둘은 `Comm.fa_subset_fv` 로
   --         `FV` 로 올린 뒤 (a) 를 쓰고, 마지막은 (b) 를 양쪽에 쓴다.
@@ -1095,15 +1095,15 @@ BLANKS: list[tuple[str, str, str, str]] = [
         "theorem fact_alias_safe_vs_naive",
         "-- ANCHOR_END: fact",
         """theorem fact_alias_safe_vs_naive :
-    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 6)
-      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 0) := by
+    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 6)
+      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 0) := by
   -- 먼저 볼 것: 바로 위 `factNaive_alias_eq` 와 `factSafe_alias_eq` (둘 다 `rfl` 로 완성되어 있다).
   -- 힌트 1: 그 둘로 치환을 손으로 쓴 프로그램으로 바꾼 뒤 계산한다.
   -- 힌트 2: `while` 이 있으므로 `run` 으로 계산하고 `Comm.run_sound` 로 옮긴다.
   --         안전한 판은 연료 4, 순진한 판은 연료 2 면 끝난다.
-  -- 힌트 3: 결과 상태를 손으로 적지 않으려면 `Option.map` 으로 `z` 만 뽑아
-  --         `(run n _).map (fun σ => σ "z") = some k` 를 `simp` 로 계산하고,
-  --         `Option.map_eq_some_iff` 로 상태를 되찾는다.
+  -- 힌트 3: 결과 상태를 손으로 적지 않으려면 `Flat.map` 으로 `z` 만 뽑아
+  --         `(run n _).map (fun σ => σ "z") = Flat.some k` 를 `simp` 로 계산하고,
+  --         `Flat.map_eq_some_iff` 로 상태를 되찾는다.
   sorry
 
 """,
@@ -1187,7 +1187,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
     ｛p｝c｛q｝ := by
   -- 힌트: 두 정의를 펼치면 (`intro σ hp τ hτ`) 전체 정확성이 준 `τ'` 와 가정의 `τ` 가
-  --       같은 `some` 의 안이다. `Option.some.inj` 로 둘을 같게 만든다.
+  --       같은 `Flat.some` 의 안이다. `Flat.some.inj` 로 둘을 같게 만든다.
   sorry
 
 """,
@@ -1200,7 +1200,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
     ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c := by
   -- 힌트 1: `→` 는 전체 정확성이 준 종료 상태로 두 성분을 각각 만든다. 종료 쪽은
   --         `simp [hτ]` 가 `isSome` 을 닫는다.
-  -- 힌트 2: `←` 는 `Option.isSome_iff_exists` 로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
+  -- 힌트 2: `←` 는 `Flat.isSome_iff_exists` 로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
   sorry
 
 """,
@@ -1270,8 +1270,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 먼저 볼 것: §1.4 의 `coincidence_assert` · `coincidence_intExp` (명제 1.1),
   --            `State.subst_self` · `State.subst_of_ne`.
   -- 힌트 1: `⟦newvar v := e in c⟧ᶜ σ` 는 정의상 `restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]))` 다.
-  --         `rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])` 로 나누고, `some ρ` 면
-  --         `simp only [restore, Option.map_some, Option.some.injEq] at hτ` 로 `τ = ρ[v := σ v]`.
+  --         `rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])` 로 나누고, `Flat.some ρ` 면
+  --         `simp only [restore, Flat.map_some, Flat.some.injEq] at hτ` 로 `τ = ρ[v := σ v]`.
   -- 힌트 2: 안쪽 사전조건 두 조각 — `p` 는 `v` 를 안 보니 갱신해도 참(`hp`), `v = e` 는
   --         `State.subst_self` 와 `e` 가 `v` 를 안 본다는 것(`he`)으로.
   -- 힌트 3: 안쪽 결과 `⟦q⟧ₐ ρ` 에서 `v` 를 복원해도 `q` 는 `v` 를 안 본다(`hq`).
@@ -1356,7 +1356,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 힌트 4: `n + 1`, 조건 참 — 본체를 `σ[z := ⟦e⟧ₑ σ]` 에서 돌린다 (`hbody`). 사전조건 세 조각은
   --         명제 1.1 (`coincidence_assert` · `coincidence_intExp` · `BoolExp.fv_coincidence`).
   --         끝난 상태 `ρ` 에서 `ρ z = ⟦e⟧ σ` (명제 2.6(b)) 이므로 측도가 줄어 귀납 가설이 든다.
-  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
+  -- 힌트 5: 그렇게 얻은 `⟦while⟧ (σ[z := …]) = Flat.some τ'` 를 `⟦while⟧ σ` 로 옮긴다 — 명제 2.6(a) 를
   --         `S := (Comm.wh b c).fv ∪ (i ⋀ .not b.toAssert).fv` 에 적용하면 결과가 `S` 에서
   --         일치하고, 사후조건은 `S` 만 본다 (`coincidence_assert`).
   sorry
@@ -1389,7 +1389,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean` 의 `whT_sound` 끝부분이 같은 수법이다.
   -- 힌트 1: 증인 `n` 을 꺼낸다. 전제는 `σ[v := n]` 에서 쓸 수 있다.
   -- 힌트 2: `S := c.fv ∪ q.fv` 에 명제 2.6(a) 를 쓰면 `⟦c⟧ σ` 와 `⟦c⟧ (σ[v := n])` 가 `S` 에서
-  --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `none` 쪽은 모순으로 닫는다.
+  --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `Flat.none` 쪽은 모순으로 닫는다.
   -- 힌트 3: `q` 는 `S` 만 보므로 두 결과에서 진릿값이 같다.
   sorry
 
@@ -1421,8 +1421,8 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem fibBody_ok :
     PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
   -- 먼저 볼 것: Mathlib 의 `Nat.fib_add_two`, 이 파일 위의 `fibInit_ok`.
-  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Option.some.inj hτ`.
-  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `some (…)` 로 계산된다.
+  -- 힌트 1: `intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ` 뒤 `obtain rfl := Flat.some.inj hτ`.
+  --         본체에 반복이 없어 `⟦fibBody⟧ᶜ σ` 가 정의대로 `Flat.some (…)` 로 계산된다.
   -- 힌트 2: 조건 `hb` 를 `simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool]` 로 `σ "k" ≠ σ "n"` 로.
   -- 힌트 3: 새 증인은 `m + 1`. 다섯 조각을 `simp [State.subst_def, Function.update, IntExp.eval,
   --         IntOp.denote, hk, hf, hg, Nat.fib_add_two]` 와 `omega` 로.
@@ -1440,7 +1440,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 먼저 볼 것: `Semantic.lean` 의 `PartialCorrectS.ite`, Mathlib 의 `pow_succ` · `pow_two` ·
   --            `pow_mul` · `Nat.two_mul_div_two_of_even` · `Nat.even_iff`.
   -- 힌트 1: `refine PartialCorrectS.ite ?_ ?_` 로 두 갈래를 나눈다. 각 갈래는 반복이 없어
-  --         `obtain rfl := Option.some.inj hτ` 로 결과 상태가 드러난다.
+  --         `obtain rfl := Flat.some.inj hτ` 로 결과 상태가 드러난다.
   -- 힌트 2: 조건들을 `simp [BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, hk]` 로
   --         `m` 에 대한 사실(`m % 2 = 1 ∧ 0 < m`, 또는 `m % 2 = 0`)로 바꾼다 (`omega`).
   -- 힌트 3: 홀수 갈래 — 증인 `m - 1`. `m = j + 1` 로 쓰면 `y · x · x^j = y · x^(j+1)`.
