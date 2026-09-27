@@ -140,13 +140,13 @@ theorem Ctx.fill_congr (C : Ctx V) {c c' : Comm V} (h : c.eval = c'.eval) :
   | hole => exact h
   | seqL C c₁ ih =>
       funext σ
-      change Option.bind ((C.fill c).eval σ) c₁.eval
-          = Option.bind ((C.fill c').eval σ) c₁.eval
+      change Flat.bind ((C.fill c).eval σ) c₁.eval
+          = Flat.bind ((C.fill c').eval σ) c₁.eval
       rw [ih]
   | seqR c₀ C ih =>
       funext σ
-      change Option.bind (c₀.eval σ) (C.fill c).eval
-          = Option.bind (c₀.eval σ) (C.fill c').eval
+      change Flat.bind (c₀.eval σ) (C.fill c).eval
+          = Flat.bind (c₀.eval σ) (C.fill c').eval
       rw [ih]
   | iteL b C c₁ ih =>
       funext σ
@@ -174,7 +174,7 @@ theorem Ctx.fill_congr (C : Ctx V) {c c' : Comm V} (h : c.eval = c'.eval) :
 -- ANCHOR: observe
 /-- 풍부한 관찰 — 종료 여부와 변수 `v` 의 최종 값. 발산은 `none` 이다. -/
 noncomputable def observe (σ : State V) (v : V) (c : Comm V) : Option Int :=
-  (c.eval σ).map (fun τ => τ v)
+  ((c.eval σ).map (fun τ => τ v)).toOption
 
 /-- 빈약한 관찰 — **종료했는가만** 본다. 최종 값은 보지 않는다. -/
 noncomputable def observeHalt (σ : State V) (c : Comm V) : Bool := (c.eval σ).isSome
@@ -223,7 +223,7 @@ def diverge : Comm V := .wh .tru .skip
 판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
-theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = none := by
+theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
   have hbot : Comm.eval (V := V) diverge ≤ ⊥ :=
     whileF_fix_le _ _ (le_of_eq rfl)
   simpa using hbot σ
@@ -324,17 +324,17 @@ theorem haltEq_imp_eval_eq {c c' : Comm V} (h : HaltEq c c') : c.eval = c'.eval 
         (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)) σ
       simp only [observeHalt, Ctx.fill] at hdev
       have hleft : (Comm.seq c (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)).eval σ
-          = some τ := by
-        change Option.bind (c.eval σ) _ = some τ
+          = Flat.some τ := by
+        change Flat.bind (c.eval σ) _ = Flat.some τ
         rw [h1]
-        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ then _ else _) = some τ
+        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ then _ else _) = Flat.some τ
         rw [if_pos (by simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool])]
         rfl
       have hright : (Comm.seq c' (.ite (.cmp .eq (.var v) (.num (τ v))) .skip diverge)).eval σ
-          = none := by
-        change Option.bind (c'.eval σ) _ = none
+          = Flat.none := by
+        change Flat.bind (c'.eval σ) _ = Flat.none
         rw [h2]
-        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' then _ else _) = none
+        change (if ⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' then _ else _) = Flat.none
         have hcond : ¬ (⟦(.cmp .eq (.var v) (.num (τ v)) : BoolExp V)⟧ᵇ τ' = true) := by
           simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using Ne.symm hv
         rw [if_neg hcond]

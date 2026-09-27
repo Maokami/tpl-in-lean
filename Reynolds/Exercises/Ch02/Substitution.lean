@@ -273,25 +273,25 @@ theorem Comm.fv_subst_subset [HasFresh V] :
 /-- `δ` 를 사이에 둔 `S` 위에서의 일치. 원래 결과의 `w` 값과 치환된 결과의 `δ w` 값을
 비교한다. `δ = id` 로 두면 `AgreeOn` 이다. -/
 def AgreeVia (δ : Ren V) (S : Finset V) : SigmaBot V → SigmaBot V → Prop
-  | none,   none    => True
-  | some τ, some τ' => ∀ w ∈ S, τ w = τ' (δ w)
+  | Flat.none,   Flat.none    => True
+  | Flat.some τ, Flat.some τ' => ∀ w ∈ S, τ w = τ' (δ w)
   | _,      _       => False
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeVia.none_none {δ : Ren V} {S : Finset V} :
-    AgreeVia δ S none none := trivial
+    AgreeVia δ S Flat.none Flat.none := trivial
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeVia.some_some {δ : Ren V} {S : Finset V} {τ τ' : State V} :
-    AgreeVia δ S (some τ) (some τ') ↔ ∀ w ∈ S, τ w = τ' (δ w) := Iff.rfl
+    AgreeVia δ S (Flat.some τ) (Flat.some τ') ↔ ∀ w ∈ S, τ w = τ' (δ w) := Iff.rfl
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeVia.none_some {δ : Ren V} {S : Finset V} {τ : State V} :
-    ¬ AgreeVia δ S none (some τ) := fun h => h
+    ¬ AgreeVia δ S Flat.none (Flat.some τ) := fun h => h
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeVia.some_none {δ : Ren V} {S : Finset V} {τ : State V} :
-    ¬ AgreeVia δ S (some τ) none := fun h => h
+    ¬ AgreeVia δ S (Flat.some τ) Flat.none := fun h => h
 
 omit [DecidableEq V] in
 /--
@@ -309,19 +309,19 @@ theorem AgreeVia.admissible (δ : Ren V) (S : Finset V)
   rw [Chain.lub_apply, Chain.lub_apply]
   rcases hσ : (d.apply σ).lub with _ | τ
   · -- 왼쪽 극한이 `⊥` — 왼쪽 사슬이 전부 `⊥` 였고, 일치가 오른쪽도 전부 `⊥` 로 만든다.
-    have hall : ∀ n, d'.seq n σ' = none := by
+    have hall : ∀ n, d'.seq n σ' = Flat.none := by
       intro n
       have hn := (d.apply σ).le_lub n
       rw [hσ] at hn
-      simp only [Option.le_none_iff, Chain.apply_seq] at hn
+      simp only [Flat.le_none_iff, Chain.apply_seq] at hn
       have := h n
       rw [hn] at this
       rcases hn' : d'.seq n σ' with _ | τ'
       · rfl
       · rw [hn'] at this; exact absurd this (by simp)
-    have : (d'.apply σ').lub ≤ none :=
+    have : (d'.apply σ').lub ≤ Flat.none :=
       (d'.apply σ').lub_le fun n => by rw [Chain.apply_seq, hall n]
-    simp only [Option.le_none_iff] at this
+    simp only [Flat.le_none_iff] at this
     rw [this]
     simp
   · -- 왼쪽 극한이 상태 — 결정 시점 둘의 최댓값에서 두 극한을 함께 읽는다.
@@ -329,18 +329,18 @@ theorem AgreeVia.admissible (δ : Ren V) (S : Finset V)
     rw [hσ] at hk
     rcases hσ' : (d'.apply σ').lub with _ | τ'
     · -- 오른쪽만 `⊥` 일 수는 없다.
-      have hk' : d'.seq k σ' = none := by
+      have hk' : d'.seq k σ' = Flat.none := by
         have hn := (d'.apply σ').le_lub k
         rw [hσ'] at hn
         simpa using hn
       have := h k
-      rw [show d.seq k σ = some τ from hk, hk'] at this
+      rw [show d.seq k σ = Flat.some τ from hk, hk'] at this
       exact absurd this (by simp)
     · obtain ⟨k', hk'⟩ := (d'.apply σ').flat_lub_mem_range
       rw [hσ'] at hk'
-      have hm : d.seq (max k k') σ = some τ :=
+      have hm : d.seq (max k k') σ = Flat.some τ :=
         Chain.flat_stabilizes (c := d.apply σ) hk (max k k') (le_max_left _ _)
-      have hm' : d'.seq (max k k') σ' = some τ' :=
+      have hm' : d'.seq (max k k') σ' = Flat.some τ' :=
         Chain.flat_stabilizes (c := d'.apply σ') hk' (max k k') (le_max_right _ _)
       have := h (max k k')
       rw [hm, hm'] at this
@@ -385,7 +385,7 @@ theorem Comm.substitution_general [HasFresh V] :
       have he : ⟦e /ₑ δ.toSubst⟧ₑ σ' = ⟦e⟧ₑ σ :=
         substitution_intExp e δ.toSubst σ σ' fun w hw =>
           h w (hS (by simp [Comm.fv, hw]))
-      change AgreeVia δ S (some (σ[v := ⟦e⟧ₑ σ])) (some (σ'[δ v := ⟦e /ₑ δ.toSubst⟧ₑ σ']))
+      change AgreeVia δ S (Flat.some (σ[v := ⟦e⟧ₑ σ])) (Flat.some (σ'[δ v := ⟦e /ₑ δ.toSubst⟧ₑ σ']))
       rw [AgreeVia.some_some, he]
       intro w hw
       by_cases hwv : w = v
@@ -399,8 +399,8 @@ theorem Comm.substitution_general [HasFresh V] :
       intro δ S hS hinj σ σ' h
       have hS₀ : c₀.fv ⊆ S := le_trans Finset.subset_union_left hS
       have hS₁ : c₁.fv ⊆ S := le_trans Finset.subset_union_right hS
-      change AgreeVia δ S (Option.bind (c₀.eval σ) c₁.eval)
-        (Option.bind ((c₀ /ᶜ δ).eval σ') (c₁ /ᶜ δ).eval)
+      change AgreeVia δ S (Flat.bind (c₀.eval σ) c₁.eval)
+        (Flat.bind ((c₀ /ᶜ δ).eval σ') (c₁ /ᶜ δ).eval)
       have h₀ := ih₀ δ S hS₀ hinj σ σ' h
       rcases h₀₁ : c₀.eval σ with _ | τ <;> rcases h₀₂ : (c₀ /ᶜ δ).eval σ' with _ | τ'
       · simp
@@ -528,7 +528,7 @@ theorem Comm.substitution_general [HasFresh V] :
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner
-        simp only [restore, Option.map_some]
+        simp only [restore, Flat.map_some]
         rw [AgreeVia.some_some]
         intro w hw
         by_cases hwv : w = v
@@ -590,8 +590,8 @@ def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 -/
 @[exercise "§2.5 swap" 1]
 theorem swap_ok (σ : State String) :
-    ∃ τ, swap.eval σ = some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
-  -- 힌트: `while` 이 없으므로 `swap.eval σ` 는 정의 등식만으로 `some _` 까지 계산된다.
+    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
+  -- 힌트: `while` 이 없으므로 `swap.eval σ` 는 정의 등식만으로 `Flat.some _` 까지 계산된다.
   --       첫 성분은 `rfl` 로 두고, 남는 두 등식을
   --       `simp [IntExp.eval, State.subst_def, Function.update]` 로 닫는다.
   sorry
@@ -606,7 +606,7 @@ def aliasTY : Ren String := fun w => if w = "t" then "y" else w
 `t` 자리에 들어온 `y` 가 첫 대입에서 덮어써져, **두 변수 모두 옛 `x` 값**이 된다.
 -/
 theorem swap_aliased_eval (σ : State String) :
-    ∃ τ, (swap /ᶜ aliasTY).eval σ = some τ ∧ τ "x" = σ "x" ∧ τ "y" = σ "x" := by
+    ∃ τ, (swap /ᶜ aliasTY).eval σ = Flat.some τ ∧ τ "x" = σ "x" ∧ τ "y" = σ "x" := by
   refine ⟨_, rfl, ?_, ?_⟩ <;>
     simp [aliasTY, IntExp.eval, IntExp.subst, Ren.toSubst, State.subst_def, Function.update]
 
@@ -735,7 +735,7 @@ theorem Comm.newvar_rename [HasFresh V] (v vnew : V) (e : IntExp V) (c : Comm V)
     · rw [h₁, h₂] at hmain; exact absurd hmain (by simp)
     · rw [h₁, h₂] at hmain; exact absurd hmain (by simp)
     · rw [h₁, h₂] at hmain
-      simp only [restore, Option.map_some, Option.some.injEq]
+      simp only [restore, Flat.map_some, Flat.some.injEq]
       funext u
       by_cases hun : u = vnew
       · -- 복원된 `vnew`. 오른쪽에서는 본문이 `vnew` 를 안 건드렸다 (명제 2.6(b)).

@@ -109,7 +109,7 @@ theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq
   --            `Assert.eval_ex`, `coincidence_assert`. `Total.lean` 의 `whT_sound` 끝부분이 같은 수법이다.
   -- 힌트 1: 증인 `n` 을 꺼낸다. 전제는 `σ[v := n]` 에서 쓸 수 있다.
   -- 힌트 2: `S := c.fv ∪ q.fv` 에 명제 2.6(a) 를 쓰면 `⟦c⟧ σ` 와 `⟦c⟧ (σ[v := n])` 가 `S` 에서
-  --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `none` 쪽은 모순으로 닫는다.
+  --         일치한다. `rcases hτ' : c.eval (σ[v := n])` 로 나눠 `Flat.none` 쪽은 모순으로 닫는다.
   -- 힌트 3: `q` 는 `S` 만 보므로 두 결과에서 진릿값이 같다.
   sorry
 

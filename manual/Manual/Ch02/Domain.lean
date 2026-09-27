@@ -29,7 +29,22 @@ number := false
 §2.2에서 같은 풀기 방정식을 만족하는 함수가 둘 이상 생겼다. 이 중 계산의 뜻으로 삼을
 함수를 고르려면 후보를 비교할 기준이 필요하다.
 
-`SigmaBot V = Option (State V)`에는 평평한 순서(flat order)를 준다.
+`SigmaBot V = Flat (State V)`에는 평평한 순서(flat order)를 준다.
+`Flat`은 종료 결과와 바닥을 갖는 전용 귀납 타입이다.
+
+```anchor Flat (module := Reynolds.Answers.Ch02.Domain.Flat)
+/-- 결과 집합에 바닥을 더한 평평한 타입. Reynolds §2.3의 이산 집합 리프팅이다. -/
+inductive Flat (α : Type u) where
+  /-- 유한한 결과를 얻지 못한 바닥. -/
+  | none : Flat α
+  /-- 종료하여 얻은 결과. -/
+  | some : α → Flat α
+  deriving DecidableEq, BEq, Repr
+```
+
+일반 `Option Nat`에서는 `some 1 ≤ some 2`가 성립한다. `Flat Nat`에서는 서로 다른
+두 종료 결과가 어느 방향으로도 비교되지 않는다. 관찰 함수 `observe`는 `toOption`으로
+결과를 꺼내므로 반환 타입 `Option Int`를 유지한다.
 
 ```
 none   ⊑ none
@@ -248,14 +263,14 @@ Reynolds는 수직 자연수 `ℕ⊤`을 사용한다. 이 저장소는 Mathlib�
 활용할 수 있는 `Set ℕ`으로 같은 구조의 반례를 옮겼다. 유한 근사에서는 보이지 않던 정보가
 극한에서만 생긴다는 논점은 같다.
 
-# `Option` 사슬의 극한
+# `Flat` 사슬의 극한
 %%%
 tag := "ch02-flat-domain"
 file := "ch02-flat-domain"
 number := false
 %%%
 
-평평한 `Option α` 사슬은 계속 `none`으로 남거나, 어느 시점에 `some a`가 나온 뒤
+평평한 `Flat α` 사슬은 계속 `none`으로 남거나, 어느 시점에 `some a`가 나온 뒤
 그 값으로 고정된다. 서로 다른 두 `some` 값은 비교되지 않으므로, 증가 사슬 안에서 종료
 결과가 다른 값으로 바뀔 수 없다.
 

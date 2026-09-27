@@ -79,7 +79,7 @@ variable {V : Type u} [DecidableEq V]
 `w σ = ⊥` 면 조건 없이 참이다 — `⊥` 는 모든 사후조건을 만족한다.
 -/
 def Sat (P : State V → Prop) (w : State V → SigmaBot V) (Q : State V → Prop) : Prop :=
-  ∀ σ, P σ → ∀ τ, w σ = some τ → Q τ
+  ∀ σ, P σ → ∀ τ, w σ = Flat.some τ → Q τ
 
 omit [DecidableEq V] in
 /-- **`⊥` 는 모든 사후조건을 만족한다.** 아무 데서도 끝나지 않으므로 확인할 것이 없다. -/
@@ -102,7 +102,7 @@ omit [DecidableEq V] in
 관계가 아니라 술어라 더 짧다.
 -/
 theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V → SigmaBot V))
-    (h : ∀ n τ, d.seq n σ = some τ → Q τ) : ∀ τ, d.lub σ = some τ → Q τ := by
+    (h : ∀ n τ, d.seq n σ = Flat.some τ → Q τ) : ∀ τ, d.lub σ = Flat.some τ → Q τ := by
   intro τ hτ
   rw [Chain.lub_apply] at hτ
   obtain ⟨k, hk⟩ := (d.apply σ).flat_lub_mem_range
@@ -124,7 +124,7 @@ def PartialCorrectS (P : State V → Prop) (c : Comm V) (Q : State V → Prop) :
 
 /-- 의미 판 전체 정확성. 끝나야 하고, 끝난 상태가 `Q` 다. -/
 def TotalCorrectS (P : State V → Prop) (c : Comm V) (Q : State V → Prop) : Prop :=
-  ∀ σ, P σ → ∃ τ, ⟦c⟧ᶜ σ = some τ ∧ Q τ
+  ∀ σ, P σ → ∃ τ, ⟦c⟧ᶜ σ = Flat.some τ ∧ Q τ
 
 /-- **부분 정확성** `{ p } c { q }`. Reynolds §3.1. 발산하면 공허하게 참. -/
 def PartialCorrect (p : Assert V) (c : Comm V) (q : Assert V) : Prop :=
@@ -146,16 +146,16 @@ scoped macro_rules
 
 /-- 구문 판은 정의상 의미 판이다. 펼치면 §3.1 의 문장 그대로다. -/
 theorem partialCorrect_iff (p : Assert V) (c : Comm V) (q : Assert V) :
-    ｛p｝c｛q｝ ↔ ∀ σ, ⟦p⟧ₐ σ → ∀ τ, ⟦c⟧ᶜ σ = some τ → ⟦q⟧ₐ τ := Iff.rfl
+    ｛p｝c｛q｝ ↔ ∀ σ, ⟦p⟧ₐ σ → ∀ τ, ⟦c⟧ᶜ σ = Flat.some τ → ⟦q⟧ₐ τ := Iff.rfl
 
 theorem totalCorrect_iff (p : Assert V) (c : Comm V) (q : Assert V) :
-    ［p］c［q］ ↔ ∀ σ, ⟦p⟧ₐ σ → ∃ τ, ⟦c⟧ᶜ σ = some τ ∧ ⟦q⟧ₐ τ := Iff.rfl
+    ［p］c［q］ ↔ ∀ σ, ⟦p⟧ₐ σ → ∃ τ, ⟦c⟧ᶜ σ = Flat.some τ ∧ ⟦q⟧ₐ τ := Iff.rfl
 
 -- 첫 명세. `x = 1` 에서 `x := x + 1` 을 돌리면 `x = 2` 다. 정의만으로 계산된다.
 example : ｛⟪ x = 1 ⟫ₐ｝⟪ x := x + 1 ⟫ᶜ｛⟪ x = 2 ⟫ₐ｝ := by
   intro σ h τ hτ
-  change some (σ["x" := σ "x" + 1]) = some τ at hτ
-  obtain rfl := Option.some.inj hτ
+  change Flat.some (σ["x" := σ "x" + 1]) = Flat.some τ at hτ
+  obtain rfl := Flat.some.inj hτ
   simp [Assert.eval, IntExp.eval, Cmp.denote] at h ⊢
   omega
 
@@ -168,7 +168,7 @@ example : ｛⟪ x = 1 ⟫ₐ｝⟪ x := x + 1 ⟫ᶜ｛⟪ x = 2 ⟫ₐ｝ := b
 theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
     ｛p｝c｛q｝ := by
   -- 힌트: 두 정의를 펼치면 (`intro σ hp τ hτ`) 전체 정확성이 준 `τ'` 와 가정의 `τ` 가
-  --       같은 `some` 의 안이다. `Option.some.inj` 로 둘을 같게 만든다.
+  --       같은 `Flat.some` 의 안이다. `Flat.some.inj` 로 둘을 같게 만든다.
   sorry
 
 
@@ -184,7 +184,7 @@ theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
     ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c := by
   -- 힌트 1: `→` 는 전체 정확성이 준 종료 상태로 두 성분을 각각 만든다. 종료 쪽은
   --         `simp [hτ]` 가 `isSome` 을 닫는다.
-  -- 힌트 2: `←` 는 `Option.isSome_iff_exists` 로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
+  -- 힌트 2: `←` 는 `Flat.isSome_iff_exists` 로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
   sorry
 
 

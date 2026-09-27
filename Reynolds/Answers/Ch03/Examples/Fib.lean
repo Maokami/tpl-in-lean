@@ -69,12 +69,12 @@ def fibInv (σ : State String) : Prop :=
 
 -- 실행해 본다. `fib 10 = 55`.
 set_option linter.hashCommand false
-#guard (fibProg.run 100 ((State.const 0)["n" := (10 : Int)])).map (fun σ => σ "f") == some 55
+#guard (fibProg.run 100 ((State.const 0)["n" := (10 : Int)])).map (fun σ => σ "f") == Flat.some 55
 
 /-- 초기화가 불변식을 세운다. 대입 셋을 정의대로 계산한다. -/
 theorem fibInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") fibInit fibInv := by
   intro σ hn τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   refine ⟨0, ?_, ?_, ?_, ?_, ?_⟩ <;> simp [State.subst_def, Function.update, IntExp.eval, hn]
 
 -- ANCHOR: fibBodyOk
@@ -88,7 +88,7 @@ theorem fibInit_ok : PartialCorrectS (fun σ => 0 ≤ σ "n") fibInit fibInv := 
 theorem fibBody_ok :
     PartialCorrectS (fun σ => fibInv σ ∧ ⟦⟪ k ≠ n ⟫ᵇ⟧ᵇ σ = true) fibBody fibInv := by
   intro σ ⟨⟨m, hk, hle, hn, hf, hg⟩, hb⟩ τ hτ
-  obtain rfl := Option.some.inj hτ
+  obtain rfl := Flat.some.inj hτ
   have hne : σ "k" ≠ σ "n" := by
     simpa [BoolExp.eval, IntExp.eval, Cmp.denoteBool] using hb
   refine ⟨m + 1, ?_, ?_, ?_, ?_, ?_⟩ <;>

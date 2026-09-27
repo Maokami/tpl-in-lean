@@ -31,10 +31,11 @@ number := false
 갈라지는 자리다.
 
 명령 하나의 뜻은 상태를 새 상태로 보내는 함수다. 다만 항상 새 상태를 얻는 것은 아니므로
-결과 타입에 `Option`을 붙인다.
+결과 타입을 전용 귀납 타입 `Flat`으로 감싼다. `Flat.none`은 바닥이고
+`Flat.some σ`는 종료 결과다. 일반 `Option`의 순서는 그대로 둔다.
 
 ```
-State V → Option (State V)
+State V → Flat (State V)
 ```
 
 `some σ'`는 `σ'`에서 끝났다는 정보이고 `none`은 결과 상태를 아직 얻지 못했다는 정보다.
@@ -48,7 +49,7 @@ number := false
 %%%
 
 * *부분 함수(partial function)* — 끝나지 않을 수 있는 명령을
-  `State V → Option (State V)`라는 전함수로 표현하는 방법
+  `State V → Flat (State V)`라는 전함수로 표현하는 방법
 * *풀기 방정식(unwinding equation)* — 반복문을 한 번 펼친 방정식과, 그 방정식만으로는
   뜻이 유일해지지 않는 이유
 * *도메인 이론(domain theory)* — 계산의 유한 근사를 정보 순서로 비교하고 사슬의 극한으로
@@ -74,7 +75,7 @@ number := false
 2. `Notation.lean` — §2.1 명령을 Lean 안에서 쓰는 DSL
 3. `Semantics.lean` — §2.2 불 식의 계산과 명령 의미의 명세
 4. `Domain.lean` — §2.3 사슬, 프리도메인, 연속성
-5. `Domain/Lifting.lean` — §2.3 `Option`에 평평한 정보 순서를 주는 방법
+5. `Domain/Lifting.lean` — §2.3 `Flat`에 평평한 정보 순서를 주는 방법
 6. `Domain/FunctionSpace.lean` — §2.3 상태 변환 함수들의 점별 순서와 극한
 7. `Fixpoint.lean` — §2.4 반복 사슬과 최소 고정점 정리
 8. `Eval.lean` — §2.4 최소 고정점으로 정의한 `Comm.eval`
@@ -104,7 +105,7 @@ number := false
 
 ```
 ⟦while b do c⟧ σ
-  = if ⟦b⟧ σ then ⟦c⟧ σ >>= ⟦while b do c⟧ else some σ
+  = if ⟦b⟧ σ then Flat.bind (⟦c⟧ σ) ⟦while b do c⟧ else Flat.some σ
 ```
 
 이 식은 반복문의 뜻이 만족해야 할 조건은 말하지만, 구문 트리의 더 작은 부분으로 내려가는

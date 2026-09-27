@@ -144,13 +144,13 @@ theorem dotwiceCount_can_grow :
 `bind` 두 번이다.
 -/
 noncomputable def SComm.eval : SComm V → State V → SigmaBot V
-  | .assign v e   => fun σ => some (σ[v := ⟦e⟧ₑ σ])
-  | .skip         => fun σ => some σ
-  | .seq s₀ s₁    => fun σ => Option.bind (s₀.eval σ) s₁.eval
+  | .assign v e   => fun σ => Flat.some (σ[v := ⟦e⟧ₑ σ])
+  | .skip         => fun σ => Flat.some σ
+  | .seq s₀ s₁    => fun σ => Flat.bind (s₀.eval σ) s₁.eval
   | .ite b s₀ s₁  => fun σ => if ⟦b⟧ᵇ σ then s₀.eval σ else s₁.eval σ
   | .wh b s       => fix (whileF b s.eval) (whileF_monotone b s.eval)
   | .newvar v e s => fun σ => restore v σ (s.eval (σ[v := ⟦e⟧ₑ σ]))
-  | .dotwice s    => fun σ => Option.bind (s.eval σ) s.eval
+  | .dotwice s    => fun σ => Flat.bind (s.eval σ) s.eval
 
 /--
 **연습 2.10 — 디슈가링이 뜻을 지킨다.**

@@ -49,7 +49,7 @@ theorem as_sound (Q : State V → Prop) (v : V) (e : IntExp V) :
     := by
   constructor
   · intro σ hq τ hτ
-    obtain rfl := Option.some.inj hτ
+    obtain rfl := Flat.some.inj hτ
     exact hq
   · intro σ hq
     exact ⟨_, rfl, hq⟩
@@ -66,7 +66,7 @@ theorem sq_sound {P R Q : State V → Prop} {c₀ c₁ : Comm V} :
     := by
   constructor
   · intro h₀ h₁ σ hp τ hτ
-    change Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = some τ at hτ
+    change Flat.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = Flat.some τ at hτ
     rcases h : ⟦c₀⟧ᶜ σ with _ | ρ
     · rw [h] at hτ; simp at hτ
     · rw [h] at hτ
@@ -75,7 +75,7 @@ theorem sq_sound {P R Q : State V → Prop} {c₀ c₁ : Comm V} :
     obtain ⟨ρ, hρ, hr⟩ := h₀ σ hp
     obtain ⟨τ, hτ, hq⟩ := h₁ ρ hr
     refine ⟨τ, ?_, hq⟩
-    change Option.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = some τ
+    change Flat.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = Flat.some τ
     rw [hρ]
     exact hτ
 -- ANCHOR_END: sqSound
@@ -95,7 +95,7 @@ theorem cd_sound {P Q : State V → Prop} {b : BoolExp V} {c₀ c₁ : Comm V} :
     := by
   constructor
   · intro h₀ h₁ σ hp τ hτ
-    change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = some τ at hτ
+    change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = Flat.some τ at hτ
     cases hb : ⟦b⟧ᵇ σ
     · rw [hb] at hτ
       exact h₁ σ ⟨hp, hb⟩ τ hτ
@@ -123,10 +123,10 @@ theorem PartialCorrectS.wh {I : State V → Prop} {b : BoolExp V} {c : Comm V}
     (P := fun w => Sat I w fun σ => I σ ∧ ⟦b⟧ᵇ σ = false)
     (fun d hd => Sat.admissible _ _ d hd) (Sat.bot _ _) ?_
   intro w hw σ hi τ hτ
-  change (if ⟦b⟧ᵇ σ then Option.bind (⟦c⟧ᶜ σ) w else some σ) = some τ at hτ
+  change (if ⟦b⟧ᵇ σ then Flat.bind (⟦c⟧ᶜ σ) w else Flat.some σ) = Flat.some τ at hτ
   cases hb : ⟦b⟧ᵇ σ
   · rw [hb] at hτ
-    obtain rfl := Option.some.inj hτ
+    obtain rfl := Flat.some.inj hτ
     exact ⟨hi, hb⟩
   · rw [hb, if_pos rfl] at hτ
     rcases hc : ⟦c⟧ᶜ σ with _ | ρ

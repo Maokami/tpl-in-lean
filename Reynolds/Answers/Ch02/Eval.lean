@@ -64,7 +64,7 @@ variable {V : Type u} [DecidableEq V]
 -/
 def whileF (b : BoolExp V) (s : State V → SigmaBot V)
     (w : State V → SigmaBot V) : State V → SigmaBot V :=
-  fun σ => if ⟦b⟧ᵇ σ then Option.bind (s σ) w else some σ
+  fun σ => if ⟦b⟧ᵇ σ then Flat.bind (s σ) w else Flat.some σ
 -- ANCHOR_END: whileF
 
 omit [DecidableEq V] in
@@ -87,9 +87,9 @@ omit [DecidableEq V] in
 
 함수상의 최소 상계인지 확인할 때 상태 `σ`를 고정하고 세 갈래로 나눈다.
 
-- 조건이 거짓 — 상의 모든 함수가 `some σ`를 내므로 그 값이 최소 상계다.
+- 조건이 거짓 — 상의 모든 함수가 `Flat.some σ`를 내므로 그 값이 최소 상계다.
 - 본체가 `⊥` — 상의 모든 함수가 `⊥`를 내므로 확인할 것이 없다.
-- 본체가 `some τ` — 왼쪽은 `(⨆wₙ) τ = ⨆(wₙ τ)`이고, 그 사슬의 각 항
+- 본체가 `Flat.some τ` — 왼쪽은 `(⨆wₙ) τ = ⨆(wₙ τ)`이고, 그 사슬의 각 항
   `wₙ τ`가 함수상의 `n`번째 항과 같다.
 -/
 @[exercise "Ex 2.4" 3]
@@ -113,7 +113,7 @@ theorem whileF_continuous (b : BoolExp V) (s : State V → SigmaBot V) :
           _ ≤ g σ := (hg ⟨c.seq n, ⟨n, rfl⟩, rfl⟩) σ
     · simp only [if_neg hb]
       calc
-        some σ = whileF b s (c.seq 0) σ := by simp [whileF, hb]
+        Flat.some σ = whileF b s (c.seq 0) σ := by simp [whileF, hb]
         _ ≤ g σ := (hg ⟨c.seq 0, ⟨0, rfl⟩, rfl⟩) σ
 -- ANCHOR_END: whileF_continuous
 
@@ -144,7 +144,8 @@ omit [DecidableEq V] in
 -/
 theorem whileF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : State V) :
     fix (whileF b s) (whileF_monotone b s) σ
-      = if ⟦b⟧ᵇ σ then Option.bind (s σ) (fix (whileF b s) (whileF_monotone b s)) else some σ := by
+      = if ⟦b⟧ᵇ σ then Flat.bind (s σ) (fix (whileF b s) (whileF_monotone b s))
+        else Flat.some σ := by
   have hm := whileF_monotone b s
   have hW : ∀ ρ : State V, fix (whileF b s) hm ρ = ((iterChain hm).apply ρ).lub :=
     fun ρ => Chain.lub_apply _ ρ
@@ -152,26 +153,26 @@ theorem whileF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : Sta
   by_cases hb : ⟦b⟧ᵇ σ
   · rcases hs : s σ with _ | τ
     · -- 본체가 ⊥. `n ≥ 1`인 항은 모두 ⊥ — 조건이 참인 자리는 언제나 본체의 값을 되묻는다.
-      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = none := by
+      have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = Flat.none := by
         intro n
-        change (whileF b s)^[n + 1] ⊥ σ = none
+        change (whileF b s)^[n + 1] ⊥ σ = Flat.none
         rw [Function.iterate_succ_apply']
         simp [whileF, hb, hs]
-      have hle : ((iterChain hm).apply σ).lub ≤ none := by
+      have hle : ((iterChain hm).apply σ).lub ≤ Flat.none := by
         refine Chain.lub_le fun n => ?_
         cases n with
         | zero => exact bot_le
         | succ n => exact le_of_eq (hstep n)
-      -- `rcases hs : s σ with _ | τ`가 이미 이 갈래의 목표에서 `s σ`를 `none`으로 바꿔 두었다.
+      -- `rcases hs : s σ with _ | τ`가 이미 이 갈래의 목표에서 `s σ`를 `Flat.none`으로 바꿔 두었다.
       rw [le_antisymm hle bot_le, if_pos hb]
       rfl
-    · -- 본체가 `some τ`. 이 사슬은 `τ`에서 시작한 반복 사슬을 한 칸 민 것과 같다.
+    · -- 본체가 `Flat.some τ`. 이 사슬은 `τ`에서 시작한 반복 사슬을 한 칸 민 것과 같다.
       have hshift : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = ((iterChain hm).apply τ).seq n := by
         intro n
         change (whileF b s)^[n + 1] ⊥ σ = (whileF b s)^[n] ⊥ τ
         rw [Function.iterate_succ_apply']
         simp [whileF, hb, hs]
-      have h0 : ((iterChain hm).apply σ).seq 0 = none := rfl
+      have h0 : ((iterChain hm).apply σ).seq 0 = Flat.none := rfl
       have hlub : ((iterChain hm).apply σ).lub = ((iterChain hm).apply τ).lub := by
         refine le_antisymm (Chain.lub_le fun n => ?_) (Chain.lub_le fun n => ?_)
         · cases n with
@@ -182,15 +183,15 @@ theorem whileF_fix_unfold (b : BoolExp V) (s : State V → SigmaBot V) (σ : Sta
       change ((iterChain hm).apply σ).lub = fix (whileF b s) hm τ
       rw [hW τ]
       exact hlub
-  · -- 조건이 거짓. `n ≥ 1`인 항은 모두 `some σ` — 그 자리에서 즉시 끝난다.
-    have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = some σ := by
+  · -- 조건이 거짓. `n ≥ 1`인 항은 모두 `Flat.some σ` — 그 자리에서 즉시 끝난다.
+    have hstep : ∀ n, ((iterChain hm).apply σ).seq (n + 1) = Flat.some σ := by
       intro n
-      change (whileF b s)^[n + 1] ⊥ σ = some σ
+      change (whileF b s)^[n + 1] ⊥ σ = Flat.some σ
       rw [Function.iterate_succ_apply']
       simp [whileF, hb]
-    have hge : some σ ≤ ((iterChain hm).apply σ).lub := by
+    have hge : Flat.some σ ≤ ((iterChain hm).apply σ).lub := by
       rw [← hstep 0]; exact ((iterChain hm).apply σ).le_lub 1
-    have hle : ((iterChain hm).apply σ).lub ≤ some σ := by
+    have hle : ((iterChain hm).apply σ).lub ≤ Flat.some σ := by
       refine Chain.lub_le fun n => ?_
       cases n with
       | zero => exact bot_le
@@ -252,9 +253,9 @@ theorem whileF_scott_induction (b : BoolExp V) (s : State V → SigmaBot V)
 `Classical.choice`를 거치므로 계산되지 않는다. 실행은 연료 해석기가 맡는다.
 -/
 noncomputable def Comm.eval : Comm V → State V → SigmaBot V
-  | .assign v e   => fun σ => some (σ[v := ⟦e⟧ₑ σ])
-  | .skip         => fun σ => some σ
-  | .seq c₀ c₁    => fun σ => Option.bind (c₀.eval σ) c₁.eval
+  | .assign v e   => fun σ => Flat.some (σ[v := ⟦e⟧ₑ σ])
+  | .skip         => fun σ => Flat.some σ
+  | .seq c₀ c₁    => fun σ => Flat.bind (c₀.eval σ) c₁.eval
   | .ite b c₀ c₁  => fun σ => if ⟦b⟧ᵇ σ then c₀.eval σ else c₁.eval σ
   | .wh b c       => fix (whileF b c.eval) (whileF_monotone b c.eval)
   | .newvar v e c => fun σ => restore v σ (c.eval (σ[v := ⟦e⟧ₑ σ]))
@@ -277,7 +278,7 @@ scoped notation:max "⟦" c "⟧ᶜ" => Comm.eval c
 
 ```
 ⟦while b do c⟧ σ = whileF b ⟦c⟧ ⟦while b do c⟧ σ
-                 = if ⟦b⟧ σ then ⟦c⟧ σ >>= ⟦while b do c⟧ else some σ
+                 = if ⟦b⟧ σ then Flat.bind (⟦c⟧ σ) ⟦while b do c⟧ else Flat.some σ
 ```
 
 §2.2에서 정의가 되지 못했던 풀기 방정식이 정의(`fix`)와 정리(`whileF_fix_unfold`)로
@@ -308,7 +309,7 @@ theorem Comm.eval_isSemantics : IsSemantics (V := V) Comm.eval := by
 의 `whileF` 전용 판 `whileF_fix_le`를 쓴다. 완성본을 읽는 자리로 남긴다.
 -/
 theorem Comm.eval_while_least {b : BoolExp V} {c : Comm V} {w : State V → SigmaBot V}
-    (hw : ∀ σ, w σ = if ⟦b⟧ᵇ σ then Option.bind (c.eval σ) w else some σ) :
+    (hw : ∀ σ, w σ = if ⟦b⟧ᵇ σ then Flat.bind (c.eval σ) w else Flat.some σ) :
     Comm.eval (.wh b c) ≤ w :=
   whileF_fix_le b c.eval (le_of_eq (funext fun σ => (hw σ).symm))
 -- ANCHOR_END: Comm.eval_while_least
@@ -319,7 +320,7 @@ theorem Comm.eval_while_least {b : BoolExp V} {c : Comm V} {w : State V → Sigm
 계산하는 `Comm.run`을 정의하고 다음 적합성(adequacy) 정리로 실행과 표시적 의미를 잇는다.
 
 ```lean
-c.eval σ = some τ ↔ ∃ n, c.run n σ = some τ
+c.eval σ = Flat.some τ ↔ ∃ n, c.run n σ = Flat.some τ
 ```
 
 필요한 연료 `n`은 명령과 입력, 종료 실행에 따라 달라진다. -/

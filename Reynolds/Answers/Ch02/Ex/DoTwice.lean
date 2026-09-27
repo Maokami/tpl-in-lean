@@ -149,13 +149,13 @@ theorem dotwiceCount_can_grow :
 `bind` 두 번이다.
 -/
 noncomputable def SComm.eval : SComm V → State V → SigmaBot V
-  | .assign v e   => fun σ => some (σ[v := ⟦e⟧ₑ σ])
-  | .skip         => fun σ => some σ
-  | .seq s₀ s₁    => fun σ => Option.bind (s₀.eval σ) s₁.eval
+  | .assign v e   => fun σ => Flat.some (σ[v := ⟦e⟧ₑ σ])
+  | .skip         => fun σ => Flat.some σ
+  | .seq s₀ s₁    => fun σ => Flat.bind (s₀.eval σ) s₁.eval
   | .ite b s₀ s₁  => fun σ => if ⟦b⟧ᵇ σ then s₀.eval σ else s₁.eval σ
   | .wh b s       => fix (whileF b s.eval) (whileF_monotone b s.eval)
   | .newvar v e s => fun σ => restore v σ (s.eval (σ[v := ⟦e⟧ₑ σ]))
-  | .dotwice s    => fun σ => Option.bind (s.eval σ) s.eval
+  | .dotwice s    => fun σ => Flat.bind (s.eval σ) s.eval
 
 /--
 **연습 2.10 — 디슈가링이 뜻을 지킨다.**
@@ -180,8 +180,8 @@ theorem SComm.desugar_eval : ∀ s : SComm V, s.desugar.eval = s.eval := by
   | «skip» => rfl
   | seq s₀ s₁ ih₀ ih₁ =>
       funext σ
-      change Option.bind (s₀.desugar.eval σ) s₁.desugar.eval
-          = Option.bind (s₀.eval σ) s₁.eval
+      change Flat.bind (s₀.desugar.eval σ) s₁.desugar.eval
+          = Flat.bind (s₀.eval σ) s₁.eval
       rw [ih₀, ih₁]
   | ite b s₀ s₁ ih₀ ih₁ =>
       funext σ
@@ -200,8 +200,8 @@ theorem SComm.desugar_eval : ∀ s : SComm V, s.desugar.eval = s.eval := by
   | dotwice s ih =>
       -- 복제된 두 자리가 같은 부분항에서 왔으므로 귀납 가설 하나를 두 번 쓴다.
       funext σ
-      change Option.bind (s.desugar.eval σ) s.desugar.eval
-          = Option.bind (s.eval σ) s.eval
+      change Flat.bind (s.desugar.eval σ) s.desugar.eval
+          = Flat.bind (s.eval σ) s.eval
       rw [ih]
 -- ANCHOR_END: desugarEval
 

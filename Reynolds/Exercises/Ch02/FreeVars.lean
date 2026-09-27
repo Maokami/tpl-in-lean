@@ -150,24 +150,24 @@ theorem Comm.fa_subset_fv : ∀ c : Comm V, c.fa ⊆ c.fv := by
 
 /-- `S` 위에서의 일치. 명제 2.6 의 결론을 담는 관계다. -/
 def AgreeOn (S : Finset V) : SigmaBot V → SigmaBot V → Prop
-  | none,   none    => True
-  | some τ, some τ' => ∀ w ∈ S, τ w = τ' w
+  | Flat.none,   Flat.none    => True
+  | Flat.some τ, Flat.some τ' => ∀ w ∈ S, τ w = τ' w
   | _,      _       => False
 
 omit [DecidableEq V] in
-@[simp] theorem AgreeOn.none_none {S : Finset V} : AgreeOn S none none := trivial
+@[simp] theorem AgreeOn.none_none {S : Finset V} : AgreeOn S Flat.none Flat.none := trivial
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeOn.some_some {S : Finset V} {τ τ' : State V} :
-    AgreeOn S (some τ) (some τ') ↔ ∀ w ∈ S, τ w = τ' w := Iff.rfl
+    AgreeOn S (Flat.some τ) (Flat.some τ') ↔ ∀ w ∈ S, τ w = τ' w := Iff.rfl
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeOn.none_some {S : Finset V} {τ : State V} :
-    ¬ AgreeOn S none (some τ) := fun h => h
+    ¬ AgreeOn S Flat.none (Flat.some τ) := fun h => h
 
 omit [DecidableEq V] in
 @[simp] theorem AgreeOn.some_none {S : Finset V} {τ : State V} :
-    ¬ AgreeOn S (some τ) none := fun h => h
+    ¬ AgreeOn S (Flat.some τ) Flat.none := fun h => h
 
 /-! ## 4. `AgreeOn` 은 허용 가능하다
 
@@ -198,19 +198,19 @@ theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
   rw [Chain.lub_apply, Chain.lub_apply]
   rcases hσ : (d.apply σ).lub with _ | τ
   · -- 왼쪽 극한이 `⊥` — 왼쪽 사슬이 전부 `⊥` 였고, 일치가 오른쪽도 전부 `⊥` 로 만든다.
-    have hall : ∀ n, d.seq n σ' = none := by
+    have hall : ∀ n, d.seq n σ' = Flat.none := by
       intro n
       have hn := (d.apply σ).le_lub n
       rw [hσ] at hn
-      simp only [Option.le_none_iff, Chain.apply_seq] at hn
+      simp only [Flat.le_none_iff, Chain.apply_seq] at hn
       have := h n
       rw [hn] at this
       rcases hn' : d.seq n σ' with _ | τ'
       · rfl
       · rw [hn'] at this; exact absurd this (by simp)
-    have : (d.apply σ').lub ≤ none :=
+    have : (d.apply σ').lub ≤ Flat.none :=
       (d.apply σ').lub_le fun n => by rw [Chain.apply_seq, hall n]
-    simp only [Option.le_none_iff] at this
+    simp only [Flat.le_none_iff] at this
     rw [this]
     simp
   · -- 왼쪽 극한이 상태 — 결정 시점 둘의 최댓값에서 두 극한을 함께 읽는다.
@@ -219,19 +219,19 @@ theorem AgreeOn.admissible (S : Finset V) (d : Chain (State V → SigmaBot V))
     rcases hσ' : (d.apply σ').lub with _ | τ'
     · -- 오른쪽만 `⊥` 일 수는 없다. 단계 `k` 에서 왼쪽이 이미 상태인데,
       -- 오른쪽 사슬이 전부 `⊥` 면 단계 `k` 의 일치가 거짓이 된다.
-      have hk' : d.seq k σ' = none := by
+      have hk' : d.seq k σ' = Flat.none := by
         have hn := (d.apply σ').le_lub k
         rw [hσ'] at hn
         simpa using hn
       have := h k
-      rw [show d.seq k σ = some τ from hk, hk'] at this
+      rw [show d.seq k σ = Flat.some τ from hk, hk'] at this
       exact absurd this (by simp)
     · obtain ⟨k', hk'⟩ := (d.apply σ').flat_lub_mem_range
       rw [hσ'] at hk'
       -- 공통 단계 `m` 에서는 양쪽 다 극한값이다.
-      have hm : d.seq (max k k') σ = some τ :=
+      have hm : d.seq (max k k') σ = Flat.some τ :=
         Chain.flat_stabilizes (c := d.apply σ) hk (max k k') (le_max_left _ _)
-      have hm' : d.seq (max k k') σ' = some τ' :=
+      have hm' : d.seq (max k k') σ' = Flat.some τ' :=
         Chain.flat_stabilizes (c := d.apply σ') hk' (max k k') (le_max_right _ _)
       have := h (max k k')
       rw [hm, hm'] at this
@@ -274,7 +274,7 @@ theorem Comm.coincidence_general :
   induction c with
   | assign v e =>
       intro S hS σ σ' h
-      change AgreeOn S (some _) (some _)
+      change AgreeOn S (Flat.some _) (Flat.some _)
       have he : ⟦e⟧ₑ σ = ⟦e⟧ₑ σ' :=
         coincidence_intExp e σ σ' fun w hw =>
           h w (hS (by simp [Comm.fv, hw]))
@@ -288,7 +288,7 @@ theorem Comm.coincidence_general :
       intro S hS σ σ' h
       have hS₀ : c₀.fv ⊆ S := le_trans Finset.subset_union_left hS
       have hS₁ : c₁.fv ⊆ S := le_trans Finset.subset_union_right hS
-      change AgreeOn S (Option.bind (c₀.eval σ) c₁.eval) (Option.bind (c₀.eval σ') c₁.eval)
+      change AgreeOn S (Flat.bind (c₀.eval σ) c₁.eval) (Flat.bind (c₀.eval σ') c₁.eval)
       have h₀ := ih₀ S hS₀ σ σ' h
       rcases h₀₁ : c₀.eval σ with _ | τ <;> rcases h₀₂ : c₀.eval σ' with _ | τ'
       · simp
@@ -359,7 +359,7 @@ theorem Comm.coincidence_general :
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner; exact absurd hinner (by simp)
       · rw [h₁, h₂] at hinner
-        simp only [restore, Option.map_some]
+        simp only [restore, Flat.map_some]
         rw [AgreeOn.some_some]
         intro w hw
         by_cases hwv : w = v
@@ -380,35 +380,35 @@ theorem Comm.coincidence (c : Comm V) (σ σ' : State V)
 사슬 하나만 보면 되고, 극한이 상태면 어느 단계가 이미 그 상태라는 것으로 끝난다.
 -/
 theorem Comm.eval_agree_outside_fa :
-    ∀ (c : Comm V) (σ τ : State V), c.eval σ = some τ →
+    ∀ (c : Comm V) (σ τ : State V), c.eval σ = Flat.some τ →
       ∀ w, w ∉ c.fa → τ w = σ w := by
   intro c
   induction c with
   | assign v e =>
       intro σ τ h w hw
       have : τ = σ[v := ⟦e⟧ₑ σ] := by
-        have : some (σ[v := ⟦e⟧ₑ σ]) = some τ := h
-        exact (Option.some.injEq _ _ ▸ this).symm
+        have : Flat.some (σ[v := ⟦e⟧ₑ σ]) = Flat.some τ := h
+        exact (Flat.some.injEq _ _ ▸ this).symm
       subst this
       have hwv : w ≠ v := by simpa [Comm.fa] using hw
       simp [hwv]
   | «skip» =>
       intro σ τ h w _
       have : σ = τ := by
-        have : some σ = some τ := h
-        exact Option.some.injEq _ _ ▸ this
+        have : Flat.some σ = Flat.some τ := h
+        exact Flat.some.injEq _ _ ▸ this
       rw [← this]
   | seq c₀ c₁ ih₀ ih₁ =>
       intro σ τ h w hw
-      change Option.bind (c₀.eval σ) c₁.eval = some τ at h
-      rw [Option.bind_eq_some_iff] at h
+      change Flat.bind (c₀.eval σ) c₁.eval = Flat.some τ at h
+      rw [Flat.bind_eq_some_iff] at h
       obtain ⟨τ₀, h₀, h₁⟩ := h
       have hw₀ : w ∉ c₀.fa := fun hmem => hw (by simp [Comm.fa, hmem])
       have hw₁ : w ∉ c₁.fa := fun hmem => hw (by simp [Comm.fa, hmem])
       rw [ih₁ τ₀ τ h₁ w hw₁, ih₀ σ τ₀ h₀ w hw₀]
   | ite b c₀ c₁ ih₀ ih₁ =>
       intro σ τ h w hw
-      change (if ⟦b⟧ᵇ σ then c₀.eval σ else c₁.eval σ) = some τ at h
+      change (if ⟦b⟧ᵇ σ then c₀.eval σ else c₁.eval σ) = Flat.some τ at h
       have hw₀ : w ∉ c₀.fa := fun hmem => hw (by simp [Comm.fa, hmem])
       have hw₁ : w ∉ c₁.fa := fun hmem => hw (by simp [Comm.fa, hmem])
       by_cases hb : ⟦b⟧ᵇ σ
@@ -418,7 +418,7 @@ theorem Comm.eval_agree_outside_fa :
       intro σ τ heval w hw
       have hwc : w ∉ c.fa := by simpa [Comm.fa] using hw
       have key := whileF_scott_induction b c.eval
-        (P := fun w' => ∀ σ τ : State V, w' σ = some τ → τ w = σ w)
+        (P := fun w' => ∀ σ τ : State V, w' σ = Flat.some τ → τ w = σ w)
         (fun d hd σ τ hlub => by
           -- 극한이 상태면 어느 단계가 이미 그 상태다.
           rw [Chain.lub_apply] at hlub
@@ -427,22 +427,22 @@ theorem Comm.eval_agree_outside_fa :
           exact hd k σ τ hk)
         (fun σ τ h => by simp at h)
         (fun w' hw' σ τ h => by
-          change (if ⟦b⟧ᵇ σ then Option.bind (c.eval σ) w' else some σ) = some τ at h
+          change (if ⟦b⟧ᵇ σ then Flat.bind (c.eval σ) w' else Flat.some σ) = Flat.some τ at h
           by_cases hb : ⟦b⟧ᵇ σ
-          · rw [if_pos hb, Option.bind_eq_some_iff] at h
+          · rw [if_pos hb, Flat.bind_eq_some_iff] at h
             obtain ⟨τ₀, h₀, h₁⟩ := h
             rw [hw' τ₀ τ h₁, ihc σ τ₀ h₀ w hwc]
           · rw [if_neg hb] at h
-            have : σ = τ := Option.some.injEq _ _ ▸ h
+            have : σ = τ := Flat.some.injEq _ _ ▸ h
             rw [← this])
       exact key σ τ heval
   | «newvar» v e c ih =>
       intro σ τ h w hw
-      change restore v σ (c.eval (σ[v := ⟦e⟧ₑ σ])) = some τ at h
+      change restore v σ (c.eval (σ[v := ⟦e⟧ₑ σ])) = Flat.some τ at h
       rcases hc : c.eval (σ[v := ⟦e⟧ₑ σ]) with _ | τ₀
       · rw [hc] at h; simp [restore] at h
       · rw [hc] at h
-        simp only [restore, Option.map_some, Option.some.injEq] at h
+        simp only [restore, Flat.map_some, Flat.some.injEq] at h
         subst h
         by_cases hwv : w = v
         · subst hwv; simp

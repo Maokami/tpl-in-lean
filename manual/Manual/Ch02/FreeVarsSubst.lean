@@ -85,8 +85,8 @@ number := false
 ```anchor agreeOn (module := Reynolds.Answers.Ch02.FreeVars)
 /-- `S` 위에서의 일치. 명제 2.6 의 결론을 담는 관계다. -/
 def AgreeOn (S : Finset V) : SigmaBot V → SigmaBot V → Prop
-  | none,   none    => True
-  | some τ, some τ' => ∀ w ∈ S, τ w = τ' w
+  | Flat.none,   Flat.none    => True
+  | Flat.some τ, Flat.some τ' => ∀ w ∈ S, τ w = τ' w
   | _,      _       => False
 ```
 
@@ -174,8 +174,8 @@ number := false
 /-- `δ` 를 사이에 둔 `S` 위에서의 일치. 원래 결과의 `w` 값과 치환된 결과의 `δ w` 값을
 비교한다. `δ = id` 로 두면 `AgreeOn` 이다. -/
 def AgreeVia (δ : Ren V) (S : Finset V) : SigmaBot V → SigmaBot V → Prop
-  | none,   none    => True
-  | some τ, some τ' => ∀ w ∈ S, τ w = τ' (δ w)
+  | Flat.none,   Flat.none    => True
+  | Flat.some τ, Flat.some τ' => ∀ w ∈ S, τ w = τ' (δ w)
   | _,      _       => False
 ```
 
@@ -215,7 +215,7 @@ def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 -/
 @[exercise "§2.5 swap" 1]
 theorem swap_ok (σ : State String) :
-    ∃ τ, swap.eval σ = some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
+    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
   refine ⟨_, rfl, ?_, ?_⟩ <;> simp [IntExp.eval, State.subst_def, Function.update]
 ```
 
@@ -231,7 +231,7 @@ def aliasTY : Ren String := fun w => if w = "t" then "y" else w
 `t` 자리에 들어온 `y` 가 첫 대입에서 덮어써져, **두 변수 모두 옛 `x` 값**이 된다.
 -/
 theorem swap_aliased_eval (σ : State String) :
-    ∃ τ, (swap /ᶜ aliasTY).eval σ = some τ ∧ τ "x" = σ "x" ∧ τ "y" = σ "x" := by
+    ∃ τ, (swap /ᶜ aliasTY).eval σ = Flat.some τ ∧ τ "x" = σ "x" ∧ τ "y" = σ "x" := by
   refine ⟨_, rfl, ?_, ?_⟩ <;>
     simp [aliasTY, IntExp.eval, IntExp.subst, Ren.toSubst, State.subst_def, Function.update]
 

@@ -97,10 +97,10 @@ theorem seq_comm (c₀ c₁ : Comm V)
     (Comm.seq c₀ c₁).eval = (Comm.seq c₁ c₀).eval := by
   -- 먼저 볼 것: §2.5 의 명제 2.6 **두 부분 모두** —
   --            `Comm.coincidence_general` (a) 와 `Comm.eval_agree_outside_fa` (b).
-  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 `Option.bind` 로 펴고, 두 결과를 네 갈래로 나눈다.
+  -- 힌트 1: `funext σ` 뒤 `change` 로 양변을 `Flat.bind` 로 펴고, 두 결과를 네 갈래로 나눈다.
   -- 힌트 2: 한쪽만 발산하는 갈래가 핵심이다. (b) 로 "다른 쪽을 지나도 내 자유 변수는
   --         그대로" 를 얻고, (a) 로 "그러므로 결과가 같다" 를 얻는다. `AgreeOn` 이
-  --         `none` 과 `some` 을 가르므로 모순이 나온다.
+  --         `Flat.none` 과 `Flat.some` 을 가르므로 모순이 나온다.
   -- 힌트 3: 둘 다 끝나는 갈래는 `funext w` 로 변수마다 따진다. 세 경우다 —
   --         `w ∈ FA(c₀)`, `w ∈ FA(c₁)`, 둘 다 아님. 첫 둘은 `Comm.fa_subset_fv` 로
   --         `FV` 로 올린 뒤 (a) 를 쓰고, 마지막은 (b) 를 양쪽에 쓴다.
@@ -120,8 +120,8 @@ def factSafe : Comm String :=
   ⟪ newvar t := x in (y := 1; while t > 0 do (y := y × t; t := t - 1)) ⟫ᶜ
 
 -- 별칭이 없으면 둘 다 3! = 6 을 낸다.
-#guard (factNaive.run 10 (State.const 3)).map (fun σ => σ "y") == some 6
-#guard (factSafe.run 10 (State.const 3)).map (fun σ => σ "y") == some 6
+#guard (factNaive.run 10 (State.const 3)).map (fun σ => σ "y") == Flat.some 6
+#guard (factSafe.run 10 (State.const 3)).map (fun σ => σ "y") == Flat.some 6
 
 /-- 입력과 출력을 같은 칸으로 묶는 이름 바꾸기. 단사가 아니다 — 이것이 별칭이다. -/
 def aliasToZ : Ren String := fun w => if w = "x" then "z" else if w = "y" then "z" else w
@@ -140,8 +140,8 @@ theorem factNaive_alias_eq : factNaive /ᶜ aliasToZ = factNaiveAliased := rfl
 theorem factSafe_alias_eq : factSafe /ᶜ aliasToZ = factSafeAliased := rfl
 
 -- 별칭이 생기면 갈린다. 순진한 판은 0, 안전한 판은 6.
-#guard (factNaiveAliased.run 10 (State.const 3)).map (fun σ => σ "z") == some 0
-#guard (factSafeAliased.run 10 (State.const 3)).map (fun σ => σ "z") == some 6
+#guard (factNaiveAliased.run 10 (State.const 3)).map (fun σ => σ "z") == Flat.some 0
+#guard (factSafeAliased.run 10 (State.const 3)).map (fun σ => σ "z") == Flat.some 6
 
 /--
 **연습 2.7 — 지역 변수가 별칭을 막는다.**
@@ -157,19 +157,19 @@ theorem factSafe_alias_eq : factSafe /ᶜ aliasToZ = factSafeAliased := rfl
 바깥 이름과 절대 합쳐지지 않으므로, 밖에서 무슨 별칭이 생기든 안쪽 계산이 지켜진다.
 
 `while` 이 있으므로 `run` 으로 계산한 뒤 `run_sound` 로 표시적 의미에 옮긴다.
-결과 상태를 손으로 적지 않으려고 `Option.map` 으로 `z` 만 뽑아 본다.
+결과 상태를 손으로 적지 않으려고 `Flat.map` 으로 `z` 만 뽑아 본다.
 -/
 @[exercise "Ex 2.7" 2]
 theorem fact_alias_safe_vs_naive :
-    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 6)
-      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = some τ ∧ τ "z" = 0) := by
+    (∃ τ, (factSafe /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 6)
+      ∧ (∃ τ, (factNaive /ᶜ aliasToZ).eval (State.const 3) = Flat.some τ ∧ τ "z" = 0) := by
   -- 먼저 볼 것: 바로 위 `factNaive_alias_eq` 와 `factSafe_alias_eq` (둘 다 `rfl` 로 완성되어 있다).
   -- 힌트 1: 그 둘로 치환을 손으로 쓴 프로그램으로 바꾼 뒤 계산한다.
   -- 힌트 2: `while` 이 있으므로 `run` 으로 계산하고 `Comm.run_sound` 로 옮긴다.
   --         안전한 판은 연료 4, 순진한 판은 연료 2 면 끝난다.
-  -- 힌트 3: 결과 상태를 손으로 적지 않으려면 `Option.map` 으로 `z` 만 뽑아
-  --         `(run n _).map (fun σ => σ "z") = some k` 를 `simp` 로 계산하고,
-  --         `Option.map_eq_some_iff` 로 상태를 되찾는다.
+  -- 힌트 3: 결과 상태를 손으로 적지 않으려면 `Flat.map` 으로 `z` 만 뽑아
+  --         `(run n _).map (fun σ => σ "z") = Flat.some k` 를 `simp` 로 계산하고,
+  --         `Flat.map_eq_some_iff` 로 상태를 되찾는다.
   sorry
 
 

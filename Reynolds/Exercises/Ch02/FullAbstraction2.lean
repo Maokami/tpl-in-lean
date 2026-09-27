@@ -88,7 +88,7 @@ def doubleThenInc : Comm String := ⟪ y := y × 2; x := x + 1 ⟫ᶜ
 
 -- 반복은 실제로 백 번 돈다. 연료가 모자라면 `none` 이다.
 #guard (countTo100.run 100 (State.const 0)).isNone
-#guard (countTo100.run 102 (State.const 0)).map (fun σ => σ "x") == some 100
+#guard (countTo100.run 102 (State.const 0)).map (fun σ => σ "x") == Flat.some 100
 
 /-! ## 2. 첫째 쌍 — 대입 두 번은 대입 한 번이다
 
@@ -134,7 +134,7 @@ theorem incTwice_eq_incByTwo : incTwice.eval = incByTwo.eval := by
 -/
 @[exercise "§2.8 loop-eval" 3]
 theorem countLoop_eval (σ : State String) (h : σ "x" ≤ 100) :
-    countLoop.eval σ = some (σ["x" := (100 : Int)]) := by
+    countLoop.eval σ = Flat.some (σ["x" := (100 : Int)]) := by
   -- 먼저 볼 것: §2.6 의 `forWhile_eq_fold`. 측도에 대한 귀납이라는 뼈대가 같다.
   -- 힌트 1: `while` 한 바퀴를 펼치는 방정식을 `Comm.eval_isSemantics.2.2.2.2.1 _ _ τ` 로 꺼낸다.
   --         조건의 값 `⟦cmp lt (var "x") (num 100)⟧ᵇ τ = decide (τ "x" < 100)` 은 `rfl` 이다.
@@ -159,8 +159,9 @@ theorem countLoop_eval (σ : State String) (h : σ "x" ≤ 100) :
 -/
 theorem countTo100_eq_setTo100 : countTo100.eval = setTo100.eval := by
   funext σ
-  change Option.bind (some (σ["x" := (0 : Int)])) countLoop.eval = some (σ["x" := (100 : Int)])
-  change countLoop.eval (σ["x" := (0 : Int)]) = some (σ["x" := (100 : Int)])
+  change Flat.bind (Flat.some (σ["x" := (0 : Int)])) countLoop.eval
+      = Flat.some (σ["x" := (100 : Int)])
+  change countLoop.eval (σ["x" := (0 : Int)]) = Flat.some (σ["x" := (100 : Int)])
   rw [countLoop_eval _ (by rw [State.subst_self]; omega)]
   simp [State.subst_def, Function.update_idem]
 
@@ -205,7 +206,7 @@ theorem incThenDouble_eq_doubleThenInc : incThenDouble.eval = doubleThenInc.eval
 -/
 theorem steps_break_soundness :
     countTo100.eval = setTo100.eval
-      ∧ countTo100.run 0 (State.const 0) = none
+      ∧ countTo100.run 0 (State.const 0) = Flat.none
       ∧ (setTo100.run 0 (State.const 0)).isSome := by
   refine ⟨countTo100_eq_setTo100, ?_, ?_⟩
   · simp [countTo100, Comm.run]

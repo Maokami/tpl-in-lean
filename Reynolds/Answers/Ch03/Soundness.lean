@@ -20,7 +20,7 @@ AS·SQ·CD·WHP는 `Semantic.lean`에서 각각 독립된 의미 판 연습으�
 
 - 대입 공리 — 명제 1.4 (`substitution_single`). **1장 §1.4 의 치환 정리가 이 한 줄을
   위해 있었다.**
-- 순차 합성 — `Option.bind`.
+- 순차 합성 — `Flat.bind`.
 - 조건 — §2.2 의 `boolExp_eval_iff`.
 - `while` — §2.4 의 **Scott 귀납법**. 허용 가능성은 §3.1 의 `Sat.admissible` 이다.
 - 변수 선언 — 명제 1.1 (`coincidence_assert`) 세 번.
@@ -47,8 +47,8 @@ variable {V : Type u} [DecidableEq V]
 /-- `skip` 은 상태를 그대로 낸다. -/
 theorem skip_sound (p : Assert V) : ｛p｝Comm.skip｛p｝ := by
   intro σ hp τ hτ
-  change some σ = some τ at hτ
-  obtain rfl := Option.some.inj hτ
+  change Flat.some σ = Flat.some τ at hτ
+  obtain rfl := Flat.some.inj hτ
   exact hp
 
 -- ANCHOR: assignSound
@@ -127,11 +127,11 @@ theorem newvar_sound {p q : Assert V} {v : V} {e : IntExp V} {c : Comm V}
     (hp : v ∉ p.fv) (hq : v ∉ q.fv) (he : v ∉ e.fv)
     (h : ｛p ⋀ .cmp .eq (.var v) e｝c｛q｝) : ｛p｝(Comm.newvar v e c)｛q｝ := by
   intro σ hpσ τ hτ
-  change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = some τ at hτ
+  change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some τ at hτ
   rcases hc : ⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ]) with _ | ρ
   · rw [hc] at hτ; simp [restore] at hτ
   · rw [hc] at hτ
-    simp only [restore, Option.map_some, Option.some.injEq] at hτ
+    simp only [restore, Flat.map_some, Flat.some.injEq] at hτ
     subst hτ
     -- 안쪽 사전조건. `p` 는 `v` 를 안 보고, `v = e` 는 갱신으로 참이다.
     have hp' : ⟦p⟧ₐ (σ[v := ⟦e⟧ₑ σ]) :=
