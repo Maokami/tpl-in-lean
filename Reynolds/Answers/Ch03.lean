@@ -13,6 +13,7 @@ public import Reynolds.Answers.Ch03.Assign
 public import Reynolds.Answers.Ch03.Annot
 public import Reynolds.Answers.Ch03.Total
 public import Reynolds.Answers.Ch03.Derived
+public import Reynolds.Answers.Ch03.BookExercises
 public import Reynolds.Answers.Ch03.Examples.Fib
 public import Reynolds.Answers.Ch03.Examples.FastExp
 public import Reynolds.Answers.Ch03.Wlp
@@ -41,6 +42,7 @@ public import Reynolds.Answers.Ch03.Wlp
 9. `Examples/Fib.lean` — §3.6 피보나치 — 불변식에 `Nat.fib`
 10. `Examples/FastExp.lean` — §3.7 빠른 거듭제곱 — 본체 계약에서 유도한 전체 정확성
 11. `Wlp.lean` — §3.10 wlp 는 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성
+12. `BookExercises.lean` — 책 연습 3.5(`[false] c [false]` 의 유도)와 3.11(단사 치환)
 
 ## 책과의 차이
 

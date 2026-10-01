@@ -124,7 +124,7 @@ theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq
 
 ```
 { p } c { q }
-------------------------------   δ 가 FA(c) 위에서 단사
+------------------------------   쓰는 변수와 명세의 다른 자유 변수를 합치지 않음
 { p/δ } c/δ { q/δ }
 ```
 
@@ -134,8 +134,9 @@ theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq
 - 두 실행의 결과가 `δ` 를 사이에 두고 일치 (명제 2.7, 연습 2.8 의 약한 판),
 - `q` 가 원래 결과에서 참 ↔ `q/δ` 가 치환된 결과에서 참 (명제 1.3).
 
-단사 조건이 `FV(c)` 전체가 아니라 `FA(c)` 위에서만이면 된다 — 읽기만 하는 변수는 합쳐도
-된다. 명제 2.7 의 원래 조건으로는 이 흔한 사용법이 막힌다.
+각 `u ∈ FA(c)`는 `FV(c) ∪ FV(p) ∪ FV(q)`의 다른 변수와 합쳐지면 안 된다.
+둘 다 쓰이지 않는 변수끼리는 합쳐도 된다. `FA(c)` 내부의 단사성만으로는 부족하다.
+책 연습 3.11의 전체 정확성과 전체 자유 변수 집합 위 단사 조건은 `BookExercises.lean`에서 다룬다.
 -/
 @[exercise "§3.7 subst-rule" 3]
 theorem subst_rule_sound [HasFresh V] {p q : Assert V} {c : Comm V} (δ : Ren V)

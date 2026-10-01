@@ -1553,6 +1553,36 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── 책의 대표 연습 3.5 · 3.11
+    (
+        "Ch03/BookExercises.lean",
+        "theorem ex_3_5",
+        "-- ANCHOR_END: ex35",
+        """theorem ex_3_5 (c : Comm V) : HoareT .fls c .fls := by
+  -- 먼저 볼 것: `HoareT`의 생성자, `HoareT.conseq`, `HoareT.newvar_comp`, `Cslib.fresh_exists`.
+  -- 힌트 1: `induction c`로 명령의 여섯 생성자를 나눈다.
+  -- 힌트 2: while에는 불변식 false와 변항 0을 쓰고, b.fv ∪ c.fv 밖의 z를 고른다.
+  -- 힌트 3: 본체 귀납 가설의 사전·사후조건은 SP와 WC로 조절한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch03/BookExercises.lean",
+        "theorem ex_3_11",
+        "-- ANCHOR_END: ex311",
+        """theorem ex_3_11 {p q : Assert V} {c : Comm V} (δ : Ren V)
+    (hinj : ∀ u ∈ p.fv ∪ c.fv ∪ q.fv, ∀ w ∈ p.fv ∪ c.fv ∪ q.fv,
+      δ u = δ w → u = w)
+    (h : ［p］c［q］) : ［p /ₛ δ.toSubst］(c /ᶜ δ)［q /ₛ δ.toSubst］ := by
+  -- 먼저 볼 것: `Comm.substitution_general`, `substitution_assert`, `AgreeVia`.
+  -- 힌트 1: 새 시작 상태 σ'에서 원래 시작 상태를 fun w ↦ σ' (δ w)로 만든다.
+  -- 힌트 2: h에서 원래 실행의 종료 증인을 얻고 명제 2.7로 새 실행에 옮긴다.
+  -- 힌트 3: 같은 명제 1.3으로 사전조건을 원래 쪽에, 사후조건을 새 쪽에 옮긴다.
+  sorry
+
+""",
+    ),
     # ── §3.8 · §3.9 예제
     (
         "Ch03/Examples/Fib.lean",

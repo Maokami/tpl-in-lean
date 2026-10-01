@@ -8,6 +8,7 @@ module
 public import Reynolds.Answers.Ch03
 public meta import Reynolds.Answers.Ch03.Examples.Fib
 public meta import Reynolds.Answers.Ch03.Examples.FastExp
+public meta import Reynolds.Answers.Ch03.BookExercises
 
 /-!
 # 3장 의미 규칙 회귀 검사
@@ -351,5 +352,16 @@ example : TotalCorrectS (fun σ => 0 ≤ σ "n") Examples.expProg
 
 example : PartialCorrectS (fun σ => 0 ≤ σ "n") Examples.expProg
     (fun τ => τ "y" = τ "x" ^ (τ "n").toNat) := Examples.exp_correct
+
+example : HoareT (V := String) .fls (.wh .tru .skip) .fls := ex_3_5 _
+
+example : HoareT (V := String) .fls (.newvar "x" (.num 0) (.wh .tru .skip)) .fls :=
+  ex_3_5 _
+
+#guard mergeXY "x" = mergeXY "y"
+#guard (⟪ x := 1 ⟫ᶜ : Comm String) /ᶜ mergeXY = ⟪ y := 1 ⟫ᶜ
+
+example : ［⟪ y = 0 ⟫ₐ］⟪ x := 1 ⟫ᶜ［⟪ y = 0 ⟫ₐ］ :=
+  ex_3_11_counterexample.1
 
 end
