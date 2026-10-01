@@ -12,7 +12,7 @@ open Verso.Code.External
 set_option verso.exampleProject ".."
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Examples.Fib"
 
-#doc (Manual) "§3.8~3.9 예제" =>
+#doc (Manual) "§3.6~3.7 예제" =>
 %%%
 tag := "ch03-examples"
 file := "ch03-examples"
@@ -22,9 +22,9 @@ number := false
 두 예제를 끝까지 유도한다. 둘 다 불변식에 단언 언어로 적을 수 없는 것이 들어간다.
 피보나치에는 `fib`가, 빠른 거듭제곱에는 거듭제곱이 든다. 그래서 _의미 단언_ 위에서 간다.
 
-이것이 §3.10의 요점을 미리 보여 준다. _명세를 적는 언어가 프로그램을 적는 언어보다
+이것이 표현력 논점을 미리 보여 준다. _명세를 적는 언어가 프로그램을 적는 언어보다
 풍부해야 한다._ Reynolds가 단언에 수학 기호를 자유롭게 쓰는 그 자유가, 형식화에서는
-"단언은 Lean의 술어"라는 선택에서 나온다.
+"단언은 Lean의 술어"라는 선택에서 나온다(보충 `Wlp.lean`에서 다시 본다).
 
 # 의미 판 규칙
 %%%

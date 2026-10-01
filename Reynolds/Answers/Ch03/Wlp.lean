@@ -9,7 +9,13 @@ public import Reynolds.Answers.Ch03.Examples.FastExp
 public import Reynolds.Answers.Ch03.Annot
 
 /-!
-# §3.10 최약 사전조건 · 완전성 · 한계
+# 보충 — 최약 사전조건과 완전성
+
+**책과의 관계**: Reynolds는 최약 사전조건(weakest precondition) `wp`를 이 장이 아니라
+7장에서 형식화한다. 3장 §3.8(복잡한 점과 한계)의 참고문헌은 완전성 논의를
+Loeckx 등[1987]과 7장의 `wp`로 미룰 뿐, 본문에서 다루지 않는다. 이 파일은 그 논의를
+미리 당겨, 건전성의 역인 완전성이 `while` 없는 조각에서 실제로 성립함을 `wp`를
+구문으로 계산해 보인다.
 
 건전성의 역이 완전성이다 — 타당한 명세는 모두 유도되는가? 답은 **아니오**, 그리고
 **조건부로 예** 다.
@@ -24,7 +30,7 @@ public import Reynolds.Answers.Ch03.Annot
 우리 `Assert` 는 정수 산술과 양화사가 있어 이론적으로는 표현력이 충분하다 — 괴델의 β-함수로
 유한 수열을 부호화하면 반복의 최약 사전조건을 적을 수 있다. 그것을 형식화하는 것은 이 장의
 범위를 넘으므로, **완전성은 `while` 없는 조각에서만 증명한다.** 거기서는 최약 사전조건이
-치환만으로 계산된다 (§3 의 `Comm.wp`). `while` 절에서 `none` 이 나오는 그 자리가 표현력이
+치환만으로 계산된다 (아래의 `Comm.wp`). `while` 절에서 `none` 이 나오는 그 자리가 표현력이
 필요한 자리다.
 
 ## wlp 는 최대 고정점이다
@@ -52,6 +58,10 @@ wlp (while b do c) Q  =  νX. (¬b ∧ Q) ∨ (b ∧ wlp c X)
 
 ## 읽는 순서
 `Examples/FastExp.lean` → 이 파일. 3장의 끝이다.
+
+## 책과의 차이
+이 파일 전체가 책 3장 본문에는 없는 보충이다. Reynolds는 완전성을 본문에서 다루지
+않고, §3.8 참고문헌에서 `wp`의 형식 정의와 상대 완전성 증명을 7장으로 미룬다.
 -/
 
 @[expose] public section
@@ -150,11 +160,14 @@ def Comm.wp [HasFresh V] : Comm V → Assert V → Option (Assert V)
 -- ANCHOR_END: wp
 
 -- ANCHOR: wpSound
+-- ANCHOR: stmtWpSound
 /-- **`wp` 는 유도를 준다.** 계산한 사전조건에서 `Hoare` 유도가 있다. `Annot.lean` 의 세 보조
 함의(`ite_pre_then` · `ite_pre_else` · `newvar_pre`)가 그대로 쓰인다. -/
-@[exercise "§3.10 wp-sound" 2]
+@[exercise "보충 wp-sound" 2]
 theorem wp_sound [HasFresh V] (c : Comm V) :
-    ∀ q p, Comm.wp c q = some p → Hoare p c q := by
+    ∀ q p, Comm.wp c q = some p → Hoare p c q
+-- ANCHOR_END: stmtWpSound
+    := by
   induction c with
   | assign v e => intro q p h; cases h; exact Hoare.assign q v e
   | «skip» => intro q p h; cases h; exact Hoare.skip q
@@ -195,6 +208,7 @@ theorem wp_sound [HasFresh V] (c : Comm V) :
 -- ANCHOR_END: wpSound
 
 -- ANCHOR: wpWeakest
+-- ANCHOR: stmtWpWeakest
 /--
 **`wp` 는 가장 약하다.** 의미적 wlp 가 참인 곳에서는 계산한 `wp` 도 참이다.
 
@@ -202,9 +216,11 @@ theorem wp_sound [HasFresh V] (c : Comm V) :
 안쪽 명령이 끝난 상태 `ρ` 에서 `q` 가 참이어야 하는데, 바깥에서 아는 것은 `v` 를 복원한
 `ρ[v := σ v]` 에서 `q` 가 참이라는 것뿐이다. `v ∉ FV(q)` 가 둘을 잇는다 (명제 1.1).
 -/
-@[exercise "§3.10 wp-weakest" 3]
+@[exercise "보충 wp-weakest" 3]
 theorem wp_weakest [HasFresh V] (c : Comm V) :
-    ∀ q p, Comm.wp c q = some p → ∀ σ, wlp c ⟦q⟧ₐ σ → ⟦p⟧ₐ σ := by
+    ∀ q p, Comm.wp c q = some p → ∀ σ, wlp c ⟦q⟧ₐ σ → ⟦p⟧ₐ σ
+-- ANCHOR_END: stmtWpWeakest
+    := by
   induction c with
   | assign v e =>
     intro q p h σ hw
@@ -282,8 +298,9 @@ theorem complete_loopFree [HasFresh V] {c : Comm V} {p p' q : Assert V}
 
 /-! ## 4. 여기서 어디로 가나
 
-3장은 여기까지다. 규칙은 건전하고(§3.2~3.7), 예제는 끝까지 유도되며(§3.8 · §3.9), 완전성은
-`while` 없는 조각에서 성립한다(이 파일). 4장의 배열은 대입 공리의 전제 — 변수 하나를 바꾸면
-그 변수만 바뀐다 — 를 무너뜨린다. -/
+3장은 여기까지다. 규칙은 건전하고(§3.2~3.5), 예제는 끝까지 유도되며(§3.6·§3.7), 책의
+한계 논의는 §3.8(`manual/Manual/Ch03/Limits.lean`)에, 여기서 미리 당긴 완전성은
+`while` 없는 조각에서 성립한다(보충, 이 파일). 4장의 배열은 대입 공리의 전제 — 변수
+하나를 바꾸면 그 변수만 바뀐다 — 를 무너뜨린다. -/
 
 end Reynolds.Answers.Ch03
