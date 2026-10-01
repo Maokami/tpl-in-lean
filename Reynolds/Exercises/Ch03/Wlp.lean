@@ -6,6 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Exercises.Ch03.Examples.FastExp
+public import Reynolds.Exercises.Ch03.Annot
 
 /-!
 # §3.10 최약 사전조건 · 완전성 · 한계

@@ -6,6 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Answers.Ch03
+public meta import Reynolds.Answers.Ch03.Examples.Fib
 public meta import Reynolds.Answers.Ch03.Examples.FastExp
 
 /-!
@@ -320,5 +321,35 @@ example : Hoare ((⟪ y = 0 ⟫ₐ /["y" := IntExp.num 0]) ⋀ ⟪ x = 2 ⟫ₐ)
 -- 쓰기와 단언의 자유 변수가 겹치면 CSP의 조건은 성립하지 않는다.
 example : ¬ Disjoint (⟪ x := 1 ⟫ᶜ : Comm String).fa (⟪ x = 0 ⟫ₐ).fv := by
   simp [Comm.fa, Assert.fv, IntExp.fv]
+
+/-! §3.7: 입력 보존, 지역 변수 복원, 짝수·홀수 가지를 함께 관찰한다. -/
+
+/-- 지역 변수에 구별되는 바깥 값을 준 빠른 거듭제곱 입력. -/
+def expInput (x n : Int) : State String :=
+  (State.const 19)["x" := x]["n" := n]["k" := (-7 : Int)]["z" := (23 : Int)]
+
+/-- 출력, 두 입력, 두 지역 변수의 최종 값을 한 번에 관찰한다. -/
+def expObserved (x n : Int) : Flat (Int × Int × Int × Int × Int) :=
+  (Examples.expProg.run 100 (expInput x n)).map
+    (fun σ => (σ "y", σ "x", σ "n", σ "k", σ "z"))
+
+#guard expObserved 0 0 == .some (1, 0, 0, -7, 23)
+#guard expObserved (-2) 3 == .some (-8, -2, 3, -7, 23)
+#guard expObserved (-2) 4 == .some (16, -2, 4, -7, 23)
+#guard expObserved 3 13 == .some (1594323, 3, 13, -7, 23)
+
+-- k=6이면 반감/제곱 가지, k=3이면 감소/누적 곱 가지를 선택한다.
+#guard (Examples.expBody.run 10
+    ((State.const 0)["k" := (6 : Int)]["z" := (-2 : Int)]["y" := (5 : Int)])).map
+    (fun σ => (σ "k", σ "z", σ "y")) == .some (3, 4, 5)
+#guard (Examples.expBody.run 10
+    ((State.const 0)["k" := (3 : Int)]["z" := (-2 : Int)]["y" := (5 : Int)])).map
+    (fun σ => (σ "k", σ "z", σ "y")) == .some (2, -2, -10)
+
+example : TotalCorrectS (fun σ => 0 ≤ σ "n") Examples.expProg
+    (fun τ => τ "y" = τ "x" ^ (τ "n").toNat) := Examples.exp_total_correct
+
+example : PartialCorrectS (fun σ => 0 ≤ σ "n") Examples.expProg
+    (fun τ => τ "y" = τ "x" ^ (τ "n").toNat) := Examples.exp_correct
 
 end
