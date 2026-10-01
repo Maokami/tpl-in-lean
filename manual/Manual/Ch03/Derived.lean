@@ -12,19 +12,23 @@ open Verso.Code.External
 set_option verso.exampleProject ".."
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Derived"
 
-#doc (Manual) "§3.7 더 많은 규칙" =>
+#doc (Manual) "§3.5 구조 규칙과 추가 의미 규칙" =>
 %%%
 tag := "ch03-derived"
 file := "ch03-derived"
 number := false
 %%%
 
-Reynolds가 §3.7에 모아 둔 규칙들을 여기서는 모두 _의미 수준에서_ 증명한다. `Hoare`에
-생성자를 더하지 않고도, 이미 타당한 명세들을 이어 붙이는 데 쓸 수 있다.
+CA·DA·CSP·CST는 Reynolds §3.5 p.68의 규칙이다. CA와 DA는 부분·전체 정확성
+체계의 생성자이고, `Semantic.lean`의 독립 연습에서 각 건전성을 증명한다.
+DA는 두 사후조건이 서로 달라도 쓸 수 있다. 결론의 사후조건은 둘의 선언이다.
 
-두 물음을 갈라 두어야 한다. 규칙이 _뜻으로 건전한가_와 규칙이 _체계 안에서 유도되는가_는
-다른 물음이다. 연언 규칙은 뜻으로는 자명하지만 `Hoare` 안에서 유도되는지는 자명하지 않다.
-두 유도를 하나로 합칠 규칙이 체계에 없기 때문이다. 이 간극을 메우는 것이 완전성이다(§3.10).
+CSP는 `{p} c {p}`를 명세 전제 없이 준다. `c`가 `p`의 자유 변수에 대입하지 않으면
+충분하다. 발산하는 명령에도 적용되므로 CSP만으로 종료를 주장할 수는 없다.
+CST는 `[p] c [q]`를 전제로 받아 `[p ∧ r] c [q ∧ r]`를 준다.
+부분 정확성의 같은 형태는 `Hoare.frame`에서 CSP와 CA로 유도한다(p.69).
+
+아래의 ∃·치환 규칙은 기존 의미 판 보충 자료다.
 
 # 상수 규칙
 %%%
@@ -35,7 +39,7 @@ number := false
 
 `c`가 _대입하지 않는_ 변수에 대한 주장은 `c`를 지나도 그대로다.
 
-````anchor constancy (module := Reynolds.Answers.Ch03.Derived)
+````anchor stmtConstancy (module := Reynolds.Answers.Ch03.Derived)
 /--
 **상수 규칙.** `c` 가 대입하지 않는 변수에 대한 주장은 `c` 를 지나도 그대로다.
 
@@ -48,14 +52,9 @@ number := false
 요구하는 것은 `FV(r)` 과 `FA(c)` 의 서로소다 — `c` 가 `r` 의 변수를 **읽는** 것은 괜찮다.
 명제 2.6(b) 가 `r` 의 변수가 안 변했음을, 명제 1.1 이 `r` 의 진릿값이 안 변했음을 준다.
 -/
-@[exercise "§3.7 constancy" 2]
+@[exercise "§3.5 constancy" 2]
 theorem constancy_sound {p q r : Assert V} {c : Comm V} (hr : Disjoint c.fa r.fv)
-    (h : ｛p｝c｛q｝) : ｛p ⋀ r｝c｛q ⋀ r｝ := by
-  intro σ hpr τ hτ
-  obtain ⟨hp, hrσ⟩ := (Assert.eval_and _ _ _).mp hpr
-  refine (Assert.eval_and _ _ _).mpr ⟨h σ hp τ hτ, ?_⟩
-  exact (coincidence_assert r σ τ fun w hw =>
-    (Comm.eval_agree_outside_fa c σ τ hτ w (Finset.disjoint_right.mp hr hw)).symm).mp hrσ
+    (h : ｛p｝c｛q｝) : ｛p ⋀ r｝c｛q ⋀ r｝
 ````
 
 §2.5에서 자유 변수를 _읽기_(`FV`)와 _쓰기_(`FA`)로 가른 이유가 여기서 드러난다. 요구하는

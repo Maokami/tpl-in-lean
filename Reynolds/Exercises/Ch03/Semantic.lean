@@ -13,7 +13,8 @@ public import Reynolds.Exercises.Ch03.Spec
 Reynolds §3.3–§3.5의 대입(AS), 순차 합성(SQ), 조건(CD), 부분 반복(WHP), 전체 반복(WHT), 변수 선언(DC), 이름 바꾸기(RN)를 다룬다.
 
 ## 이 파일에서 다루는 것
-부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD를 각각 한 연습으로 증명한다.
+부분·전체 정확성의 뜻을 직접 써서 AS·SQ·CD·SP·WC·CA·DA·CST를 독립 연습으로 증명한다.
+CSP는 종료 전제가 없는 부분 정확성 규칙으로 증명한다.
 WHP는 Scott 귀납법, WHT는 변항의 자연수 상계에 대한 귀납법으로 증명한다. 구문 규칙의 건전성은 이 정리들의 따름정리다.
 
 ## 핵심 아이디어
@@ -162,6 +163,70 @@ theorem TotalCorrectS.wh {I : State V → Prop} {E : State V → Int}
   -- 힌트 2: 조건이 거짓이면 즉시 종료한다. 참이면 비음수 조건과 엄격한 감소를 쓴다.
   -- 힌트 3: 본체 실행 전의 값을 `hbody (E σ)`에 넣는다. 마지막에는 상계
   --         `(E σ).toNat + 1`을 택한다. `omega`로 정수 부등식을 정리할 수 있다.
+  sorry
+
+
+/-- SP (§3.3 p.59). 더 강한 사전조건에서 원래 사전조건을 얻는다. -/
+@[exercise "§3.3 sp-sound" 1]
+theorem sp_sound {P P' Q : State V → Prop} {c : Comm V}
+    (hp : ∀ σ, P' σ → P σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P' c Q) ∧
+    (TotalCorrectS P c Q → TotalCorrectS P' c Q) := by
+  -- 힌트: 사전조건의 함의를 적용한다.
+  sorry
+
+
+/-- WC (§3.3 p.59). 종료 상태에서 사후조건의 함의를 적용한다. -/
+@[exercise "§3.3 wc-sound" 1]
+theorem wc_sound {P Q Q' : State V → Prop} {c : Comm V}
+    (hq : ∀ σ, Q σ → Q' σ) :
+    (PartialCorrectS P c Q → PartialCorrectS P c Q') ∧
+    (TotalCorrectS P c Q → TotalCorrectS P c Q') := by
+  -- 힌트: 종료 상태에 사후조건의 함의를 적용한다.
+  sorry
+
+
+/-- CA (§3.5 p.68). 두 전체 명세의 종료 상태는 같은 명령의 결과이므로 같다. -/
+@[exercise "§3.5 ca-sound" 2]
+theorem ca_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∧ P₁ σ) c (fun σ => Q₀ σ ∧ Q₁ σ)) := by
+  -- 힌트: 전체 판의 두 종료 상태가 같음을 Flat.some.inj로 보인다.
+  sorry
+
+
+/-- DA (§3.5 p.68). 사전조건의 어느 성분이 참인지에 따라 그 명세를 사용한다. -/
+@[exercise "§3.5 da-sound" 1]
+theorem da_sound {P₀ P₁ Q₀ Q₁ : State V → Prop} {c : Comm V} :
+    (PartialCorrectS P₀ c Q₀ → PartialCorrectS P₁ c Q₁ →
+      PartialCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) ∧
+    (TotalCorrectS P₀ c Q₀ → TotalCorrectS P₁ c Q₁ →
+      TotalCorrectS (fun σ => P₀ σ ∨ P₁ σ) c (fun σ => Q₀ σ ∨ Q₁ σ)) := by
+  -- 힌트: 사전조건의 선언을 경우로 나눈다.
+  sorry
+
+
+/-- CSP (§3.5 p.68). 명령이 쓰지 않는 자유 변수의 단언은 종료 시 보존된다.
+명세 전제는 없으며, 발산해도 부분 정확성에는 문제가 없다. -/
+@[exercise "§3.5 csp-sound" 2]
+theorem csp_sound {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) :
+    PartialCorrect p c p := by
+  -- 힌트: Comm.eval_agree_outside_fa와 coincidence_assert를 쓴다.
+  sorry
+
+
+/-- CST (§3.5 p.68). 전체 명세 전제에서 종료 상태를 얻고, 쓰이지 않는 단언을 보존한다.
+부분 판도 함께 증명한다. 두 성분 모두 다른 연습의 답 없이 풀 수 있다. -/
+@[exercise "§3.5 cst-sound" 2]
+theorem cst_sound {P Q : State V → Prop} {r : Assert V} {c : Comm V}
+    (hr : Disjoint c.fa r.fv) :
+    (PartialCorrectS P c Q →
+      PartialCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) ∧
+    (TotalCorrectS P c Q →
+      TotalCorrectS (fun σ => P σ ∧ r.eval σ) c (fun σ => Q σ ∧ r.eval σ)) := by
+  -- 힌트: 전제에서 종료 상태를 얻고 쓰이지 않는 단언을 보존한다.
   sorry
 
 

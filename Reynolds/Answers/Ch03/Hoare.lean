@@ -27,8 +27,8 @@ Reynolds §3.2(규칙의 모양)와 그 뒤 절들이 하나씩 내놓는 규칙
 **오라클로** 쓴다 — 그래서 완전성을 말할 때 "단언의 타당성에 상대적으로" 라는 단서가
 붙는다 (§3.10).
 
-Reynolds 는 결과 규칙을 둘로 나눈다 — 전제 강화와 결론 약화. 여기서는 하나로 합치고
-(`conseq`), 두 반쪽을 그것으로부터 유도한다 (`Hoare.strengthen`, `Hoare.weaken`).
+Reynolds의 SP와 WC를 각각 `strengthen`, `weaken` 생성자로 둔다.
+기존 `conseq`는 두 생성자를 차례로 적용한 유도 정리다.
 
 ## 읽는 순서
 `Spec.lean` → `Semantic.lean` → 이 파일 → `Soundness.lean` → `Assign.lean`.
@@ -110,24 +110,31 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
   /-- RN: 앞부분 뒤의 지역 결합 이름을 어느 방향으로든 바꾼다. -/
   | rename {p q : Assert V} {c c' : Comm V} :
       Comm.PrefixRename c c' → Hoare p c q → Hoare p c' q
-  /-- 결과 규칙. 사전조건을 강화하고 사후조건을 약화한다. -/
-  | conseq {p p' q q' : Assert V} {c : Comm V} :
-      Stronger p' p → Hoare p c q → Stronger q q' → Hoare p' c q'
+  /-- SP (§3.3 p.59). 사전조건을 강화한다. -/
+  | strengthen {p p' q : Assert V} {c : Comm V} :
+      Stronger p' p → Hoare p c q → Hoare p' c q
+  /-- WC (§3.3 p.59). 사후조건을 약화한다. -/
+  | weaken {p q q' : Assert V} {c : Comm V} :
+      Hoare p c q → Stronger q q' → Hoare p c q'
+  /-- CA (§3.5 p.68). 같은 명령의 두 명세를 연언으로 합친다. -/
+  | conj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ → Hoare (p₀ ⋀ p₁) c (q₀ ⋀ q₁)
+  /-- DA (§3.5 p.68). 서로 다른 사후조건도 선언으로 합친다. -/
+  | disj {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V} :
+      Hoare p₀ c q₀ → Hoare p₁ c q₁ →
+      Hoare (.bin .or p₀ p₁) c (.bin .or q₀ q₁)
+  /-- CSP (§3.5 p.68). 쓰이지 않는 변수의 단언은 종료한 실행에서 보존된다. -/
+  | constancy {p : Assert V} {c : Comm V} (hp : Disjoint c.fa p.fv) : Hoare p c p
 -- ANCHOR_END: hoare
 
-/-! ## 3. 결과 규칙의 두 반쪽
+/-! ## 3. 결과 규칙
 
-Reynolds 의 전제 강화·결론 약화는 `conseq` 의 한쪽을 항등으로 둔 것이다. -/
+전제 강화와 결론 약화를 이어 기존 `conseq`를 유도한다. -/
 
-/-- 전제 강화. Reynolds 의 "strengthening precedent". -/
-theorem Hoare.strengthen [HasFresh V] {p p' q : Assert V} {c : Comm V}
-    (hp : Stronger p' p) (h : Hoare p c q) : Hoare p' c q :=
-  Hoare.conseq hp h (Stronger.refl q)
-
-/-- 결론 약화. Reynolds 의 "weakening consequent". -/
-theorem Hoare.weaken [HasFresh V] {p q q' : Assert V} {c : Comm V}
-    (h : Hoare p c q) (hq : Stronger q q') : Hoare p c q' :=
-  Hoare.conseq (Stronger.refl p) h hq
+/-- SP와 WC를 차례로 적용한 결과 규칙. 기존 호출 형태를 보존한다. -/
+theorem Hoare.conseq [HasFresh V] {p p' q q' : Assert V} {c : Comm V}
+    (hp : Stronger p' p) (h : Hoare p c q) (hq : Stronger q q') : Hoare p' c q' :=
+  Hoare.weaken (Hoare.strengthen hp h) hq
 
 /-- 자유 변수가 아닌 이름의 갱신은 단언의 진릿값을 보존한다. -/
 theorem Assert.eval_update_of_notMem {q : Assert V} {v : V} (hq : v ∉ q.fv)

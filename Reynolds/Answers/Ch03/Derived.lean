@@ -8,28 +8,24 @@ module
 public import Reynolds.Answers.Ch03.Total
 
 /-!
-# §3.7 더 많은 규칙
+# §3.5 구조 규칙과 추가 의미 규칙
 
-Reynolds 가 §3.7 에 모아 둔 규칙들 — 상수 규칙, 연언·선언 규칙, 유령 변수의 ∃ 규칙, 치환
-규칙. 여기서는 모두 **의미 수준에서** 건전성을 증명한다. `Hoare` 에 생성자를 더하지 않고도
-타당한 명세끼리 조합하는 데 쓸 수 있다.
+Reynolds §3.5의 CA·DA·CSP·CST는 `Hoare`와 `HoareT`의 생성자다.
+이 파일은 부분 CST를 CSP·CA로 유도하고, 기존 의미 판 API를 제공한다.
 
-## 의미적으로 건전한 규칙과 체계에서 유도되는 규칙
-
-두 물음은 다르다. 연언 규칙은 뜻으로는 자명하지만 `Hoare` 안에서 유도되는지는 자명하지
-않다 — 두 유도를 하나로 합칠 규칙이 체계에 없다. 이 간극을 메우는 것이 완전성이고, §3.10
-에서 최약 사전조건으로 다룬다. 이 파일은 간극의 의미 쪽 절반이다.
+## 두 상수 규칙
+CSP는 명세 전제 없이 `{p} c {p}`를 준다. CST는 `[p] c [q]`라는 종료 전제를
+받아 `[p ∧ r] c [q ∧ r]`를 준다. 부분 CST는 CSP와 CA를 조합하면 된다(p.69).
 
 ## 앞 장의 정리가 하나씩
-
-- 상수 규칙 — 명제 2.6(b) (`Comm.eval_agree_outside_fa`) 와 명제 1.1. §2.5 에서 자유 변수를
-  **읽기**(`FV`)와 **쓰기**(`FA`)로 가른 이유가 여기서 드러난다.
-- ∃ 규칙 — 명제 2.6(a) (`Comm.coincidence_general`).
-- 치환 규칙 — 명제 2.7 의 **약한 판** (연습 2.8, `Ex.Comm.substitution_weak`) 과 명제 1.3
-  (`substitution_assert`). 2장에서 조건을 약화하라고 한 연습이 이 규칙을 위한 준비였다.
+- 상수 규칙은 명제 2.6(b)의 쓰기 집합과 명제 1.1의 단언 일치를 쓴다.
+- ∃ 규칙은 명제 2.6(a), 치환 규칙은 연습 2.8의 약한 치환 정리를 쓴다.
 
 ## 읽는 순서
-`Total.lean` → 이 파일.
+`Semantic.lean` → `Hoare.lean` → `Total.lean` → 이 파일.
+
+## 책과의 차이
+아래의 ∃·치환 규칙은 기존 의미 판 보충 자료다.
 -/
 
 @[expose] public section
@@ -44,7 +40,13 @@ variable {V : Type u} [DecidableEq V]
 
 /-! ## 1. 상수 규칙 -/
 
+/-- 부분 CST는 CA의 두 번째 전제로 CSP를 넣어 유도한다 (§3.5 p.69). -/
+theorem Hoare.frame [HasFresh V] {p q r : Assert V} {c : Comm V}
+    (hr : Disjoint c.fa r.fv) (h : Hoare p c q) : Hoare (p ⋀ r) c (q ⋀ r) :=
+  Hoare.conj h (Hoare.constancy hr)
+
 -- ANCHOR: constancy
+-- ANCHOR: stmtConstancy
 /--
 **상수 규칙.** `c` 가 대입하지 않는 변수에 대한 주장은 `c` 를 지나도 그대로다.
 
@@ -57,9 +59,11 @@ variable {V : Type u} [DecidableEq V]
 요구하는 것은 `FV(r)` 과 `FA(c)` 의 서로소다 — `c` 가 `r` 의 변수를 **읽는** 것은 괜찮다.
 명제 2.6(b) 가 `r` 의 변수가 안 변했음을, 명제 1.1 이 `r` 의 진릿값이 안 변했음을 준다.
 -/
-@[exercise "§3.7 constancy" 2]
+@[exercise "§3.5 constancy" 2]
 theorem constancy_sound {p q r : Assert V} {c : Comm V} (hr : Disjoint c.fa r.fv)
-    (h : ｛p｝c｛q｝) : ｛p ⋀ r｝c｛q ⋀ r｝ := by
+    (h : ｛p｝c｛q｝) : ｛p ⋀ r｝c｛q ⋀ r｝
+-- ANCHOR_END: stmtConstancy
+    := by
   intro σ hpr τ hτ
   obtain ⟨hp, hrσ⟩ := (Assert.eval_and _ _ _).mp hpr
   refine (Assert.eval_and _ _ _).mpr ⟨h σ hp τ hτ, ?_⟩
@@ -79,14 +83,15 @@ theorem conj_sound {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V}
   obtain ⟨hp₀, hp₁⟩ := (Assert.eval_and _ _ _).mp hp
   exact (Assert.eval_and _ _ _).mpr ⟨h₀ σ hp₀ τ hτ, h₁ σ hp₁ τ hτ⟩
 
-/-- **선언 규칙.** 사후조건이 같으면 사전조건을 선언으로 합친다. -/
-theorem disj_sound {p₀ p₁ q : Assert V} {c : Comm V}
-    (h₀ : ｛p₀｝c｛q｝) (h₁ : ｛p₁｝c｛q｝) : ｛Assert.bin .or p₀ p₁｝c｛q｝ := by
-  intro σ hp τ hτ
-  change ⟦p₀⟧ₐ σ ∨ ⟦p₁⟧ₐ σ at hp
-  rcases hp with hp | hp
-  · exact h₀ σ hp τ hτ
-  · exact h₁ σ hp τ hτ
+/-- DA. 사전조건과 서로 다른 사후조건을 각각 선언으로 합친다. -/
+theorem disj_sound {p₀ p₁ q₀ q₁ : Assert V} {c : Comm V}
+    (h₀ : ｛p₀｝c｛q₀｝) (h₁ : ｛p₁｝c｛q₁｝) :
+    ｛Assert.bin .or p₀ p₁｝c｛Assert.bin .or q₀ q₁｝ := da_sound.1 h₀ h₁
+
+/-- 사후조건이 같은 기존 선언 규칙은 DA 뒤 WC로 얻는다. -/
+theorem disj_same_sound {p₀ p₁ q : Assert V} {c : Comm V}
+    (h₀ : ｛p₀｝c｛q｝) (h₁ : ｛p₁｝c｛q｝) : ｛Assert.bin .or p₀ p₁｝c｛q｝ :=
+  (wc_sound (fun _ h => h.elim id id)).1 (da_sound.1 h₀ h₁)
 -- ANCHOR_END: conjDisj
 
 /-! ## 3. 유령 변수의 ∃ 규칙 -/
@@ -165,7 +170,7 @@ theorem subst_rule_sound [HasFresh V] {p q : Assert V} {c : Comm V} (δ : Ren V)
 
 /-! ## 5. 여기서 어디로 가나
 
-§3.8 · §3.9 의 예제는 이 규칙들 없이 `Hoare` 와 `HoareT` 만으로 간다. 이 파일의 규칙들이
-체계 안에서도 유도되는가 — 곧 `Hoare` 가 **완전**한가 — 는 §3.10 의 물음이다. -/
+CA·DA는 생성자이고 부분 CST는 위에서 유도했다.
+모든 타당한 명세에 유도가 있는지는 별도의 완전성 문제다. -/
 
 end Reynolds.Answers.Ch03
