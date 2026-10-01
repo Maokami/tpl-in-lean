@@ -1656,11 +1656,10 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem ras_complete [HasFresh V] {p q : Assert V} (v : V) (e : IntExp V)
     (l : List (V × IntExp V)) (h : PartialCorrect p (rasComm v e l) q) :
     Stronger p (rasPre q v e l) := by
-  -- 먼저 볼 것: `rasComm_eval`, `rasPre_iff` (둘 다 완성 자료다).
-  -- 힌트 1: `Stronger`를 펼쳐 σ, hp를 받는다.
-  -- 힌트 2: `rasPre_iff`로 목표를 `⟦q⟧ₐ (rasState v e l σ)`로 바꾼다.
-  -- 힌트 3: `rasComm_eval`이 주는 종료 증인 `rasComm v e l`의 결과를 `h`(PartialCorrect)에
-  --         넣으면 끝난다.
+  -- 먼저 볼 것: `rasComm_eval`(완성 자료), `rasState`, `substitution_single`(명제 1.4).
+  -- 힌트 1: 대입열은 늘 끝난다. `h`에 `rasComm_eval`을 넣으면 `rasState v e l σ`에서 `q`가 참이다.
+  -- 힌트 2: 남은 것은 `⟦rasPre q v e l⟧ₐ σ ↔ ⟦q⟧ₐ (rasState v e l σ)`다. `l`에 대한 귀납으로
+  --         보이되 머리 `v`, `e`를 일반화한다. 한 단계는 명제 1.4 한 번이다.
   sorry
 
 """,

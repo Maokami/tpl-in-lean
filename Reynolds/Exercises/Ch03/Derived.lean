@@ -28,8 +28,9 @@ CSP는 명세 전제 없이 `{p} c {p}`를 준다. CST는 `[p] c [q]`라는 종�
 `Semantic.lean` → `Hoare.lean` → `Total.lean` → 이 파일.
 
 ## 책과의 차이
-ISK·MSQₙ·RASₙ은 책의 유도 규칙 그대로다. 아래의 ∃·치환 규칙은 책에 없는 보충 자료다
-(각 절 첫머리에 책과의 관계를 적는다).
+ISK·RASₙ은 책의 유도 규칙 그대로다. MSQₙ은 `n = 1`(`Hoare.conseq`)과 `n = 2`(`Hoare.msq2`)만
+정리로 두고, 일반 `n`은 같은 겹을 반복한다는 설명으로 대신한다. 아래의 ∃·치환 규칙은 책에 없는
+보충 자료다(각 절 첫머리에 책과의 관계를 적는다).
 -/
 
 @[expose] public section
@@ -62,6 +63,9 @@ MSQ₁은 `p₀ ⇒ q₀`, `{q₀} c₀ {p₁}`, `p₁ ⇒ q₁`에서 `{p₀} c
 적용한 것과 글자 그대로 같으므로 이미 있는 `Hoare.conseq`(`HoareT.conseq`)가 그 이름이다.
 책은 MSQₙ을 MSQₙ₋₁에 SQ와 결과 규칙 한 겹을 더 둘러 귀납적으로 유도한다(가정이 있는
 증명의 예). 그 한 겹을 `n = 2`에서 직접 보인다 — 일반 n은 같은 겹을 반복할 뿐이다.
+
+**책과의 차이**: 책은 모든 `n ≥ 1`에 대해 MSQₙ을 유도한다. 여기서는 `n = 1, 2`만 정리로 둔다.
+전제를 교대로 늘어놓는 `n`항 진술은 Lean에서 읽기 어려운 모양이 되기 때문이다.
 -/
 
 /-- MSQ₂ (§3.3 p.60). MSQ₁(`Hoare.conseq`) 둘을 SQ로 잇는다. -/
@@ -124,31 +128,21 @@ theorem rasComm_eval (v : V) (e : IntExp V) :
       simp only [rasComm, rasState, Comm.eval, Flat.bind_some]
       exact rasComm_eval v' e' l (σ[v := ⟦e⟧ₑ σ])
 
-/-- RASₙ의 전제가 반복 치환과 같다는 것 — 명제 1.4(유한 치환)를 `l`을 따라 편 것. -/
-theorem rasPre_iff [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
-    ∀ (l : List (V × IntExp V)) (σ : State V), ⟦rasPre q v e l⟧ₐ σ ↔ ⟦q⟧ₐ (rasState v e l σ)
-  | [], σ => substitution_single q v e σ
-  | (v', e') :: l, σ => by
-      simp only [rasPre, rasState]
-      rw [substitution_single]
-      exact rasPre_iff q v' e' l (σ[v := ⟦e⟧ₑ σ])
-
 /--
 **RASₙ의 완전성 (§3.3 pp.61–62, ★★).** 책이 "건전할 뿐 아니라 완전하다"고 특별히 짚는
 유일한 유도 규칙이다 — 결론이 타당하면 전제도 타당하다. 대입열은 늘 끝나므로
 (`rasComm_eval`) `PartialCorrect`가 끝난 상태에서 사후조건을 주고, 그 상태에서 사후조건이
-참인 것은 반복 치환이 시작 상태에서 참인 것과 같다(`rasPre_iff`, 명제 1.4). 같은 장의
+참인 것은 반복 치환이 시작 상태에서 참인 것과 같다(명제 1.4를 대입 목록을 따라 편 것). 같은 장의
 채점 연습이나 `Hoare.sound`에는 기대지 않는다(연습 독립성 원칙).
 -/
 @[exercise "§3.3 ras-complete" 2]
 theorem ras_complete [HasFresh V] {p q : Assert V} (v : V) (e : IntExp V)
     (l : List (V × IntExp V)) (h : PartialCorrect p (rasComm v e l) q) :
     Stronger p (rasPre q v e l) := by
-  -- 먼저 볼 것: `rasComm_eval`, `rasPre_iff` (둘 다 완성 자료다).
-  -- 힌트 1: `Stronger`를 펼쳐 σ, hp를 받는다.
-  -- 힌트 2: `rasPre_iff`로 목표를 `⟦q⟧ₐ (rasState v e l σ)`로 바꾼다.
-  -- 힌트 3: `rasComm_eval`이 주는 종료 증인 `rasComm v e l`의 결과를 `h`(PartialCorrect)에
-  --         넣으면 끝난다.
+  -- 먼저 볼 것: `rasComm_eval`(완성 자료), `rasState`, `substitution_single`(명제 1.4).
+  -- 힌트 1: 대입열은 늘 끝난다. `h`에 `rasComm_eval`을 넣으면 `rasState v e l σ`에서 `q`가 참이다.
+  -- 힌트 2: 남은 것은 `⟦rasPre q v e l⟧ₐ σ ↔ ⟦q⟧ₐ (rasState v e l σ)`다. `l`에 대한 귀납으로
+  --         보이되 머리 `v`, `e`를 일반화한다. 한 단계는 명제 1.4 한 번이다.
   sorry
 
 
