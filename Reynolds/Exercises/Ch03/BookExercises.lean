@@ -42,7 +42,7 @@ variable {V : Type*} [DecidableEq V] [HasFresh V]
 -/
 @[exercise "Ex 3.5" 2]
 theorem ex_3_5 (c : Comm V) : HoareT .fls c .fls := by
-  -- 먼저 볼 것: `HoareT`의 생성자, `HoareT.conseq`, `Cslib.fresh_exists`.
+  -- 먼저 볼 것: `HoareT`의 생성자, `HoareT.conseq`, `HoareT.newvar_comp`, `Cslib.fresh_exists`.
   -- 힌트 1: `induction c`로 명령의 여섯 생성자를 나눈다.
   -- 힌트 2: while에는 불변식 false와 변항 0을 쓰고, b.fv ∪ c.fv 밖의 z를 고른다.
   -- 힌트 3: 본체 귀납 가설의 사전·사후조건은 SP와 WC로 조절한다.
