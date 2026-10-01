@@ -14,16 +14,21 @@ set_option verso.exampleProject ".."
 set_option maxHeartbeats 1000000
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Annot"
 
-#doc (Manual) "§3.4~3.5 주석 명세와 전체 정확성" =>
+#doc (Manual) "보충 주석 명세 · §3.4 전체 정확성" =>
 %%%
 tag := "ch03-annot"
 file := "ch03-annot"
 number := false
 %%%
 
-유도 나무는 금방 커진다. Reynolds는 그것을 명령 사이사이에 단언을 끼워 넣은 _주석
-명세_(annotated specification)로 줄여 적는다. 규칙이 스스로 정하지 못하는 것은 두 가지뿐이다.
-순차 합성의 _이음매_와 반복의 _불변식_이다. 나머지는 규칙이 계산한다.
+*책과의 관계*: Reynolds §3.2는 증명을 단언과 명세의 나열로 설명하지만(§3.3의 번호
+붙은 증명 예가 그 모양이다), 명령 사이사이에 단언을 끼워 넣는 아래 표기와 거기서
+검증 조건을 뽑는 `vcg`는 책에 없다 — 이 절은 그 아이디어를 형식화한 보충이다. 이어지는
+"전체 정확성" 절은 책 §3.4의 본문이다.
+
+유도 나무는 금방 커진다. 그 관찰을 명령 사이사이에 단언을 끼워 넣은 _주석
+명세_(annotated specification)로 줄여 적어 보자. 규칙이 스스로 정하지 못하는 것은 두
+가지뿐이다. 순차 합성의 _이음매_와 반복의 _불변식_이다. 나머지는 규칙이 계산한다.
 
 # 주석 명령
 %%%
@@ -105,7 +110,7 @@ def Annot.vcg [HasFresh V] : Annot V → Assert V → Assert V × List (Assert V
 도구가 하는 일의 축소판이다. 맞바꾸기에 주석을 달면 남는 일은 치환을 펼치는 것뿐이다.
 
 ```anchor swapAnnot (module := Reynolds.Answers.Ch03.Annot)
-/-- 주석 붙은 맞바꾸기. 이음매가 Reynolds §3.4 의 주석 그대로다. -/
+/-- 주석 붙은 맞바꾸기. 이음매가 이 파일 첫머리의 주석 그대로다. -/
 def swapAnnot : Annot String :=
   .seq (.assign "t" ⟪ x ⟫ₑ) (⟪ t = a ∧ y = b ⟫ₐ)
     (.seq (.assign "x" ⟪ y ⟫ₑ) (⟪ t = a ∧ x = b ⟫ₐ) (.assign "y" ⟪ t ⟫ₑ))

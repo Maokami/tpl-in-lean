@@ -31,17 +31,17 @@ public import Reynolds.Exercises.Ch03.Wlp
 
 ## 읽는 순서
 
-1. `Spec.lean` — §3.1 명세의 뜻, 부분과 전체, 극한을 통과함
+1. `Spec.lean` — §3.1 명세의 뜻, 부분과 전체, 극한을 통과함, (보충) 순서로 본 명세
 2. `Semantic.lean` — §3.3–§3.5 의미 판 AS·SQ·CD·WHP, 구문 규칙의 건전성에 앞선다
-3. `Hoare.lean` — §3.2~3.6 부분 정확성의 추론 규칙, 결과 규칙의 두 반쪽, 첫 유도
-4. `Soundness.lean` — §3.2~3.6 건전성 — 규칙마다 1·2장의 정리 하나
-5. `Assign.lean` — §3.3 대입 공리는 왜 거꾸로인가 — Floyd 의 앞으로 가는 판과 힘이 같다
-6. `Annot.lean` — §3.4 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
-7. `Total.lean` — §3.5 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
-8. `Derived.lean` — §3.7 상수 규칙, 연언·선언, ∃ 규칙, 치환 규칙 (연습 2.8 의 약한 조건)
+3. `Hoare.lean` — §3.2~3.5 부분 정확성의 추론 규칙, 결과 규칙의 두 반쪽, 첫 유도
+4. `Soundness.lean` — §3.2~3.5 건전성 — 규칙마다 1·2장의 정리 하나
+5. `Assign.lean` — §3.3 대입 공리는 왜 거꾸로인가, (보충) Floyd 의 앞으로 가는 판과 힘이 같다
+6. `Annot.lean` — (보충) 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
+7. `Total.lean` — §3.4 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
+8. `Derived.lean` — §3.3·§3.5 ISK·MSQₙ·RASₙ, 상수 규칙, 연언·선언, (보충) ∃·치환 규칙
 9. `Examples/Fib.lean` — §3.6 피보나치 — 불변식에 `Nat.fib`
 10. `Examples/FastExp.lean` — §3.7 빠른 거듭제곱 — 본체 계약에서 유도한 전체 정확성
-11. `Wlp.lean` — §3.10 wlp 는 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성
+11. `Wlp.lean` — (보충) wlp 는 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성
 12. `BookExercises.lean` — 책 연습 3.5(`[false] c [false]` 의 유도)와 3.11(단사 치환)
 
 ## 책과의 차이

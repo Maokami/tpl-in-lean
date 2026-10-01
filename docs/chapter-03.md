@@ -2,13 +2,12 @@
 
 > Reynolds, *Theories of Programming Languages*, Chapter 3
 > §3.1 Syntax and Semantics of Specifications · §3.2 Inference Rules
-> §3.3 Rules for Assignment and Sequential Composition · §3.4 More about Annotated Specifications
-> §3.5 Specifications and Rules for while Commands · §3.6 Rules for Variable Declarations
-> §3.7 Further Inference Rules · §3.8 Computing Fibonacci Numbers · §3.9 Fast Exponentiation
-> §3.10 Complications and Limitations
+> §3.3 Rules for Assignment and Sequential Composition · §3.4 Rules for while Commands
+> §3.5 Further Rules · §3.6 Computing Fibonacci Numbers
+> §3.7 Fast Exponentiation · §3.8 Complications and Limitations
 >
-> 절 번호와 제목은 기억에 따른 재구성이다. 책과 대조해서 어긋나면 이 문서를 고친다.
-> 연습문제 매핑 표는 책의 목록을 받은 뒤 채운다.
+> 절 번호와 제목은 책과 대조함(PDF 쪽·OCR 확인 완료). 책에 없는 내용(주석 명세·VCG,
+> Floyd의 앞으로 가는 대입, ∃ 규칙, wp/wlp와 완전성)은 본문에서 **보충**으로 표시한다.
 
 ## 이 장의 위치
 
@@ -30,6 +29,7 @@
 | 변수 선언 규칙 | 명제 1.1 (`coincidence_assert`) + `restore` |
 | 상수 규칙 CSP·CST (§3.5) | 명제 2.6(b) (`eval_agree_outside_fa`) + 명제 1.1 |
 | 치환 규칙 (보충 — 책 연습 3.11 의 변형) | 명제 2.7 — **연습 2.8 의 약한 조건**으로 |
+| RASₙ 의 완전성 (§3.3) | 명제 1.4 (유한 치환) — `Hoare.sound`·다른 채점 연습에 기대지 않는다 |
 
 2장에서 만든 것 중 이 장에서 처음으로 값을 하는 것이 둘 있다. 연습 2.8 의 약한 치환
 정리와, §2.4 의 Scott 귀납법이다. 특히 후자는 Reynolds 가 §2.4 에서 이름 붙이지 않고
@@ -45,8 +45,8 @@
 | 결과 규칙의 전제 | 단언의 **타당성**(`Stronger`)을 그대로 전제로 받는다. 단언 논리에 대한 오라클 (아래 ★) |
 | 전체 정확성 | 별도 체계 `HoareT`. `while` 규칙만 다르고 그 건전성은 정초 귀납이다 |
 | 완전성 | 전체는 증명하지 않는다 (표현력 문제). `while` 없는 조각에 대해서만 wp 계산으로 증명 |
-| 주석 명세 (§3.4) | `Hoare` 유도 나무가 곧 주석 명세다. 검증 조건 생성기(VCG)는 심화 |
-| 예제의 불변식이 `Assert` 로 안 적히면 | 의미 단언으로 쓴다. 그것이 §3.10 표현력 논점의 실물이다 |
+| 주석 명세 (보충 — 책에 없음) | `Hoare` 유도 나무가 곧 주석 명세다. 검증 조건 생성기(VCG)는 심화 |
+| 예제의 불변식이 `Assert` 로 안 적히면 | 의미 단언으로 쓴다. 그것이 보충(`Wlp.lean`) 표현력 논점의 실물이다 |
 
 ---
 
@@ -54,17 +54,17 @@
 
 | 파일 | 책 | 내용 |
 |---|---|---|
-| `Ch03/Spec.lean` | §3.1 | `Sat`, `PartialCorrect(S)`, `TotalCorrect(S)`, 표기, 허용 가능성, 둘의 관계 |
-| `Ch03/Hoare.lean` | §3.2–3.6 | `Hoare`: SP·WC·CA·DA·CSP 생성자, 유도 규칙 `conseq`, 첫 유도 |
-| `Ch03/Soundness.lean` | §3.2–3.6 | 규칙마다 건전성, `Hoare.sound` |
-| `Ch03/Assign.lean` | §3.3 | 대입 공리가 거꾸로인 이유 — Floyd 의 앞으로 가는 판과 힘이 같다 |
-| `Ch03/Annot.lean` | §3.4 | 주석 명령과 검증 조건 생성기 `vcg`, `Annot.vcg_sound` |
-| `Ch03/Total.lean` | §3.5 | `inductive HoareT` 와 `HoareT.sound`, 변항과 정초 귀납 |
-| `Ch03/Derived.lean` | §3.5·보충 | 부분 CST 유도(CSP·CA), 의미 판 CA·DA, ∃·치환 보충 규칙 |
+| `Ch03/Spec.lean` | §3.1·보충 | `Sat`, `PartialCorrect(S)`, `TotalCorrect(S)`, 표기, 허용 가능성, 둘의 관계, 보충 순서 판(식 3.1·3.2) |
+| `Ch03/Hoare.lean` | §3.2–3.5 | `Hoare`: SP·WC·CA·DA·CSP 생성자, 유도 규칙 `conseq`, 첫 유도 |
+| `Ch03/Soundness.lean` | §3.2–3.5 | 규칙마다 건전성, `Hoare.sound` |
+| `Ch03/Assign.lean` | §3.3·보충 | 대입 공리가 거꾸로인 이유 — 보충인 Floyd 의 앞으로 가는 판과 힘이 같다 |
+| `Ch03/Annot.lean` | 보충 | 주석 명령과 검증 조건 생성기 `vcg`, `Annot.vcg_sound`(책에 없음) |
+| `Ch03/Total.lean` | §3.4 | `inductive HoareT` 와 `HoareT.sound`, 변항과 정초 귀납 |
+| `Ch03/Derived.lean` | §3.3·§3.5·보충 | ISK·MSQₙ·RASₙ 유도, 부분 CST 유도(CSP·CA), ∃·치환 보충 규칙 |
 | `Ch03/Semantic.lean` | §3.3–§3.5 | AS·SQ·SP·WC·CA·DA·CSP·CST·DC·RN·WHP·WHT의 독립 건전성 연습 |
-| `Ch03/Examples/Fib.lean` | §3.8 | 피보나치 — 의미 단언으로 끝까지 |
+| `Ch03/Examples/Fib.lean` | §3.6 | 피보나치 — 의미 단언으로 끝까지 |
 | `Ch03/Examples/FastExp.lean` | §3.7 | 본체 계약에서 유도한 빠른 거듭제곱의 전체 정확성 |
-| `Ch03/Wlp.lean` | §3.10 | 의미적 wlp 와 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성, 한계 |
+| `Ch03/Wlp.lean` | 보충 | 의미적 wlp 와 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성 — 책은 wp 를 7장에서 다룬다 |
 
 > 구현하며 바뀐 점: `Semantic.lean` 을 따로 두었고, 계획의 `Limits.lean` 은 `Wlp.lean` 의
 > 모듈 문서에 합쳤다. 피보나치도 의미 단언으로 갔다 (`fib` 는 `Assert` 에 없다). 책 연습
@@ -131,13 +131,13 @@ theorem partial_and_halts_iff_total :
 `Σ⊥` 가 평평하므로 극한은 사슬의 어느 항과 같다 (§2.3 의 `Chain.flat_lub_mem_range`).
 그 항에서 성립하던 것이 극한에서도 성립한다. §2.4 의 말로 부분 정확성은 **허용
 가능(admissible)** 하고, 그래서 Scott 귀납법을 쓸 수 있다. `while` 규칙의 건전성이
-정확히 그 자리다 (§3.5).
+정확히 그 자리다 (§3.4).
 
 전체 정확성도 극한을 통과한다. 평평한 사슬의 극한은 어느 항과 같으므로, 모든 항이
 "끝나고 `q`"를 만족했다면 극한도 그렇다. 차이는 시작점이다. 사전조건을 만족하는 상태가
 있으면 `⊥`는 끝나지 않으므로 전체 정확성을 만족하지 않는다. 따라서 `while`의 근사열에
 Scott 귀납법을 적용할 때 필요한 시작 조건이 막힌다. 전체 정확성의 `while` 규칙은
-종료를 보이는 **정초 귀납**을 쓴다 — 단계를 세는 측도가 규칙에 들어온다 (변항, §3.5).
+종료를 보이는 **정초 귀납**을 쓴다 — 단계를 세는 측도가 규칙에 들어온다 (변항, §3.4).
 
 > 2장의 두 귀납 원리가 3장에서 각각 한 규칙씩 받친다. Scott 귀납법은 부분 정확성을,
 > 측도 귀납은 전체 정확성을. 2장에서 `while` 을 다룰 때 두 원리를 번갈아 썼던 것이
@@ -165,7 +165,7 @@ theorem PartialCorrect_iff : PartialCorrect p c q ↔ PartialCorrectS ⟦p⟧ₐ
   거듭제곱이 드는데, 1장의 `IntExp` 에는 `+`·`-`·`×` 뿐이다. `Assert` 로 못 적는다.
   의미 단언 `fun σ => σ y * σ x ^ (σ k).toNat = ...` 은 적을 수 있다.
 
-두 번째가 §3.10 의 **표현력** 논점의 실물이다. 단언 언어가 필요한 불변식을 적을 만큼
+두 번째가 보충(`Wlp.lean`)의 **표현력** 논점의 실물이다. 단언 언어가 필요한 불변식을 적을 만큼
 풍부해야 완전성이 서는데, 우리 `Assert` 는 그 정도가 아니다. 그것을 억지로 감추지 않고
 "이 예제는 의미 단언으로 한다" 고 드러내는 편이 배우는 데 낫다.
 
@@ -181,7 +181,7 @@ theorem PartialCorrect_iff : PartialCorrect p c q ↔ PartialCorrectS ⟦p⟧ₐ
 
 ### 명세의 자유 변수
 
-`FV({p} c {q}) = FV(p) ∪ FV(c) ∪ FV(q)` 다. §3.6 의 변수 선언 규칙과 §3.7 의 치환 규칙이
+`FV({p} c {q}) = FV(p) ∪ FV(c) ∪ FV(q)` 다. §3.5 의 변수 선언 규칙과 보충 치환 규칙이
 이것을 쓴다. 2장의 `Comm.fv` 와 1장의 `Assert.fv` 를 합치면 끝이라 새로 만들 것은 없다.
 
 ---
@@ -260,7 +260,7 @@ CA·DA는 두 명세를 연언·선언으로 합치며, CSP는 명세 전제 없
 이 선택이 이 장 전체의 성격을 정한다. Hoare 논리는 단언 논리를 **오라클로 쓴다.**
 "`p'` 가 `p` 보다 강하다" 를 누가 어떻게 확인하느냐는 Hoare 논리의 관심 밖이다. 그래서
 Hoare 논리의 완전성을 말할 때 "단언의 타당성에 상대적으로(relative to)" 라는 단서가
-붙는다 — Cook 의 상대 완전성이다 (§3.10).
+붙는다 — Cook 의 상대 완전성이다 (보충 `Wlp.lean`).
 
 1장 §1.3 에서 `∀`-도입이 규칙이지 함의가 아니라고 했던 것과 같은 결의 구분이다. 규칙의
 전제는 메타 수준의 사실이고 `⇒` 는 객체 언어 안의 연결사다. `conseq` 의 전제도 메타
@@ -276,7 +276,7 @@ theorem Hoare.sound {p q : Assert V} {c : Comm V} : Hoare p c q → PartialCorre
 ```
 
 `Hoare` 에 대한 구조적 귀납이고, 절마다 쓰는 정리가 정해져 있다. 이 장 서두의 표가
-그 대응이다. 각 절을 §3.3 · §3.5 · §3.6 에서 따로 본다.
+그 대응이다. 각 절을 §3.3 · §3.4 · §3.5 에서 따로 본다.
 
 **건전성은 규칙마다 독립이다.** 한 규칙의 건전성이 다른 규칙의 건전성에 기대지 않는다.
 그래서 `Hoare.sound` 의 각 절을 따로 떼어 정리로 두고 (`assign_sound`, `wh_sound`, …)
@@ -310,7 +310,8 @@ theorem assign_sound (q : Assert V) (v : V) (e : IntExp V) :
 있었다** 고 해도 지나치지 않다. 포획 회피가 왜 필요했는지도 여기서 다시 보인다 —
 `q` 에 `∃y. …` 가 있고 `e` 에 `y` 가 자유로우면 순진한 치환은 틀린 사전조건을 만든다.
 
-앞으로 가는 판도 있다 (Floyd).
+앞으로 가는 판도 있다 (Floyd, 보충). 책 §3.8 참고문헌은 Floyd[1967]를 이름으로만
+인용한다 — 본문에 이 규칙을 적지 않는다.
 
 ```
 { p } v := e { ∃ v₀. p/v→v₀ ∧ v = e/v→v₀ }
@@ -326,7 +327,7 @@ theorem assign_forward_sound (p : Assert V) (v v₀ : V) (e : IntExp V)
     PartialCorrect p (.assign v e)
       (.quant .ex v₀ ((p /[v := .var v₀]) ⋀ (.cmp .eq (.var v) (e /[v := .var v₀]))))
 
-/-- 둘 중 하나로 다른 하나를 유도할 수 있다. 결과 규칙과 §3.7 의 ∃ 규칙이 든다. -/
+/-- 둘 중 하나로 다른 하나를 유도할 수 있다. 결과 규칙과 보충 ∃ 규칙이 든다. -/
 theorem assign_forward_derivable : ...
 ```
 
@@ -345,16 +346,20 @@ theorem assign_forward_derivable : ...
 어느 쪽이든 발산하면 공허하다.
 
 가운데 단언 `r` 은 규칙에 **주어지지 않는다.** 유도하는 사람이 골라야 한다. 이것이
-§3.4 주석 명세의 핵심이다 — 주석은 이 `r` 들을 적어 둔 것이다.
+보충 주석 명세의 핵심이다 — 주석은 이 `r` 들을 적어 둔 것이다.
 
 `skip` 규칙 `{p} skip {p}` 는 정의 그대로다.
 
 ---
 
-## §3.4 주석 명세
+## 보충 — 주석 명세
 
-`{p} c {q}` 의 유도 나무는 크다. Reynolds 는 그것을 **명령 안에 단언을 끼워 넣은** 모양으로
-줄여 적는다.
+**책과의 관계**: Reynolds §3.2는 증명을 단언과 명세의 나열로 설명하지만(§3.3의 번호
+붙은 증명 예가 그 모양이다), 명령 안에 단언을 끼워 넣는 아래 표기와 거기서 검증
+조건을 뽑는 `vcg`는 책에 없다. 이 절 전체가 그 아이디어를 형식화한 보충이다.
+
+`{p} c {q}` 의 유도 나무는 크다. 그 관찰을 **명령 안에 단언을 끼워 넣은** 모양으로
+줄여 적어 보자.
 
 ```
 { x = a ∧ y = b }
@@ -372,7 +377,7 @@ y := t
 ### 설계 — 유도 나무가 곧 주석이다
 
 가장 값싼 길: `Hoare` 의 항 자체가 주석 명세다. Lean 의 `Hoare.seq (Hoare.assign _ _ _)
-(Hoare.assign _ _ _)` 를 읽으면 이음매가 보인다. 예제(§3.8, §3.9)는 이 길로 간다.
+(Hoare.assign _ _ _)` 를 읽으면 이음매가 보인다. 예제(§3.6, §3.7)는 이 길로 간다.
 
 ### 심화 — 검증 조건 생성기
 
@@ -401,12 +406,12 @@ theorem Annot.vcg_sound (a : Annot V) (q : Assert V) :
 
 `vcg` 는 대입에서 치환하고, 순차 합성에서 이음매를 쓰고, 반복에서 불변식으로 사전조건을
 바꾸며 `i ∧ b ⇒ …` 꼴 의무를 남긴다. 실제 검증 도구(Dafny, Why3)가 하는 일의 축소판이다.
-분량이 있으므로 **선택**이다. 하되, 이것이 있으면 §3.8·§3.9 의 예제가 "부등식 몇 개를
+분량이 있으므로 **선택**이다. 하되, 이것이 있으면 §3.6·§3.7 의 예제가 "부등식 몇 개를
 `omega` 로 닫는다" 로 줄어든다.
 
 ---
 
-## §3.5 `while` 규칙
+## §3.4 `while` 규칙
 
 ### 부분 정확성 — 불변식
 
@@ -446,7 +451,7 @@ theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
 원리를 세 번째로 쓰는 셈이고, 이번에는 성질이 두 상태의 관계가 아니라 **한 상태의
 술어**라 더 단순하다.
 
-> Reynolds 는 §2.4 에서 이 원리에 이름을 붙이지 않았다. 그러나 §3.5 의 `while` 규칙이
+> Reynolds 는 §2.4 에서 이 원리에 이름을 붙이지 않았다. 그러나 §3.4 의 `while` 규칙이
 > 건전하다는 것을 그가 어떻게 논증하든, 그 논증은 근사 `Fⁿ(⊥)` 에 대한 귀납과 극한으로의
 > 이행이고, 그것이 Scott 귀납법이다. 2장에서 이름을 붙여 둔 덕에 3장에서 한 줄로 부른다.
 
@@ -461,7 +466,7 @@ theorem wh_sound {i : Assert V} {b : BoolExp V} {c : Comm V}
 `e`가 **변항**(variant)이다. 본체를 시작할 때 비음수이고 실행할 때마다 엄격히 줄어든다.
 조건이 거짓이 된 최종 상태에서는 변항이 음수여도 된다.
 `z` 는 한 바퀴 시작 때의 `e` 값을 붙들어 두는 신선한 변수다 — "줄었다" 를 말하려면 전과
-후를 비교해야 하고, 그러려면 전의 값을 어딘가에 기억해야 한다. 유령 변수(§3.10)의 첫 등장이다.
+후를 비교해야 하고, 그러려면 전의 값을 어딘가에 기억해야 한다. 유령 변수(§3.4 p.64)의 첫 등장이다.
 
 Reynolds §3.4 p64의 규칙이다. 변항은 정수 식이며 `i ∧ b ⇒ 0 ≤ e`가 별도 전제다.
 `whT_sound`는 이 구문 계약을 유지하는 제공 정리이고, 채점 연습은 의미 판에 둔다.
@@ -647,7 +652,11 @@ newvar k := n in newvar z := x in
 
 ---
 
-## §3.10 복잡한 점과 한계
+## 보충 — 최약 사전조건과 완전성
+
+**책과의 관계**: Reynolds는 최약 사전조건 `wp`를 이 장이 아니라 7장에서 형식화한다.
+3장 §3.8의 참고문헌은 완전성 논의를 Loeckx 등[1987]과 7장의 `wp`로 미룰 뿐, 본문에서
+다루지 않는다. 아래는 그 논의를 미리 당긴 보충이다.
 
 ### ★ 완전성은 조건부다
 
@@ -754,10 +763,9 @@ Reynolds §3.8(pp.74–76)의 학습 페이지는
 
 ## 연습문제 매핑
 
-현재 본문 규칙과 선택한 책 문제의 채점 연습은 28개다. 책의 모든 연습을 Lean 과제로
-옮기는 목표는 두지 않는다. 책 연습 3.5·3.9·3.11, 그리고 SP·WC 와 §3.5 구조 규칙 여섯이
-들어 있다. `(보충)` 은 책 본문에 없는 저장소 확장이다. 아래 id 의 절 번호 일부(§3.7 이후,
-§3.10)는 아직 옛 번호이며, 3장 문서 정리에서 책의 8절 번호로 바꾼다.
+현재 본문 규칙과 선택한 책 문제의 채점 연습은 29개다. 책의 모든 연습을 Lean 과제로
+옮기는 목표는 두지 않는다. 책 연습 3.5·3.9·3.11, RASₙ의 완전성, 그리고 SP·WC 와 §3.5
+구조 규칙 여섯이 들어 있다. `보충`으로 시작하는 id는 책 본문에 없는 저장소 확장이다.
 
 | 연습 | 내용 | 별점 |
 |---|---|---|
@@ -768,11 +776,12 @@ Reynolds §3.8(pp.74–76)의 학습 페이지는
 | `§3.3 sq-sound` | 의미 단언 SQ의 부분·전체 정확성 | ★ |
 | `§3.3 sp-sound` | 사전조건 강화 SP의 부분·전체 정확성 | ★ |
 | `§3.3 wc-sound` | 사후조건 약화 WC의 부분·전체 정확성 | ★ |
-| `§3.3 assign-forward` | (보충) 앞으로 가는 대입 규칙의 건전성 | ★★ |
-| `§3.3 backward-of-forward` | (보충) Floyd 의 사후조건에서 `q` 로 돌아온다 | ★★ |
+| `§3.3 ras-complete` | RASₙ의 완전성 — 결론이 타당하면 전제도 타당하다 | ★★ |
+| `보충 assign-forward` | 앞으로 가는 대입 규칙의 건전성 | ★★ |
+| `보충 backward-of-forward` | Floyd 의 사후조건에서 `q` 로 돌아온다 | ★★ |
 | `§3.4 whp-sound` | 의미 단언 WHP — 근사에 대한 귀납 | ★★★ |
 | `§3.4 wht-sound` | 의미 단언 WHT — 변항 귀납 | ★★★ |
-| `§3.4 vcg-sound` | (보충) 검증 조건 생성기의 건전성 | ★★★ |
+| `보충 vcg-sound` | 검증 조건 생성기의 건전성 | ★★★ |
 | `§3.5 cd-sound` | 의미 단언 CD의 부분·전체 정확성 | ★ |
 | `Ex 3.9 dc-sound` | DC의 부분·전체 건전성 — 사후조건 지역성 | ★★ |
 | `§3.5 rn-sound` | RN의 부분·전체 건전성 — 명령 앞부분 판 | ★★ |
@@ -781,12 +790,12 @@ Reynolds §3.8(pp.74–76)의 학습 페이지는
 | `§3.5 csp-sound` | CSP — 부분 정확성의 상수 공리 | ★★ |
 | `§3.5 cst-sound` | CST — 전체 정확성의 상수 규칙 | ★★ |
 | `§3.5 constancy` | 부분 정확성에서 CST 모양의 상수 규칙 | ★★ |
-| `§3.7 ghost-exists` | (보충) ∃ 규칙 — 명제 2.6(a) | ★★ |
-| `§3.7 subst-rule` | (보충) 치환 규칙 — 연습 2.8 의 약한 조건 | ★★★ |
+| `보충 ghost-exists` | ∃ 규칙 — 명제 2.6(a) | ★★ |
+| `보충 subst-rule` | 치환 규칙 — 연습 2.8 의 약한 조건 | ★★★ |
 | `§3.6 fib-step` | 피보나치 한 바퀴의 산술 | ★★ |
 | `§3.7 fastexp-even` | 짝수 반감이 누적 곱을 보존하고 지수를 줄인다 | ★★ |
-| `§3.10 wp-sound` | (보충) 구문적 wp 의 건전성 | ★★ |
-| `§3.10 wp-weakest` | (보충) 구문적 wp 가 최약임 | ★★★ |
+| `보충 wp-sound` | 구문적 wp 의 건전성 | ★★ |
+| `보충 wp-weakest` | 구문적 wp 가 최약임 | ★★★ |
 | `Ex 3.5` | 모든 명령에서 `[false] c [false]` 를 `HoareT` 로 유도 | ★★ |
 | `Ex 3.11` | 단사 치환은 전체 정확성을 보존한다, 합치는 치환의 반례 | ★★ |
 

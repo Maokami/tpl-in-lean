@@ -12,7 +12,7 @@ open Verso.Code.External
 set_option verso.exampleProject ".."
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Hoare"
 
-#doc (Manual) "§3.2~3.6 추론 규칙과 건전성" =>
+#doc (Manual) "§3.2~3.5 추론 규칙과 건전성" =>
 %%%
 tag := "ch03-rules"
 file := "ch03-rules"
@@ -103,7 +103,9 @@ inductive Hoare [HasFresh V] : Assert V → Comm V → Assert V → Prop where
 
   전제 `Stronger p' p`는 `∀ σ, ⟦p'⟧ σ → ⟦p⟧ σ`다. 단언 사이의 함의가 _타당하다_는 의미적
   사실이고, 1장의 `Proof`로 증명했다는 뜻이 아니다. Hoare 논리는 단언 논리를 _오라클_로
-  쓴다. 완전성을 말할 때 "단언의 타당성에 상대적으로"라는 단서가 붙는 이유다(§3.10).
+  쓴다. 완전성을 말할 때 "단언의 타당성에 상대적으로"라는 단서가 붙는 이유다(책은
+  완전성을 §3.8 참고문헌에서 7장의 `wp`로 미루고 본문에서 다루지 않는다; 보충
+  `Wlp.lean`에서 미리 본다).
 
 SP와 WC는 각각 생성자이고, `conseq`는 두 규칙을 이어 만든 제공 정리다.
 다음 여섯 연습은 서로의 풀이에 의존하지 않는다.
@@ -181,6 +183,71 @@ theorem incr_hoare : Hoare (⟪ x = 1 ⟫ₐ) ⟪ x := x + 1 ⟫ᶜ (⟪ x = 2 �
   simp [Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, IntOp.denote, Cmp.denote] at h ⊢
   omega
 ```
+
+# 유도 규칙 — ISK · MSQₙ · RASₙ
+%%%
+tag := "ch03-derived-rules"
+file := "ch03-derived-rules"
+number := false
+%%%
+
+SK와 SP만으로도 한 줄짜리 파생 규칙이 나온다.
+
+```anchor isk (module := Reynolds.Answers.Ch03.Derived)
+/-- **ISK (§3.5 p.66).** SK `{q} skip {q}`에 SP를 적용한다 — `q`를 `p ⇒ q`로 강화한다. -/
+theorem Hoare.isk [HasFresh V] {p q : Assert V} (h : Stronger p q) : Hoare p .skip q :=
+  Hoare.strengthen h (Hoare.skip q)
+```
+
+MSQₙ(§3.3 pp.60–61)은 순차 합성 n개를 결과 규칙으로 잇는 가족이다. MSQ₁은 `p₀ ⇒ q₀`,
+`{q₀} c₀ {p₁}`, `p₁ ⇒ q₁`에서 `{p₀} c₀ {q₁}`를 내는데, 이미 있는 `Hoare.conseq`와 글자
+그대로 같다. 책은 MSQₙ을 MSQₙ₋₁에 SQ와 결과 규칙 한 겹을 더 둘러 유도한다(가정 있는
+증명의 예) — 그 한 겹을 `n = 2`에서 직접 보인다.
+
+```anchor stmtMsq2 (module := Reynolds.Answers.Ch03.Derived)
+/-- MSQ₂ (§3.3 p.60). MSQ₁(`Hoare.conseq`) 둘을 SQ로 잇는다. -/
+theorem Hoare.msq2 [HasFresh V] {p₀ q₀ p₁ q₁ p₂ q₂ : Assert V} {c₀ c₁ : Comm V}
+    (h₀ : Stronger p₀ q₀) (hc₀ : Hoare q₀ c₀ p₁) (h₁ : Stronger p₁ q₁)
+    (hc₁ : Hoare q₁ c₁ p₂) (h₂ : Stronger p₂ q₂) : Hoare p₀ (.seq c₀ c₁) q₂
+```
+
+힌트: MSQ₁(`Hoare.conseq h₀ hc₀ h₁`)로 왼쪽 명령을 `{p₀} c₀ {q₁}`까지 올리고, WC
+(`Hoare.weaken hc₁ h₂`)로 오른쪽을 `{q₁} c₁ {q₂}`까지 내린 뒤 SQ로 잇는다. 일반 n은 같은
+겹을 반복할 뿐이다.
+
+RASₙ(§3.3 pp.61–62)은 대입만 늘어선 명령 `v₀ := e₀ ; ⋯ ; vₙ₋₁ := eₙ₋₁`의 전제를 반복
+치환 하나로 압축한다. 대입 목록은 머리 `(v, e)`와 꼬리로 나눠 `rasComm`·`rasPre`로 적는다
+— 꼬리부터 치환해 머리로 돌아오면 책의 `(⋯(q/vₙ₋₁→eₙ₋₁)⋯)/v₀→e₀`다.
+
+```anchor rasComm (module := Reynolds.Answers.Ch03.Derived)
+omit [DecidableEq V] in
+/-- RASₙ이 대입하는 명령. `Comm.seqs`처럼 머리를 앞에 두고 꼬리로 재귀한다. -/
+def rasComm (v : V) (e : IntExp V) : List (V × IntExp V) → Comm V
+  | [] => .assign v e
+  | (v', e') :: l => .seq (.assign v e) (rasComm v' e' l)
+```
+
+```anchor rasPre (module := Reynolds.Answers.Ch03.Derived)
+/-- RASₙ의 전제가 반복하는 치환. -/
+def rasPre [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
+    List (V × IntExp V) → Assert V
+  | [] => q /[v := e]
+  | (v', e') :: l => (rasPre q v' e' l) /[v := e]
+```
+
+```anchor stmtHoareRas (module := Reynolds.Answers.Ch03.Derived)
+/-- **RASₙ의 건전성 (§3.3 p.61).** AS를 n번, SQ를 n−1번 쓴다. -/
+theorem Hoare.ras [HasFresh V] (q : Assert V) (v : V) (e : IntExp V) :
+    ∀ l : List (V × IntExp V), Hoare (rasPre q v e l) (rasComm v e l) q
+```
+
+힌트: 꼬리가 비면 AS 하나(`Hoare.assign`). 아니면 AS로 머리 대입을 올리고 — 사후조건은
+바로 꼬리의 `rasPre` — SQ로 꼬리의 재귀 호출에 잇는다.
+
+책은 RASₙ을 "건전할 뿐 아니라 완전하다"고 특별히 짚는다 — 결론이 타당하면 전제도
+타당하다는 뜻이다. 그 완전성이 새 채점 연습 `§3.3 ras-complete`다(`Derived.lean`).
+`ReynoldsTests/Ch03.lean`이 책 p.61의 예 `{y > 3} x := 2×y; x := x−y {x ≥ 4}`를
+`Hoare.ras`로 회귀 검사한다.
 
 # 규칙마다 앞 장의 정리 하나
 %%%
@@ -284,7 +351,7 @@ theorem rn_sound [HasFresh V] (p q : Assert V) {c c' : Comm V}
 그 명령을 RN으로 `x`로 바꾸면 바깥 `x = 0`을 유지하는 원래 명세를 얻는다.
 `ReynoldsTests/Ch03.lean`은 이 유도를 부분·전체 정확성에서 각각 검사한다.
 
-**책과의 차이**: 책의 RN은 단언과 명령에서 여러 결합 이름을 바꾸는 일반 규칙이다.
+*책과의 차이*: 책의 RN은 단언과 명령에서 여러 결합 이름을 바꾸는 일반 규칙이다.
 여기서는 앞부분 뒤의 지역 선언에 한정한다. 여러 번의 명령 이름 바꾸기는 규칙을 반복
 적용하고, 단언의 이름 바꾸기는 의미 함의인 결과 규칙으로 옮긴다.
 
@@ -340,9 +407,9 @@ def floydPost [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V) : Assert V
   .quant .ex v₀ ((p /[v := .var v₀]) ⋀ .cmp .eq (.var v) (IntExp.renameTo e v v₀))
 ```
 
-이 판도 건전하다. 신선함 조건이 셋 필요하다.
+이 판도 건전하다(보충). 신선함 조건이 셋 필요하다.
 
-```anchor assignForward (module := Reynolds.Answers.Ch03.Assign)
+```anchor stmtAssignForward (module := Reynolds.Answers.Ch03.Assign)
 /--
 **앞으로 가는 대입 규칙의 건전성.** 대입 뒤 상태 `σ[v := ⟦e⟧ σ]` 에서 `v₀` 의 값으로
 옛 `σ v` 를 잡으면 된다. 신선함 조건 셋이 각각 든다.
@@ -353,31 +420,14 @@ def floydPost [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V) : Assert V
 
 치환은 명제 1.4 (`substitution_single`) 와 그 식 판 `substitution_intExp` 로 뜻으로 옮긴다.
 -/
-@[exercise "§3.3 assign-forward" 2]
+@[exercise "보충 assign-forward" 2]
 theorem assign_forward_sound [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V)
     (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
-    ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
-  intro σ hp τ hτ
-  change Flat.some (σ[v := ⟦e⟧ₑ σ]) = Flat.some τ at hτ
-  obtain rfl := Flat.some.inj hτ
-  refine (Assert.eval_ex _ _ _).mpr ⟨σ v, (Assert.eval_and _ _ _).mpr ⟨?_, ?_⟩⟩
-  · -- `p/v→v₀` : `v` 자리에 옛 값이 돌아오니 `p` 가 `σ` 에서 참인 것과 같다.
-    refine (substitution_single p v _ _).mpr ((coincidence_assert p σ _ fun w hw => ?_).mp hp)
-    have hw₀ : w ≠ v₀ := fun h => h₀ (h ▸ hw)
-    by_cases hwv : w = v
-    · subst hwv; simp [IntExp.eval]
-    · simp [State.subst_of_ne _ _ _ _ hw₀, State.subst_of_ne _ _ _ _ hwv]
-  · -- `v = e/v→v₀` : 왼쪽은 새 값 `⟦e⟧ σ`, 오른쪽은 `v₀` 자리의 옛 값으로 `e` 를 계산한 것.
-    refine (Assert.eval_eq _ _ _).mpr ?_
-    change (σ[v := ⟦e⟧ₑ σ][v₀ := σ v]) v = ⟦IntExp.renameTo e v v₀⟧ₑ (σ[v := ⟦e⟧ₑ σ][v₀ := σ v])
-    rw [State.subst_of_ne _ _ _ _ h₂.symm, State.subst_self]
-    refine (substitution_intExp e _ σ _ fun w hw => ?_).symm
-    have hw₀ : w ≠ v₀ := fun h => h₁ (h ▸ hw)
-    by_cases hwv : w = v
-    · subst hwv; simp [IntExp.eval]
-    · simp [IntExp.eval, Function.update_of_ne hwv, State.subst_of_ne _ _ _ _ hw₀,
-        State.subst_of_ne _ _ _ _ hwv]
+    ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝
 ```
+
+힌트: 증인은 대입 전의 옛 값 `σ v` 다. `p/v→v₀` 쪽은 명제 1.4 와 1.1 로, `v = e/v→v₀`
+쪽은 식 판 치환 정리로 뜻을 옮긴 뒤 `w = v` 인지로 나눈다.
 
 그리고 두 판은 결과 규칙으로 서로를 유도한다. 앞으로 가는 판은 뒤로 가는 판의 사례에
 전제 강화를 붙인 것이다.

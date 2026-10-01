@@ -46,9 +46,9 @@
 | 10 | §2.6~§2.7 문법 설탕과 산술 오류 | `Ch02/Sugar.lean`, `Sugar2.lean`, `ArithErrors.lean` | 구현·문서 완료 |
 | 11 | §2.8 완전 추상성 + 2장 연습문제 | `Ch02/FullAbstraction*.lean`, `Ex.lean`, `Ex/*` | 구현·문서 완료 |
 | 12 | §3.1~§3.3 명세, 규칙, 건전성 | `Ch03/Spec.lean`, `Hoare.lean`, `Soundness.lean`, `Assign.lean` | 구현·문서 완료 |
-| 13 | §3.4~§3.6 주석 명세, 전체 정확성, 변수 선언 | `Ch03/Annot.lean`, `Total.lean` | 구현·문서 완료 |
-| 14 | §3.7~§3.9 더 많은 규칙과 예제 | `Ch03/Derived.lean`, `Semantic.lean`, `Examples/*` | 구현·문서 완료 |
-| 15 | §3.10 최약 사전조건과 완전성 | `Ch03/Wlp.lean` | 구현·문서 완료 |
+| 13 | §3.4 전체 정확성, 보충 주석 명세와 변수 선언 | `Ch03/Annot.lean`, `Total.lean` | 구현·문서 완료 |
+| 14 | §3.5 구조·유도 규칙(ISK·MSQₙ·RASₙ), §3.6~§3.7 예제, 보충 ∃·치환 규칙 | `Ch03/Derived.lean`, `Semantic.lean`, `Examples/*` | 구현·문서 완료 |
+| 15 | 보충 최약 사전조건과 완전성 | `Ch03/Wlp.lean` | 구현·문서 완료 |
 | 16 | 3장 연습문제 | 책 목록 대조 후 | 예정 |
 
 5주차의 연습 1.1·1.2(p. 22)는 `e11aAnswer`–`e12dAnswer`에 단언과 뜻의 증명을

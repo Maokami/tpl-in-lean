@@ -143,10 +143,11 @@ Verso 책은 코드를 **저장소에서 그대로 인용**한다. 코드가 바
 "의미론이 옳은 추상 수준인가" 라는 물음으로 끝난다. 책 연습 2.1~2.10 은 코드와
 docstring 으로 읽는다.
 
-3장 Verso 문서는 **본문 전체(§3.1~§3.10)**를 다룬다. 명세의 뜻을 2장 위에 세우는 데서
-시작해, 규칙마다 1·2장의 정리 하나로 건전성을 증명하고, 주석 명세와 검증 조건 생성기,
-Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미 단언으로 끝까지 가는 두 예제를
-지나, wlp 가 최대 고정점이라는 쌍대성과 `while` 없는 조각의 상대 완전성으로 끝난다.
+3장 Verso 문서는 **책 본문 전체(§3.1~§3.8)**를 다룬다. 명세의 뜻을 2장 위에 세우는 데서
+시작해, 규칙마다 1·2장의 정리 하나로 건전성을 증명하고, Scott 귀납법이 아니라 정초
+귀납이 필요한 전체 정확성, 의미 단언으로 끝까지 가는 두 예제를 지나 책의 한계 논의로
+끝난다. 책에 없는 보충 — 주석 명세와 검증 조건 생성기, wlp 가 최대 고정점이라는 쌍대성과
+`while` 없는 조각의 상대 완전성 — 도 같은 문서에서 다루되 **보충**으로 표시한다.
 
 ---
 
@@ -219,14 +220,20 @@ Scott 귀납법이 아니라 정초 귀납이 필요한 전체 정확성, 의미
 | 설계 | [`docs/chapter-03.md`](./docs/chapter-03.md) | [#36](../../pull/36) | [`ch03-design`](../../tree/ch03-design) |
 | §3.1 명세의 뜻 | [`Spec.lean`](./Reynolds/Answers/Ch03/Spec.lean) | [#37](../../pull/37) | [`ch03-s01`](../../tree/ch03-s01) |
 | §3.2–3.3 추론 규칙 · 건전성 · 대입 공리의 방향 | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Soundness.lean`](./Reynolds/Answers/Ch03/Soundness.lean) · [`Assign.lean`](./Reynolds/Answers/Ch03/Assign.lean) | [#38](../../pull/38) | [`ch03-s02-s03`](../../tree/ch03-s02-s03) |
-| §3.3–3.5 의미 단언 규칙 · AS/SQ/CD/WHP | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [학습 안내](./manual/Manual/Ch03/Examples.lean) | [#51](../../pull/51) | `ch03-semantic-foundation` (병합 후) |
-| §3.4 의미 WHT · §3.1 전체 정확성의 극한 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [학습 안내](./manual/Manual/Ch03/Annot.lean) | [#56](../../pull/56) | `ch03-semantic-wht` (병합 후) |
-| §3.5 선언 DC · 이름 바꾸기 RN | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [학습 안내](./manual/Manual/Ch03/Rules.lean) | 게시 예정 | `ch03-local-declaration-rules` (병합 후) |
-| §3.4–3.5 주석 명세 · 검증 조건 · 전체 정확성 `while` | [`Annot.lean`](./Reynolds/Answers/Ch03/Annot.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) | [#39](../../pull/39) | [`ch03-s04-s05`](../../tree/ch03-s04-s05) |
-| §3.7 상수 · 연언 · ∃ · 치환 규칙 | [`Derived.lean`](./Reynolds/Answers/Ch03/Derived.lean) | [#40](../../pull/40) | [`ch03-s07`](../../tree/ch03-s07) |
-| §3.8–3.9 예제 — 피보나치 · 빠른 거듭제곱 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) · [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#41](../../pull/41) | [`ch03-s08-s09`](../../tree/ch03-s08-s09) |
-| §3.10 최약 사전조건 · 완전성 · 한계 | [`Wlp.lean`](./Reynolds/Answers/Ch03/Wlp.lean) | [#43](../../pull/43) | [`ch03-s10`](../../tree/ch03-s10) |
-| 문서 §3.1~§3.10 | [`manual/Manual/Ch03.lean`](./manual/Manual/Ch03.lean) · [`Ch03/`](./manual/Manual/Ch03) | [#44](../../pull/44) | [`ch03-docs`](../../tree/ch03-docs) |
+| 보충 주석 명세 · 검증 조건 · §3.4 전체 정확성 `while` | [`Annot.lean`](./Reynolds/Answers/Ch03/Annot.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) | [#39](../../pull/39) | [`ch03-annot-total-while`](../../tree/ch03-annot-total-while) |
+| §3.5 상수 · 연언 규칙, 보충 ∃ · 치환 규칙 | [`Derived.lean`](./Reynolds/Answers/Ch03/Derived.lean) | [#40](../../pull/40) | [`ch03-further-rules`](../../tree/ch03-further-rules) |
+| §3.6–3.7 예제 첫 판 — 피보나치 · 빠른 거듭제곱 | [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) · [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#41](../../pull/41) | [`ch03-s06-s07-examples`](../../tree/ch03-s06-s07-examples) |
+| 보충 최약 사전조건 · 완전성 | [`Wlp.lean`](./Reynolds/Answers/Ch03/Wlp.lean) | [#43](../../pull/43) | [`ch03-wp-completeness`](../../tree/ch03-wp-completeness) |
+| Verso 문서 3장 첫 판 | [`manual/Manual/Ch03.lean`](./manual/Manual/Ch03.lean) · [`Ch03/`](./manual/Manual/Ch03) | [#44](../../pull/44) | [`ch03-docs`](../../tree/ch03-docs) |
+| §3.3–3.5 의미 단언 규칙 AS · SQ · CD · WHP | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) | [#51](../../pull/51) | [`ch03-semantic-foundation`](../../tree/ch03-semantic-foundation) |
+| §3.4 의미 WHT · §3.1 전체 정확성의 극한 | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) · [`Spec.lean`](./Reynolds/Answers/Ch03/Spec.lean) | [#56](../../pull/56) | [`ch03-semantic-wht`](../../tree/ch03-semantic-wht) |
+| §3.5 선언 DC · 이름 바꾸기 RN | [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) | [#68](../../pull/68) | [`ch03-local-declaration-rules`](../../tree/ch03-local-declaration-rules) |
+| §3.8 복잡한 점과 한계 | [`Ch03/Limits.lean`](./manual/Manual/Ch03/Limits.lean) | [#70](../../pull/70) | [`ch03-limits`](../../tree/ch03-limits) |
+| §3.6 피보나치 — 책의 프로그램 | [`Examples/Fib.lean`](./Reynolds/Answers/Ch03/Examples/Fib.lean) | [#71](../../pull/71) | [`ch03-fibonacci`](../../tree/ch03-fibonacci) |
+| §3.3 SP · WC, §3.5 구조 규칙 CA · DA · CSP · CST | [`Hoare.lean`](./Reynolds/Answers/Ch03/Hoare.lean) · [`Total.lean`](./Reynolds/Answers/Ch03/Total.lean) · [`Semantic.lean`](./Reynolds/Answers/Ch03/Semantic.lean) | [#74](../../pull/74) | [`ch03-structural-rules`](../../tree/ch03-structural-rules) |
+| §3.7 빠른 거듭제곱 — 책의 프로그램 | [`Examples/FastExp.lean`](./Reynolds/Answers/Ch03/Examples/FastExp.lean) | [#75](../../pull/75) | [`ch03-fast-exponentiation`](../../tree/ch03-fast-exponentiation) |
+| 책 연습 3.5 · 3.11 | [`BookExercises.lean`](./Reynolds/Answers/Ch03/BookExercises.lean) | [#76](../../pull/76) | [`ch03-book-exercises-3-5-3-11`](../../tree/ch03-book-exercises-3-5-3-11) |
+| 책 8절 정렬 · 식 (3.1)(3.2) · ISK · MSQ · RAS · 보충 표시 | 여러 파일 | [#78](../../pull/78) | `ch03-book-alignment` (병합 후) |
 
 3장도 절 단위로 PR을 나눈다. 전체 설계는 [`docs/chapter-03.md`](./docs/chapter-03.md).
 

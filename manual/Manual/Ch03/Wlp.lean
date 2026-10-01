@@ -14,12 +14,18 @@ set_option verso.exampleProject ".."
 set_option maxHeartbeats 1000000
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Wlp"
 
-#doc (Manual) "§3.10 최약 사전조건과 완전성" =>
+#doc (Manual) "보충 — 최약 사전조건과 완전성" =>
 %%%
 tag := "ch03-wlp"
 file := "ch03-wlp"
 number := false
 %%%
+
+*책과의 관계*: Reynolds는 최약 사전조건(weakest precondition) `wp`를 이 장이 아니라
+7장에서 형식화한다. 3장 §3.8(복잡한 점과 한계)의 참고문헌은 완전성 논의를
+Loeckx 등(1987)과 7장의 `wp`로 미룰 뿐, 본문에서 다루지 않는다. 이 페이지는 그 논의를
+미리 당겨, 건전성의 역인 완전성이 `while` 없는 조각에서 실제로 성립함을 `wp`를 구문으로
+계산해 보인다.
 
 건전성의 역이 완전성이다. 타당한 명세는 모두 유도되는가? 답은 _아니오_, 그리고 _조건부로
 예_다.
@@ -158,54 +164,21 @@ def Comm.wp [HasFresh V] : Comm V → Assert V → Option (Assert V)
 
 계산한 사전조건에서 유도가 있고,
 
-```anchor wpSound (module := Reynolds.Answers.Ch03.Wlp)
+```anchor stmtWpSound (module := Reynolds.Answers.Ch03.Wlp)
 /-- **`wp` 는 유도를 준다.** 계산한 사전조건에서 `Hoare` 유도가 있다. `Annot.lean` 의 세 보조
 함의(`ite_pre_then` · `ite_pre_else` · `newvar_pre`)가 그대로 쓰인다. -/
-@[exercise "§3.10 wp-sound" 2]
+@[exercise "보충 wp-sound" 2]
 theorem wp_sound [HasFresh V] (c : Comm V) :
-    ∀ q p, Comm.wp c q = some p → Hoare p c q := by
-  induction c with
-  | assign v e => intro q p h; cases h; exact Hoare.assign q v e
-  | skip => intro q p h; cases h; exact Hoare.skip q
-  | seq c₀ c₁ ih₀ ih₁ =>
-    intro q p h
-    simp only [Comm.wp] at h
-    rcases h₁ : Comm.wp c₁ q with _ | r
-    · rw [h₁] at h; simp at h
-    · rw [h₁] at h
-      exact Hoare.seq (ih₀ r p h) (ih₁ q r h₁)
-  | ite b c₀ c₁ ih₀ ih₁ =>
-    intro q p h
-    simp only [Comm.wp] at h
-    rcases h₀ : Comm.wp c₀ q with _ | p₀
-    · rw [h₀] at h; simp at h
-    rcases h₁ : Comm.wp c₁ q with _ | p₁
-    · rw [h₀, h₁] at h; simp at h
-    rw [h₀, h₁] at h
-    simp only [Option.bind_some, Option.map_some, Option.some.injEq] at h
-    subst h
-    exact Hoare.ite (Hoare.strengthen (ite_pre_then b _ _) (ih₀ q p₀ h₀))
-      (Hoare.strengthen (ite_pre_else b _ _) (ih₁ q p₁ h₁))
-  | wh b c _ => intro q p h; simp [Comm.wp] at h
-  | newvar v e c ih =>
-    intro q p h
-    simp only [Comm.wp] at h
-    by_cases hv : v ∈ q.fv ∨ v ∈ e.fv
-    · rw [if_pos hv] at h; simp at h
-    · rw [if_neg hv] at h
-      rw [not_or] at hv
-      rcases hc : Comm.wp c q with _ | p'
-      · rw [hc] at h; simp at h
-      · rw [hc] at h
-        simp only [Option.map_some, Option.some.injEq] at h
-        subst h
-        exact Hoare.newvar (by simp [Assert.fv]) hv.1 hv.2
-          (Hoare.strengthen (newvar_pre v e _) (ih q p' hc))
+    ∀ q p, Comm.wp c q = some p → Hoare p c q
 ```
+
+힌트: `induction c` — 각 절에서 `simp only [Comm.wp] at h`로 계산을 펼친다. `Option`이
+`none`인 경우는 모순이다. `ite`·`newvar` 절에서는 `ite_pre_then`·`ite_pre_else`·
+`newvar_pre`로 결과 규칙을 적용한다.
 
 그 사전조건은 가장 약하다.
 
-```anchor wpWeakest (module := Reynolds.Answers.Ch03.Wlp)
+```anchor stmtWpWeakest (module := Reynolds.Answers.Ch03.Wlp)
 /--
 **`wp` 는 가장 약하다.** 의미적 wlp 가 참인 곳에서는 계산한 `wp` 도 참이다.
 
@@ -213,68 +186,14 @@ theorem wp_sound [HasFresh V] (c : Comm V) :
 안쪽 명령이 끝난 상태 `ρ` 에서 `q` 가 참이어야 하는데, 바깥에서 아는 것은 `v` 를 복원한
 `ρ[v := σ v]` 에서 `q` 가 참이라는 것뿐이다. `v ∉ FV(q)` 가 둘을 잇는다 (명제 1.1).
 -/
-@[exercise "§3.10 wp-weakest" 3]
+@[exercise "보충 wp-weakest" 3]
 theorem wp_weakest [HasFresh V] (c : Comm V) :
-    ∀ q p, Comm.wp c q = some p → ∀ σ, wlp c ⟦q⟧ₐ σ → ⟦p⟧ₐ σ := by
-  induction c with
-  | assign v e =>
-    intro q p h σ hw
-    cases h
-    exact (substitution_single q v e σ).mpr (hw _ rfl)
-  | skip => intro q p h σ hw; cases h; exact hw σ rfl
-  | seq c₀ c₁ ih₀ ih₁ =>
-    intro q p h σ hw
-    simp only [Comm.wp] at h
-    rcases h₁ : Comm.wp c₁ q with _ | r
-    · rw [h₁] at h; simp at h
-    · rw [h₁] at h
-      refine ih₀ r p h σ fun ρ hρ => ih₁ q r h₁ ρ fun τ hτ => hw τ ?_
-      change Flat.bind (⟦c₀⟧ᶜ σ) ⟦c₁⟧ᶜ = Flat.some τ
-      rw [hρ]; exact hτ
-  | ite b c₀ c₁ ih₀ ih₁ =>
-    intro q p h σ hw
-    simp only [Comm.wp] at h
-    rcases h₀ : Comm.wp c₀ q with _ | p₀
-    · rw [h₀] at h; simp at h
-    rcases h₁ : Comm.wp c₁ q with _ | p₁
-    · rw [h₀, h₁] at h; simp at h
-    rw [h₀, h₁] at h
-    simp only [Option.bind_some, Option.map_some, Option.some.injEq] at h
-    subst h
-    change (⟦b.toAssert⟧ₐ σ → ⟦p₀⟧ₐ σ) ∧ (¬ ⟦b.toAssert⟧ₐ σ → ⟦p₁⟧ₐ σ)
-    refine ⟨fun hb => ih₀ q p₀ h₀ σ fun τ hτ => hw τ ?_,
-      fun hb => ih₁ q p₁ h₁ σ fun τ hτ => hw τ ?_⟩
-    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = Flat.some τ
-      rw [if_pos ((boolExp_eval_iff b σ).mp hb)]; exact hτ
-    · change (if ⟦b⟧ᵇ σ then ⟦c₀⟧ᶜ σ else ⟦c₁⟧ᶜ σ) = Flat.some τ
-      rw [if_neg fun h => hb ((boolExp_eval_iff b σ).mpr h)]; exact hτ
-  | wh b c _ => intro q p h; simp [Comm.wp] at h
-  | newvar v e c ih =>
-    intro q p h σ hw
-    simp only [Comm.wp] at h
-    by_cases hv : v ∈ q.fv ∨ v ∈ e.fv
-    · rw [if_pos hv] at h; simp at h
-    · rw [if_neg hv] at h
-      rw [not_or] at hv
-      rcases hc : Comm.wp c q with _ | p'
-      · rw [hc] at h; simp at h
-      · rw [hc] at h
-        simp only [Option.map_some, Option.some.injEq] at h
-        subst h
-        intro n hn
-        change (σ[v := n]) v = ⟦e⟧ₑ (σ[v := n]) at hn
-        have he : ⟦e⟧ₑ (σ[v := n]) = ⟦e⟧ₑ σ :=
-          (coincidence_intExp e σ _ fun w hw =>
-            (State.subst_of_ne σ v w _ fun (h : w = v) => hv.2 (h ▸ hw)).symm).symm
-        rw [State.subst_self, he] at hn
-        subst hn
-        refine ih q p' hc _ fun ρ hρ => ?_
-        have hq := hw (ρ[v := σ v]) (by
-          change restore v σ (⟦c⟧ᶜ (σ[v := ⟦e⟧ₑ σ])) = Flat.some (ρ[v := σ v])
-          rw [hρ]; rfl)
-        exact (coincidence_assert q ρ (ρ[v := σ v]) fun w hw =>
-          (State.subst_of_ne ρ v w _ fun (h : w = v) => hv.1 (h ▸ hw)).symm).mpr hq
+    ∀ q p, Comm.wp c q = some p → ∀ σ, wlp c ⟦q⟧ₐ σ → ⟦p⟧ₐ σ
 ```
+
+힌트: `induction c`. 각 절에서 `wlp`가 주는 "끝나면 `q`"를 안쪽 명령의 `wlp`로 옮겨
+귀납 가설에 넘긴다. `newvar` 절에서는 `v ∉ FV(e)`로 `n = ⟦e⟧ σ`를 얻고, `v ∉ FV(q)`
+(명제 1.1)로 복원한 상태의 `q`를 안쪽 상태의 `q`로 옮긴다.
 
 둘을 결과 규칙의 전제 강화 하나로 이으면 상대 완전성이다.
 

@@ -8,10 +8,15 @@ module
 public import Reynolds.Exercises.Ch03.Soundness
 
 /-!
-# §3.4 주석 명세와 검증 조건
+# 보충 — 주석 명세와 검증 조건
 
-`{p} c {q}` 의 유도 나무는 크다. Reynolds 는 그것을 **명령 안에 단언을 끼워 넣은** 모양으로
-줄여 적는다.
+**책과의 관계**: Reynolds §3.2는 증명을 "단언과 명세를 나열하고, 각 명세 옆에 쓰인 규칙을
+적은 것"으로 설명한다(§3.3의 번호 붙은 증명 예가 그 모양이다). 그러나 명령 안에 단언을
+끼워 넣는 아래 표기와, 거기서 확인할 함의를 자동으로 뽑는 `vcg` 는 책에 없다 — 이 파일
+전체가 그 아이디어를 형식화한 보충이다.
+
+`{p} c {q}` 의 유도 나무는 크다. 위 관찰을 **명령 안에 단언을 끼워 넣은** 모양으로
+줄여 적어 보자.
 
 ```
 { x = a ∧ y = b }
@@ -35,7 +40,7 @@ y := t
 이 파일은 한 걸음 더 간다. 이음매와 불변식만 붙인 구문 `Annot` 을 두고, 거기서 **확인해야
 할 함의들**(검증 조건, verification condition) 을 뽑아 내는 함수 `vcg` 를 만든다. 뽑힌 함의가
 전부 타당하면 유도가 있다 (`Annot.vcg_sound`). 실제 검증 도구(Dafny, Why3)가 하는 일의
-축소판이고, §3.8·§3.9 의 예제가 "함의 몇 개를 `omega` 로 닫는다" 로 줄어든다.
+축소판이고, §3.6·§3.7 의 예제가 "함의 몇 개를 `omega` 로 닫는다" 로 줄어든다.
 
 ## 뒤로 간다
 
@@ -145,7 +150,7 @@ theorem newvar_pre (v : V) (e : IntExp V) (p : Assert V) :
 `Annot` 에 대한 귀납. 절마다 규칙 하나와 결과 규칙의 반쪽이 든다 — 이음매와 불변식에서는
 검증 조건이, 조건과 변수 선언에서는 위의 세 보조 함의가.
 -/
-@[exercise "§3.4 vcg-sound" 3]
+@[exercise "보충 vcg-sound" 3]
 theorem Annot.vcg_sound [HasFresh V] (a : Annot V) (q : Assert V) (hf : a.NewvarFresh q)
     (hvc : ∀ vc ∈ (a.vcg q).2, Stronger vc.1 vc.2) : Hoare (a.vcg q).1 a.erase q := by
   -- 먼저 볼 것: `Hoare` 의 생성자들, `Hoare.strengthen` · `Hoare.weaken`, 이 파일 위의
@@ -163,7 +168,7 @@ theorem Annot.vcg_sound [HasFresh V] (a : Annot V) (q : Assert V) (hf : a.Newvar
 §2.5 는 계산으로, `Hoare.lean` 은 유도 나무로, 여기서는 주석 명세로. 이음매 둘을 적고 나면
 검증 조건은 둘이고, 남는 것은 맨 앞의 함의 하나다. -/
 
-/-- 주석 붙은 맞바꾸기. 이음매가 Reynolds §3.4 의 주석 그대로다. -/
+/-- 주석 붙은 맞바꾸기. 이음매가 이 파일 첫머리의 주석 그대로다. -/
 def swapAnnot : Annot String :=
   .seq (.assign "t" ⟪ x ⟫ₑ) (⟪ t = a ∧ y = b ⟫ₐ)
     (.seq (.assign "x" ⟪ y ⟫ₑ) (⟪ t = a ∧ x = b ⟫ₐ) (.assign "y" ⟪ t ⟫ₑ))
@@ -188,6 +193,6 @@ theorem swap_hoare' : Hoare (⟪ x = a ∧ y = b ⟫ₐ) swap (⟪ y = a ∧ x =
 /-! ## 5. 여기서 어디로 가나
 
 `vcg` 는 부분 정확성만 안다. 종료를 말하려면 반복마다 **변항**을 더 적어야 하고, 그것이
-§3.5 의 전체 정확성 규칙이다 (`Total.lean`). -/
+§3.4 의 전체 정확성 규칙이다 (`Total.lean`). -/
 
 end Reynolds.Exercises.Ch03

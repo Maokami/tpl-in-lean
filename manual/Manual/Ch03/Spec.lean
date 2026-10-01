@@ -94,7 +94,7 @@ theorem sat_admissible (Q : State V → Prop) (σ : State V) (d : Chain (State V
 전체 정확성도 사슬의 극한을 통과한다. 그러나 사전조건을 만족하는 상태가 있으면
 `Flat.none`으로만 이루어진 사슬의 첫 항 `⊥`는 전체 정확성을 만족하지 않는다. Scott 귀납법의
 시작 조건이 성립하지 않으므로, 전체 정확성의 `while` 규칙은 종료까지 보이는 측도를
-사용해 정초 귀납으로 증명한다(§3.5).
+사용해 정초 귀납으로 증명한다(§3.4).
 
 이 두 주장을 하나의 연습으로 확인한다. 첫 성분은 모든 사슬 항의 종료 증인에서
 극한의 종료 증인을 얻는다. 둘째 성분의 `∃ σ, P σ`는 필요하다. 사전조건을 만족하는
@@ -107,7 +107,9 @@ omit [DecidableEq V] in
 바닥 함수는 종료 결과를 줄 수 없다. 따라서 이 극한 보존만으로 Scott 귀납법을 쓸 수 없다.
 
 **책과의 차이**: §3.1의 명세 의미를 평평한 상태 변환기에 적용하는 보충 연습이다.
-책이 명시한 전체 정확성의 위쪽 닫힘에 더해, 극한 보존과 바닥에서의 실패를 함께 확인한다.
+책이 명시한 전체 정확성의 위쪽 닫힘(`m' ⊒ m` 이면 `m` 에서 성립한 명세가 `m'` 에서도
+성립함, p.56)은 여기 첫 연언의 특수 경우라 따로 정리로 두지 않는다 — 두면 이 연습의
+첫 연언이 자명해진다(연습 독립성 원칙). 대신 극한 보존과 바닥에서의 실패를 함께 확인한다.
 -/
 @[exercise "§3.1 total-admissible" 2]
 theorem total_admissible (P Q : State V → Prop) :
@@ -153,8 +155,8 @@ def TotalCorrect (p : Assert V) (c : Comm V) (q : Assert V) : Prop :=
 
 : 의미 판
 
-  불변식에 `fib`나 거듭제곱이 드는 예제(§3.8, §3.9)가 여기에 선다. `Assert`로는 그런
-  술어를 적을 수 없다(적으려면 괴델 부호화가 필요하다. §3.10).
+  불변식에 `fib`나 거듭제곱이 드는 예제(§3.6, §3.7)가 여기에 선다. `Assert`로는 그런
+  술어를 적을 수 없다(적으려면 괴델 부호화가 필요하다 — 보충 `Wlp.lean` 참고).
 
 구문 판은 `⟦p⟧ₐ`를 거쳐 의미 판의 특수 경우가 된다. 둘을 잇는 데 정리가 필요 없다.
 
@@ -167,41 +169,92 @@ number := false
 
 전체 정확성은 부분 정확성보다 강하다.
 
-```anchor totalToPartial (module := Reynolds.Answers.Ch03.Spec)
+```anchor stmtTotalToPartial (module := Reynolds.Answers.Ch03.Spec)
 /-- **전체 정확성은 부분 정확성을 준다.** 끝나는데 `q` 이니, 끝났다면 `q` 다. -/
 @[exercise "§3.1 total-to-partial" 1]
 theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
-    ｛p｝c｛q｝ := by
-  intro σ hp τ hτ
-  obtain ⟨τ', hτ', hq⟩ := h σ hp
-  obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
-  exact hq
+    ｛p｝c｛q｝
 ```
+
+힌트: 두 정의를 펼치면 (`intro σ hp τ hτ`) 전체 정확성이 준 종료 증인과 가정의 `τ`가
+같은 `Flat.some`의 안이다. `Flat.some.inj`로 둘을 같게 만든다.
 
 그리고 둘의 차이는 정확히 종료다.
 
-```anchor haltsIff (module := Reynolds.Answers.Ch03.Spec)
+```anchor stmtHaltsIff (module := Reynolds.Answers.Ch03.Spec)
 /--
 **전체 정확성 = 부분 정확성 + 종료.** 비종료를 어느 쪽으로 세느냐가 두 명세의 유일한
 차이라는 것을 한 등식으로 적은 것이다.
 -/
 @[exercise "§3.1 halts-iff" 1]
 theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
-    ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c := by
-  constructor
-  · intro h
-    refine ⟨fun σ hp τ hτ => ?_, fun σ hp => ?_⟩
-    · obtain ⟨τ', hτ', hq⟩ := h σ hp
-      obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
-      exact hq
-    · obtain ⟨τ, hτ, _⟩ := h σ hp
-      simp [hτ]
-  · rintro ⟨hpc, hh⟩ σ hp
-    obtain ⟨τ, hτ⟩ := Flat.isSome_iff_exists.mp (hh σ hp)
-    exact ⟨τ, hτ, hpc σ hp τ hτ⟩
+    ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c
 ```
+
+힌트: `→`는 전체 정확성이 준 종료 상태로 두 성분을 각각 만든다. `←`는
+`Flat.isSome_iff_exists`로 종료 상태를 꺼낸 뒤 부분 정확성에 넣는다.
 
 두 정리 모두 정의를 펼치면 나오지만, 한 가지를 짚어 둔다. `Flat.some τ' = Flat.some τ`에서
 `τ' = τ`를 얻는 것이 _결정적_ 의미의 성질이라는 점이다. 2장의 명령은 결정적이라 끝나면
 결과가 하나뿐이다. 비결정적 언어(7장)에서는 이 등식이 깨지고, 부분·전체 정확성의 관계도
 다시 따져야 한다.
+
+# 순서로 본 명세 — 식 (3.1)·(3.2)
+%%%
+tag := "ch03-spec-order"
+file := "ch03-spec-order"
+number := false
+%%%
+
+책은 명세의 뜻을 한 번 더, 두 원소 도메인 `{⊥, ⊤}` 위의 함의로 적는다(p.56). 쓰는 함수는
+둘뿐이다.
+
+: 성공 램프(success lamp) `pt`
+
+  참이면 ⊤, 거짓이면 ⊥. 전체 정확성이 묻는다 — "사전조건이 참이면 결과도 참이어야 한다."
+
+: 위반 경보(violation alarm) `pf`
+
+  거짓이면 ⊤, 참이면 ⊥. 부분 정확성이 묻는다 — "결과가 거짓(위반)이면 사전조건도
+  거짓(위반)이었어야 한다."
+
+`⊤`를 `Flat.some ()`, `⊥`를 `Flat.none`으로 두면 `Flat Unit`이 그 도메인이고, `⊑`는
+함의다. 책의 강한 확장 `f⊥⊥`는 `Flat.bind`다(§2.3 끝).
+
+```anchor stmtSpecOrder (module := Reynolds.Answers.Ch03.Spec)
+open Classical in
+/--
+**성공 램프(success lamp) `pt`.** 참이면 ⊤(`Flat.some ()`), 거짓이면 ⊥(`Flat.none`).
+Reynolds §3.1 p.56. 결정 가능성은 `Prop`에 일반 `Decidable` 인스턴스가 없으므로
+classical(`Classical.propDecidable`)로 얻는다 — `open Classical in` 이 그 인스턴스를 연다.
+-/
+noncomputable def pt (P : Prop) : Flat Unit := if P then .some () else .none
+
+open Classical in
+/-- **위반 경보(violation alarm) `pf`.** 거짓이면 ⊤, 참이면 ⊥ — `pt (¬P)` 와 같은 값이다. -/
+noncomputable def pf (P : Prop) : Flat Unit := if P then .none else .some ()
+
+/--
+**식 (3.1) — 부분 정확성의 순서 판.** 결과의 위반 경보가 사전조건의 위반 경보보다
+정보가 적어야(⊑) 한다. `c` 가 발산하면 `Flat.bind` 가 바닥을 내므로 조건 없이 성립한다.
+-/
+theorem partialCorrect_iff_pf (p q : Assert V) (c : Comm V) :
+    ｛p｝c｛q｝ ↔
+      (fun σ => Flat.bind (⟦c⟧ᶜ σ) (fun τ => pf (⟦q⟧ₐ τ))) ≤ (fun σ => pf (⟦p⟧ₐ σ))
+```
+
+```anchor stmtSpecOrderTotal (module := Reynolds.Answers.Ch03.Spec)
+/--
+**식 (3.2) — 전체 정확성의 순서 판.** 사전조건의 성공 램프가 결과의 성공 램프보다
+정보가 적어야 한다. `c` 가 발산하면 결과가 ⊥(`Flat.bind` 의 바닥)라 사전조건이 참일 때
+만족할 수 없다 — 그래서 종료까지 요구한다.
+-/
+theorem totalCorrect_iff_pt (p q : Assert V) (c : Comm V) :
+    ［p］c［q］ ↔
+      (fun σ => pt (⟦p⟧ₐ σ)) ≤ (fun σ => Flat.bind (⟦c⟧ᶜ σ) (fun τ => pt (⟦q⟧ₐ τ)))
+```
+
+두 등가는 정의를 펼치고 `Flat Unit`의 두 원소(`none`, `some ()`)로 나누면 나온다 — 증명은
+`Spec.lean`에 있다. 전체 정확성 쪽은 `c`가 발산하면 `Flat.bind`도 바닥이라 사전조건이
+참일 때 성립할 수 없다는 것이 핵심이다. 부분 정확성의 *아래로 닫힘*(`m' ⊑ m`이면
+`m`에서 성립한 명세가 `m'`에서도 성립함)은 `Sat.of_le`가 준다.

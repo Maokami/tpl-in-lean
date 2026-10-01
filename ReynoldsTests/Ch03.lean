@@ -23,6 +23,7 @@ Reynolds §3.3–§3.5의 AS·SQ·CD·WHP·WHT를 실제 명령에 적용한다.
 - WHP가 발산에 허용하는 거짓 사후조건
 - 거짓 조건의 반복이 본체를 실행하지 않는 연료 경계
 - WHT의 엄격한 감소와 마지막 음수 변항, 전체 정확성의 극한과 바닥
+- RASₙ이 책 p.61의 예(`y > 3` ⇒ `(2×y) − y ≥ 4`)를 실제로 유도함
 
 정리의 적용은 커널이 검사하고, 종료·분기 계산은 실행기의 유한 연료로 확인한다.
 
@@ -249,6 +250,15 @@ example : PartialCorrectS (fun _ : State String => True)
   intro σ _ τ ht
   change diverge.eval (σ["x" := 0]) = .some τ at ht
   simp [eval_diverge] at ht
+
+-- §3.3 RASₙ: 책 p.61의 예. 전제는 y > 3 ⇒ (2×y) − y ≥ 4다.
+-- (PDF 확인: 부등호가 ≥ 다. 이 OCR 은 ≥ 를 > 로 깨뜨린다.)
+example : Hoare (⟪ y > 3 ⟫ₐ) ⟪ x := 2 × y; x := x - y ⟫ᶜ (⟪ x ≥ 4 ⟫ₐ) := by
+  refine Hoare.strengthen ?_ (Hoare.ras (⟪ x ≥ 4 ⟫ₐ) "x" ⟪ 2 × y ⟫ₑ [("x", ⟪ x - y ⟫ₑ)])
+  intro σ h
+  simp [rasPre, Assert.subst, IntExp.subst, Assert.eval, IntExp.eval, IntOp.denote,
+    Cmp.denote, Function.update] at h ⊢
+  omega
 
 /-! §3.6: 출력만 맞아도 지역 변수 복원을 빠뜨린 프로그램일 수 있다. -/
 

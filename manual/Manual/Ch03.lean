@@ -82,16 +82,16 @@ file := "ch03-order"
 number := false
 %%%
 
-1. `Spec.lean` — §3.1 명세의 뜻
-2. `Hoare.lean` — §3.2~3.6 추론 규칙
+1. `Spec.lean` — §3.1 명세의 뜻, (보충) 순서로 본 명세
+2. `Hoare.lean` — §3.2~3.5 추론 규칙
 3. `Soundness.lean` — 규칙마다 건전성
-4. `Assign.lean` — §3.3 대입 공리의 방향
-5. `Annot.lean` — §3.4 주석 명세와 검증 조건
-6. `Total.lean` — §3.5 전체 정확성의 `while` 규칙
-7. `Derived.lean` — §3.7 더 많은 규칙
+4. `Assign.lean` — §3.3 대입 공리의 방향, (보충) Floyd의 앞으로 가는 판
+5. `Annot.lean` — (보충) 주석 명세와 검증 조건, §3.4 전체 정확성의 `while` 규칙
+6. `Total.lean` — §3.4 전체 정확성의 `while` 규칙
+7. `Derived.lean` — §3.3·§3.5 유도 규칙(ISK·MSQₙ·RASₙ), 구조 규칙, (보충) ∃·치환 규칙
 8. `Semantic.lean` — 의미 단언 위의 규칙
 9. `Examples/Fib.lean`, `Examples/FastExp.lean` — §3.6, §3.7 예제
-10. `Wlp.lean` — §3.10 최약 사전조건과 완전성
+10. `Wlp.lean` — (보충) 최약 사전조건과 완전성
 
 전부 `Reynolds/Answers/Ch03/` 아래에 있고, `Reynolds/Exercises/Ch03/`에는 같은 선언 순서에서
 채울 자리만 `sorry`로 비어 있다. Exercises 트리는 앞 장의 _완성본_을 가져다 쓰므로 1·2장을

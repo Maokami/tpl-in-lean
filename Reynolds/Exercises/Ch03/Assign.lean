@@ -18,7 +18,8 @@ public import Reynolds.Exercises.Ch03.Soundness
 정확하다 — 대입 뒤에 `q` 가 참이려면 대입 전에 "`v` 자리에 `e` 를 넣은 `q`" 가 참이어야
 한다. 대입이 `v` 를 `e` 의 값으로 바꾸므로.
 
-앞으로 가는 판도 있다 (Floyd).
+앞으로 가는 판도 있다 (Floyd). **책과의 관계**: Reynolds §3.8 참고문헌은 Floyd[1967]를
+이름으로만 인용한다 — 본문에 이 규칙을 적지 않는다. 아래 세 가지는 저장소의 보충이다.
 
 ```
 { p } v := e { ∃ v₀. p/v→v₀ ∧ v = e/v→v₀ }
@@ -27,7 +28,7 @@ public import Reynolds.Exercises.Ch03.Soundness
 대입 전의 값을 새 변수 `v₀` 로 기억해 두는 방식이다. 옳지만 사후조건에 `∃` 와 신선한 변수가
 들어와 다루기 나쁘다. 뒤로 가는 판은 `q` 에 아무것도 덧붙이지 않는다.
 
-이 파일은 두 판을 나란히 놓고 세 가지를 보인다.
+이 파일은 두 판을 나란히 놓고 세 가지를 보인다(보충).
 
 1. 앞으로 가는 판도 **건전**하다 (`assign_forward_sound`). 신선함 조건 셋이 든다.
 2. 앞으로 가는 판은 뒤로 가는 판과 결과 규칙으로 **유도**된다 (`Hoare.assign_forward`).
@@ -72,7 +73,7 @@ def floydPost [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V) : Assert V
 
 치환은 명제 1.4 (`substitution_single`) 와 그 식 판 `substitution_intExp` 로 뜻으로 옮긴다.
 -/
-@[exercise "§3.3 assign-forward" 2]
+@[exercise "보충 assign-forward" 2]
 theorem assign_forward_sound [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntExp V)
     (h₀ : v₀ ∉ p.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
     ｛p｝(Comm.assign v e)｛floydPost p v v₀ e｝ := by
@@ -106,7 +107,7 @@ theorem Hoare.assign_forward [HasFresh V] (p : Assert V) (v v₀ : V) (e : IntEx
 치환 둘을 명제 1.4 로 풀면 `q` 가 "`v` 에 `v` 자신의 값을 넣은 상태" 에서 참이라는 말이
 되고, 그 상태는 원래 상태다.
 -/
-@[exercise "§3.3 backward-of-forward" 2]
+@[exercise "보충 backward-of-forward" 2]
 theorem floydPost_stronger [HasFresh V] (q : Assert V) (v v₀ : V) (e : IntExp V)
     (h₀ : v₀ ∉ q.fv) (h₁ : v₀ ∉ e.fv) (h₂ : v₀ ≠ v) :
     Stronger (floydPost (q /[v := e] ) v v₀ e) q := by
@@ -130,7 +131,8 @@ theorem Hoare.assign_of_forward [HasFresh V] (q : Assert V) (v v₀ : V) (e : In
 
 /-! ## 4. 여기서 어디로 가나
 
-힘이 같으니 남는 것은 쓰기 편한 쪽이고, 그것이 뒤로 가는 판이다. §3.4 의 주석 붙은 명세는
-이 방향을 그대로 따른다 — 사후조건에서 출발해 위로 올라가며 사전조건을 채운다. -/
+힘이 같으니 남는 것은 쓰기 편한 쪽이고, 그것이 뒤로 가는 판이다. (보충) `Annot.lean` 의
+주석 붙은 명세는 이 방향을 그대로 따른다 — 사후조건에서 출발해 위로 올라가며 사전조건을
+채운다. -/
 
 end Reynolds.Exercises.Ch03

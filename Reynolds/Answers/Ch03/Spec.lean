@@ -39,7 +39,7 @@ Reynolds §3.1 에 대응한다.
 이 관찰이 이 장의 가장 깊은 지점과 바로 닿는다. **부분 정확성은 사슬의 극한을 통과한다.**
 `Σ⊥` 가 평평하므로 극한은 사슬의 어느 항과 같고(§2.3 `Chain.flat_lub_mem_range`), 그 항에서
 성립하던 것이 극한에서도 성립한다. §2.4 의 말로 부분 정확성은 **허용 가능**하고, 그래서
-`while` 규칙의 건전성이 Scott 귀납법이 된다(§3.5). 전체 정확성도 극한을 통과한다.
+`while` 규칙의 건전성이 Scott 귀납법이 된다(§3.4). 전체 정확성도 극한을 통과한다.
 하지만 사전조건을 만족하는 상태가 있으면 `⊥` 에서는 전체 정확성이 거짓이다.
 따라서 Scott 귀납법의 시작 조건을 쓸 수 없고, 종료 증명에는 측도가 필요하다.
 
@@ -48,8 +48,8 @@ Reynolds §3.1 에 대응한다.
 명세의 뜻은 `⟦p⟧ₐ` 만 쓰므로, 사실 상태 위의 술어 `P : State V → Prop` 만 있으면 정의된다.
 그래서 의미 판(`Sat`, `PartialCorrectS`)을 먼저 두고 구문 판(`PartialCorrect`)을 그 특수
 경우로 잇는다. 규칙(§3.2)은 구문 판에 대해 세운다 — 대입 공리처럼 단언의 **구문**을
-조작하는 규칙은 `Assert` 위에서만 뜻이 있다. 예제(§3.8~3.9)는 불변식이 `Assert` 로
-안 적힐 때 의미 판을 쓴다. 그 자리가 §3.10 표현력 논점의 실물이다.
+조작하는 규칙은 `Assert` 위에서만 뜻이 있다. 예제(§3.6~3.7)는 불변식이 `Assert` 로
+안 적힐 때 의미 판을 쓴다. 그 자리가 (보충) `Wlp.lean` 표현력 논점의 실물이다.
 
 ## 읽는 순서
 2장을 다 읽은 뒤. 이 파일 → `Semantic.lean` (의미 규칙) → `Hoare.lean` (추론 규칙).
@@ -70,7 +70,7 @@ variable {V : Type u} [DecidableEq V]
 
 /-! ## 1. 상태 변환기에 대한 삼중항
 
-명령이 아니라 그 **뜻** `w : State V → SigmaBot V` 에 대해 먼저 정의한다. §3.5 에서
+명령이 아니라 그 **뜻** `w : State V → SigmaBot V` 에 대해 먼저 정의한다. §3.4 에서
 `while` 의 근사열 `Fⁿ(⊥)` 에 대해 말하려면 명령이 아닌 함수에 대한 판이 필요하다. -/
 
 -- ANCHOR: Sat
@@ -88,9 +88,25 @@ omit [DecidableEq V] in
 theorem Sat.bot (P Q : State V → Prop) : Sat P (⊥ : State V → SigmaBot V) Q :=
   fun _ _ _ h => by simp at h
 
+omit [DecidableEq V] in
+/--
+**부분 정확성은 아래로 닫혀 있다.** `w'` 가 `w` 보다 정보가 적어도(`w' ≤ w`) `w` 가 삼중항을
+만족하면 `w'` 도 만족한다. `w' σ` 가 끝났다면 평평한 순서에서 `w σ = w' σ` 뿐이다(`≤` 는
+`= ⊥` 이거나 같다는 것).
+
+Reynolds 는 이 사실과 사슬의 극한 보존(`Sat.admissible`)을 묶어 "부분 정확성 명세가 `m` 에서
+성립하면 모든 `m' ⊑ m` 에서도, 그리고 사슬의 모든 항에서 성립하면 극한에서도 성립한다"고
+말한다(§3.1 p.56). 전체 정확성의 반대쪽 닫힘(`m' ⊒ m`)은 `total_admissible` 의 docstring에서
+다룬다.
+-/
+theorem Sat.of_le {P Q : State V → Prop} {w w' : State V → SigmaBot V} (hle : w' ≤ w)
+    (h : Sat P w Q) : Sat P w' Q := by
+  intro σ hp τ hτ
+  exact h σ hp τ (Flat.some_le_iff.mp (hτ ▸ hle σ))
+
 /-! ## 2. 극한을 통과한다
 
-§3.5 의 `while` 규칙이 쓸 꼴이다. 사슬의 각 항이 사후조건을 지키면 극한도 지킨다.
+§3.4 의 `while` 규칙이 쓸 꼴이다. 사슬의 각 항이 사후조건을 지키면 극한도 지킨다.
 평평함이 전부다 — 극한은 어느 항과 같다. -/
 
 -- ANCHOR: satAdmissible
@@ -128,7 +144,9 @@ omit [DecidableEq V] in
 바닥 함수는 종료 결과를 줄 수 없다. 따라서 이 극한 보존만으로 Scott 귀납법을 쓸 수 없다.
 
 **책과의 차이**: §3.1의 명세 의미를 평평한 상태 변환기에 적용하는 보충 연습이다.
-책이 명시한 전체 정확성의 위쪽 닫힘에 더해, 극한 보존과 바닥에서의 실패를 함께 확인한다.
+책이 명시한 전체 정확성의 위쪽 닫힘(`m' ⊒ m` 이면 `m` 에서 성립한 명세가 `m'` 에서도
+성립함, p.56)은 여기 첫 연언의 특수 경우라 따로 정리로 두지 않는다 — 두면 이 연습의
+첫 연언이 자명해진다(연습 독립성 원칙). 대신 극한 보존과 바닥에서의 실패를 함께 확인한다.
 -/
 @[exercise "§3.1 total-admissible" 2]
 theorem total_admissible (P Q : State V → Prop) :
@@ -195,15 +213,95 @@ example : ｛⟪ x = 1 ⟫ₐ｝⟪ x := x + 1 ⟫ᶜ｛⟪ x = 2 ⟫ₐ｝ := b
   simp [Assert.eval, IntExp.eval, Cmp.denote] at h ⊢
   omega
 
-/-! ## 4. 부분과 전체의 관계
+/-! ## 4. 순서로 본 명세 — 식 (3.1)·(3.2) (p.56)
+
+책은 명세의 뜻을 한 번 더, 이번에는 두 원소 도메인 `{⊥, ⊤}` 위의 함의로 적는다. 쓰는
+함수는 둘뿐이다 — 성공 램프 `pt`(참이면 ⊤)와 위반 경보 `pf`(거짓이면 ⊤). `⊤`를
+`Flat.some ()`, `⊥`를 `Flat.none`으로 두면 `Flat Unit`이 그 도메인이고(`Flat`의 순서는
+`Ch02/Domain/Flat.lean`), `⊑`는 함의다 — `pf q ⊑ pf p`는 "`q`가 거짓이면 `p`도 거짓"과
+같다. 책의 `f⊥⊥`(강한 확장)는 `Flat.bind`다(§2.3 끝 `liftBot_eq_bind`의 설명). -/
+
+-- ANCHOR: specOrder
+-- ANCHOR: stmtSpecOrder
+open Classical in
+/--
+**성공 램프(success lamp) `pt`.** 참이면 ⊤(`Flat.some ()`), 거짓이면 ⊥(`Flat.none`).
+Reynolds §3.1 p.56. 결정 가능성은 `Prop`에 일반 `Decidable` 인스턴스가 없으므로
+classical(`Classical.propDecidable`)로 얻는다 — `open Classical in` 이 그 인스턴스를 연다.
+-/
+noncomputable def pt (P : Prop) : Flat Unit := if P then .some () else .none
+
+open Classical in
+/-- **위반 경보(violation alarm) `pf`.** 거짓이면 ⊤, 참이면 ⊥ — `pt (¬P)` 와 같은 값이다. -/
+noncomputable def pf (P : Prop) : Flat Unit := if P then .none else .some ()
+
+/--
+**식 (3.1) — 부분 정확성의 순서 판.** 결과의 위반 경보가 사전조건의 위반 경보보다
+정보가 적어야(⊑) 한다. `c` 가 발산하면 `Flat.bind` 가 바닥을 내므로 조건 없이 성립한다.
+-/
+theorem partialCorrect_iff_pf (p q : Assert V) (c : Comm V) :
+    ｛p｝c｛q｝ ↔
+      (fun σ => Flat.bind (⟦c⟧ᶜ σ) (fun τ => pf (⟦q⟧ₐ τ))) ≤ (fun σ => pf (⟦p⟧ₐ σ))
+-- ANCHOR_END: stmtSpecOrder
+    := by
+  unfold pf
+  constructor
+  · intro h σ
+    rcases hc : (⟦c⟧ᶜ σ : SigmaBot V) with _ | τ
+    · simp [hc]
+    · by_cases hq : ⟦q⟧ₐ τ
+      · simp [hc, hq]
+      · have hp : ¬ ⟦p⟧ₐ σ := fun hp => hq (h σ hp τ hc)
+        simp [hc, hp, hq]
+  · intro h σ hp τ hτ
+    have hle := h σ
+    simp only [hτ, Flat.bind_some, if_pos hp] at hle
+    by_contra hq
+    simp [hq] at hle
+-- ANCHOR_END: specOrder
+
+-- ANCHOR: specOrderTotal
+-- ANCHOR: stmtSpecOrderTotal
+/--
+**식 (3.2) — 전체 정확성의 순서 판.** 사전조건의 성공 램프가 결과의 성공 램프보다
+정보가 적어야 한다. `c` 가 발산하면 결과가 ⊥(`Flat.bind` 의 바닥)라 사전조건이 참일 때
+만족할 수 없다 — 그래서 종료까지 요구한다.
+-/
+theorem totalCorrect_iff_pt (p q : Assert V) (c : Comm V) :
+    ［p］c［q］ ↔
+      (fun σ => pt (⟦p⟧ₐ σ)) ≤ (fun σ => Flat.bind (⟦c⟧ᶜ σ) (fun τ => pt (⟦q⟧ₐ τ)))
+-- ANCHOR_END: stmtSpecOrderTotal
+    := by
+  unfold pt
+  constructor
+  · intro h σ
+    by_cases hp : ⟦p⟧ₐ σ
+    · obtain ⟨τ, hτ, hq⟩ := h σ hp
+      simp [hp, hτ, hq]
+    · simp [hp]
+  · intro h σ hp
+    have hle := h σ
+    simp only [if_pos hp] at hle
+    rcases hc : (⟦c⟧ᶜ σ : SigmaBot V) with _ | τ
+    · simp [hc] at hle
+    · simp only [hc, Flat.bind_some] at hle
+      by_cases hq : ⟦q⟧ₐ τ
+      · exact ⟨τ, rfl, hq⟩
+      · simp [hq] at hle
+-- ANCHOR_END: specOrderTotal
+
+/-! ## 5. 부분과 전체의 관계
 
 전체는 부분에 종료를 더한 것이다. 정의에서 바로 나온다. -/
 
 -- ANCHOR: totalToPartial
+-- ANCHOR: stmtTotalToPartial
 /-- **전체 정확성은 부분 정확성을 준다.** 끝나는데 `q` 이니, 끝났다면 `q` 다. -/
 @[exercise "§3.1 total-to-partial" 1]
 theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q］) :
-    ｛p｝c｛q｝ := by
+    ｛p｝c｛q｝
+-- ANCHOR_END: stmtTotalToPartial
+    := by
   intro σ hp τ hτ
   obtain ⟨τ', hτ', hq⟩ := h σ hp
   obtain rfl := Flat.some.inj (hτ.symm.trans hτ')
@@ -214,13 +312,16 @@ theorem TotalCorrect.toPartial {p q : Assert V} {c : Comm V} (h : ［p］c［q�
 def Halts (p : Assert V) (c : Comm V) : Prop := ∀ σ, ⟦p⟧ₐ σ → (⟦c⟧ᶜ σ).isSome
 
 -- ANCHOR: haltsIff
+-- ANCHOR: stmtHaltsIff
 /--
 **전체 정확성 = 부분 정확성 + 종료.** 비종료를 어느 쪽으로 세느냐가 두 명세의 유일한
 차이라는 것을 한 등식으로 적은 것이다.
 -/
 @[exercise "§3.1 halts-iff" 1]
 theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
-    ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c := by
+    ［p］c［q］ ↔ ｛p｝c｛q｝ ∧ Halts p c
+-- ANCHOR_END: stmtHaltsIff
+    := by
   constructor
   · intro h
     refine ⟨fun σ hp τ hτ => ?_, fun σ hp => ?_⟩
@@ -234,9 +335,9 @@ theorem totalCorrect_iff_partial_halts {p q : Assert V} {c : Comm V} :
     exact ⟨τ, hτ, hpc σ hp τ hτ⟩
 -- ANCHOR_END: haltsIff
 
-/-! ## 5. 사전조건은 강하게, 사후조건은 약하게
+/-! ## 6. 사전조건은 강하게, 사후조건은 약하게
 
-§3.2 의 결과 규칙이 될 사실이다. 여기서는 규칙이 아니라 뜻에 대한 정리로 적는다.
+§3.3 의 결과 규칙(SP·WC)이 될 사실이다. 여기서는 규칙이 아니라 뜻에 대한 정리로 적는다.
 전제가 `Stronger` — 단언의 **타당성**이다. Hoare 논리가 단언 논리를 오라클로 쓴다는 것이
 이 한 정리에 이미 들어 있다. -/
 
@@ -250,18 +351,18 @@ theorem TotalCorrect.conseq {p p' q q' : Assert V} {c : Comm V}
     (hp : Stronger p' p) (h : ［p］c［q］) (hq : Stronger q q') : ［p'］c［q'］ :=
   fun σ hp' => let ⟨τ, hτ, hqτ⟩ := h σ (hp σ hp'); ⟨τ, hτ, hq τ hqτ⟩
 
-/-! ## 6. 명세의 자유 변수
+/-! ## 7. 명세의 자유 변수
 
-`FV({p} c {q}) = FV(p) ∪ FV(c) ∪ FV(q)`. §3.6 의 변수 선언 규칙과 §3.7 의 치환 규칙이 쓴다.
+`FV({p} c {q}) = FV(p) ∪ FV(c) ∪ FV(q)`. §3.5 의 변수 선언 규칙 DC 와 (보충) 치환 규칙이 쓴다.
 1장의 `Assert.fv` 와 2장의 `Comm.fv` 를 합치면 끝이다. -/
 
 /-- 명세의 자유 변수. -/
 def Spec.fv (p : Assert V) (c : Comm V) (q : Assert V) : Finset V := p.fv ∪ c.fv ∪ q.fv
 
-/-! ## 7. 여기서 어디로 가나
+/-! ## 8. 여기서 어디로 가나
 
 명세의 뜻을 정했고, 그것이 극한을 통과한다는 것(`Sat.admissible`)까지 챙겼다. 다음은
-§3.2~3.3 의 추론 규칙이다. §1.3 의 `Proof` 처럼 규칙 하나가 생성자 하나인 귀납 술어
+§3.2 의 추론 규칙이다. §1.3 의 `Proof` 처럼 규칙 하나가 생성자 하나인 귀납 술어
 `Hoare` 를 두고, 건전성을 규칙마다 1·2장의 정리 하나로 증명한다. 대입 공리가 명제 1.4 인
 것이 첫 번째다. -/
 
