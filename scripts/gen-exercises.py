@@ -1484,7 +1484,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.4 검증 조건 생성기
+    # ── 보충 검증 조건 생성기
     (
         "Ch03/Annot.lean",
         "theorem Annot.vcg_sound",
@@ -1502,7 +1502,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.7 더 많은 규칙
+    # ── §3.5 더 많은 규칙, 보충 규칙
     (
         "Ch03/Derived.lean",
         "theorem constancy_sound",
@@ -1583,7 +1583,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.8 · §3.9 예제
+    # ── §3.6 · §3.7 예제
     (
         "Ch03/Examples/Fib.lean",
         "theorem fib_step",
@@ -1613,7 +1613,7 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
-    # ── §3.10 최약 사전조건 · 완전성
+    # ── 보충 최약 사전조건 · 완전성
     (
         "Ch03/Wlp.lean",
         "theorem wp_sound",
@@ -1644,6 +1644,23 @@ BLANKS: list[tuple[str, str, str, str]] = [
   -- 힌트 2: `newvar` — `∀ n, σ[v := n] v = ⟦e⟧ (σ[v := n]) → …` 에서 `n = ⟦e⟧ σ` 다
   --         (`v ∉ FV(e)`). 안쪽이 끝난 상태 `ρ` 에서 `q` 를 얻으려면, 바깥이 끝난 상태
   --         `ρ[v := σ v]` 에서의 `q` 를 명제 1.1 로 옮긴다 (`v ∉ FV(q)`).
+  sorry
+
+""",
+    ),
+    # ── §3.3 RASₙ의 완전성
+    (
+        "Ch03/Derived.lean",
+        "theorem ras_complete",
+        "-- ANCHOR_END: rasComplete",
+        """theorem ras_complete [HasFresh V] {p q : Assert V} (v : V) (e : IntExp V)
+    (l : List (V × IntExp V)) (h : PartialCorrect p (rasComm v e l) q) :
+    Stronger p (rasPre q v e l) := by
+  -- 먼저 볼 것: `rasComm_eval`, `rasPre_iff` (둘 다 완성 자료다).
+  -- 힌트 1: `Stronger`를 펼쳐 σ, hp를 받는다.
+  -- 힌트 2: `rasPre_iff`로 목표를 `⟦q⟧ₐ (rasState v e l σ)`로 바꾼다.
+  -- 힌트 3: `rasComm_eval`이 주는 종료 증인 `rasComm v e l`의 결과를 `h`(PartialCorrect)에
+  --         넣으면 끝난다.
   sorry
 
 """,

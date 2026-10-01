@@ -12,7 +12,7 @@ open Verso.Code.External
 set_option verso.exampleProject ".."
 set_option verso.exampleModule "Reynolds.Answers.Ch03.Derived"
 
-#doc (Manual) "§3.5 구조 규칙과 추가 의미 규칙" =>
+#doc (Manual) "§3.3·§3.5 유도 규칙과 보충 규칙" =>
 %%%
 tag := "ch03-derived"
 file := "ch03-derived"
@@ -28,7 +28,8 @@ CSP는 `{p} c {p}`를 명세 전제 없이 준다. `c`가 `p`의 자유 변수�
 CST는 `[p] c [q]`를 전제로 받아 `[p ∧ r] c [q ∧ r]`를 준다.
 부분 정확성의 같은 형태는 `Hoare.frame`에서 CSP와 CA로 유도한다(p.69).
 
-아래의 ∃·치환 규칙은 기존 의미 판 보충 자료다.
+이 페이지는 책이 이미 있는 규칙만으로 더 유도하는 ISK(§3.5 p.66)·MSQₙ(§3.3 pp.60–61)·
+RASₙ(§3.3 pp.61–62)도 함께 둔다. 아래의 ∃·치환 규칙은 책에 없는 보충 자료다.
 
 # 상수 규칙
 %%%
@@ -60,16 +61,21 @@ theorem constancy_sound {p q r : Assert V} {c : Comm V} (hr : Disjoint c.fa r.fv
 §2.5에서 자유 변수를 _읽기_(`FV`)와 _쓰기_(`FA`)로 가른 이유가 여기서 드러난다. 요구하는
 것은 `FV(r)`과 `FA(c)`가 겹치지 않는 것뿐이다. `c`가 `r`의 변수를 읽는 것은 괜찮다.
 
-# 유령 변수의 ∃ 규칙
+# 보충 — 유령 변수의 ∃ 규칙
 %%%
 tag := "ch03-ghost-exists"
 file := "ch03-ghost-exists"
 number := false
 %%%
 
+*책과의 관계*: 이 규칙은 Reynolds §3.5 본문에 없다. 책은 `newvar`로 들여온 지역
+변수가 명세 밖으로 안 새게 하는 데 집중하고, 사전조건에서만 쓰인 변수를 양화로
+감추는 규칙은 다루지 않는다. 보충(앞으로 가는 대입 규칙, `Rules.lean`)의 사후조건에
+든 `∃ v₀`가 이 규칙의 거울상이라 여기 둔다.
+
 명령도 사후조건도 보지 않는 변수는 사전조건에서 존재 양화로 감출 수 있다.
 
-````anchor ghostExists (module := Reynolds.Answers.Ch03.Derived)
+````anchor stmtGhostExists (module := Reynolds.Answers.Ch03.Derived)
 /--
 **∃ 규칙.** 명령도 사후조건도 보지 않는 변수는 사전조건에서 존재 양화로 감출 수 있다.
 
@@ -81,42 +87,31 @@ number := false
 
 증인 `n` 을 꺼내 `σ[v := n]` 에서 전제를 쓴다. `σ` 와 `σ[v := n]` 은 `v` 를 뺀 모든 곳에서
 같으므로 `c` 의 결과도 `FV(c) ∪ FV(q)` 위에서 같고 (명제 2.6(a)), `q` 는 그 위만 본다.
-§3.3 의 앞으로 가는 대입 규칙이 사후조건에 `∃ v₀` 를 들고 있는 이유가 이 규칙의 거울상이다.
+보충(앞으로 가는 대입 규칙, `Assign.lean`)이 사후조건에 `∃ v₀` 를 들고 있는 이유가
+이 규칙의 거울상이다.
 -/
-@[exercise "§3.7 ghost-exists" 2]
+@[exercise "보충 ghost-exists" 2]
 theorem exists_sound {p q : Assert V} {c : Comm V} {v : V} (hc : v ∉ c.fv) (hq : v ∉ q.fv)
-    (h : ｛p｝c｛q｝) : ｛Assert.quant .ex v p｝c｛q｝ := by
-  intro σ hex τ hτ
-  obtain ⟨n, hn⟩ := (Assert.eval_ex _ _ _).mp hex
-  have hag := Comm.coincidence_general c (c.fv ∪ q.fv) Finset.subset_union_left σ (σ[v := n])
-    fun w hw => (State.subst_of_ne σ v w n fun (hwv : w = v) => by
-      subst hwv
-      rcases Finset.mem_union.mp hw with h' | h'
-      · exact hc h'
-      · exact hq h').symm
-  rw [hτ] at hag
-  rcases hτ' : c.eval (σ[v := n]) with _ | τ'
-  · rw [hτ'] at hag; simp [AgreeOn] at hag
-  · rw [hτ'] at hag
-    change ∀ w ∈ _, τ w = τ' w at hag
-    exact (coincidence_assert q τ τ' fun w hw =>
-      hag w (Finset.mem_union_right _ hw)).mpr (h _ hn τ' hτ')
+    (h : ｛p｝c｛q｝) : ｛Assert.quant .ex v p｝c｛q｝
 ````
 
-§3.3에서 Floyd의 앞으로 가는 대입 규칙이 사후조건에 `∃ v₀`를 달고 있던 것과 거울상을
-이룬다.
+힌트: 증인 `n`을 꺼내 `σ[v := n]`에서 전제를 쓴다. `Comm.coincidence_general`(명제
+2.6(a))로 `c`의 결과가 `FV(c) ∪ FV(q)` 위에서 같음을 얻고, `coincidence_assert`로
+`q`의 진릿값까지 옮긴다.
 
-# 치환 규칙
+# 보충 — 치환 규칙
 %%%
 tag := "ch03-subst-rule"
 file := "ch03-subst-rule"
 number := false
 %%%
 
-명세의 변수 이름을 통째로 바꿔도 된다. 건전성은 1장의 명제 1.3과 2장의 명제 2.7을 합친
-것이다.
+*책과의 관계*: 이 규칙도 Reynolds §3.5 본문에 없다. 책 연습 3.11(`Ex 3.11`,
+`BookExercises.lean`)이 전체 정확성과 전체 자유 변수 집합 위의 단사 치환을 묻는데,
+여기서는 그 결과를 부분·전체 정확성 모두에 대해 쓰기 변수만 단사이면 되도록
+일반화한다. 건전성은 1장의 명제 1.3과 2장의 명제 2.7을 합친 것이다.
 
-````anchor substRule (module := Reynolds.Answers.Ch03.Derived)
+````anchor stmtSubstRule (module := Reynolds.Answers.Ch03.Derived)
 /--
 **치환 규칙.** 명세의 변수 이름을 통째로 바꿔도 된다.
 
@@ -136,22 +131,16 @@ number := false
 둘 다 쓰이지 않는 변수끼리는 합쳐도 된다. `FA(c)` 내부의 단사성만으로는 부족하다.
 책 연습 3.11의 전체 정확성과 전체 자유 변수 집합 위 단사 조건은 `BookExercises.lean`에서 다룬다.
 -/
-@[exercise "§3.7 subst-rule" 3]
+@[exercise "보충 subst-rule" 3]
 theorem subst_rule_sound [HasFresh V] {p q : Assert V} {c : Comm V} (δ : Ren V)
     (hinj : ∀ u ∈ c.fa, ∀ w ∈ c.fv ∪ p.fv ∪ q.fv, δ u = δ w → u = w)
-    (h : ｛p｝c｛q｝) : ｛p /ₛ δ.toSubst｝(c /ᶜ δ)｛q /ₛ δ.toSubst｝ := by
-  intro σ' hp τ' hτ'
-  have hag := Ex.Comm.substitution_weak c δ (c.fv ∪ p.fv ∪ q.fv)
-    (le_trans Finset.subset_union_left Finset.subset_union_left) hinj
-    (fun w => σ' (δ w)) σ' fun _ _ => rfl
-  rw [hτ'] at hag
-  rcases hc : c.eval (fun w => σ' (δ w)) with _ | τ
-  · rw [hc] at hag; exact absurd hag AgreeVia.none_some
-  · rw [hc, AgreeVia.some_some] at hag
-    have hpσ := (substitution_assert p δ.toSubst (fun w => σ' (δ w)) σ' fun _ _ => rfl).mp hp
-    exact (substitution_assert q δ.toSubst τ τ' fun w hw =>
-      hag w (Finset.mem_union_right _ hw)).mpr (h _ hpσ τ hc)
+    (h : ｛p｝c｛q｝) : ｛p /ₛ δ.toSubst｝(c /ᶜ δ)｛q /ₛ δ.toSubst｝
 ````
+
+힌트: 치환된 쪽의 시작 상태 `σ'`에서 원래 쪽의 시작 상태를 `fun w => σ' (δ w)`로 만들면
+`Ex.Comm.substitution_weak`(연습 2.8)와 `substitution_assert`(명제 1.3)의 가설이 모두
+`rfl`이다. 원래 쪽 실행을 나누고, 사전조건은 명제 1.3으로 원래 쪽에, 사후조건은 명제
+1.3으로 되돌린다.
 
 명제 2.7의 원래 진술은 이름 바꾸기가 `FV(c)` _전체에서_ 단사일 것을 요구한다. 그 조건으로는
 읽기만 하는 변수 둘을 하나로 합치는 흔한 사용법이 막힌다. 연습 2.8은 조건을 "쓰는 변수
