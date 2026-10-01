@@ -38,8 +38,8 @@ public import Reynolds.Answers.Ch03.Wlp
 6. `Annot.lean` — §3.4 주석 명세, 검증 조건 생성기 `vcg` 와 그 건전성
 7. `Total.lean` — §3.5 전체 정확성의 `while` 규칙 — 변항, 유령 변수, 정초 귀납
 8. `Derived.lean` — §3.7 상수 규칙, 연언·선언, ∃ 규칙, 치환 규칙 (연습 2.8 의 약한 조건)
-9. `Examples/Fib.lean` — §3.8 피보나치 — 불변식에 `Nat.fib`
-10. `Examples/FastExp.lean` — §3.9 빠른 거듭제곱 — 불변식에 거듭제곱, `÷`·`rem`
+9. `Examples/Fib.lean` — §3.6 피보나치 — 불변식에 `Nat.fib`
+10. `Examples/FastExp.lean` — §3.7 빠른 거듭제곱 — 본체 계약에서 유도한 전체 정확성
 11. `Wlp.lean` — §3.10 wlp 는 최대 고정점, `while` 없는 조각의 `wp` 와 상대 완전성
 
 ## 책과의 차이

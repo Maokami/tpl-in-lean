@@ -90,7 +90,7 @@ number := false
 6. `Total.lean` — §3.5 전체 정확성의 `while` 규칙
 7. `Derived.lean` — §3.7 더 많은 규칙
 8. `Semantic.lean` — 의미 단언 위의 규칙
-9. `Examples/Fib.lean`, `Examples/FastExp.lean` — §3.8, §3.9 예제
+9. `Examples/Fib.lean`, `Examples/FastExp.lean` — §3.6, §3.7 예제
 10. `Wlp.lean` — §3.10 최약 사전조건과 완전성
 
 전부 `Reynolds/Answers/Ch03/` 아래에 있고, `Reynolds/Exercises/Ch03/`에는 같은 선언 순서에서
