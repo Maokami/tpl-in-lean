@@ -256,6 +256,7 @@ theorem AComm.eval_ite_self (A : ZeroDivision) (b : ABExp V) (c : AComm V) (σ :
   simp [AComm.eval]
 
 -- ANCHOR: deadAssign
+-- ANCHOR: stmtDeadAssign
 /--
 **덮어써지는 대입은 사라진다.** `y ∉ FV(e)` 이면 `y := d; y := e ≡ y := e`.
 
@@ -268,7 +269,9 @@ theorem AComm.eval_ite_self (A : ZeroDivision) (b : ABExp V) (c : AComm V) (σ :
 @[exercise "§2.7 dead-assign" 2]
 theorem AComm.eval_assign_overwrite (A : ZeroDivision) (v : V) (d e : AExp V)
     (h : v ∉ e.fv) (σ : State V) :
-    (AComm.seq (.assign v d) (.assign v e)).eval A σ = (AComm.assign v e).eval A σ := by
+    (AComm.seq (.assign v d) (.assign v e)).eval A σ = (AComm.assign v e).eval A σ
+-- ANCHOR_END: stmtDeadAssign
+    := by
   change (σ[v := d.eval A σ])[v := e.eval A (σ[v := d.eval A σ])] = σ[v := e.eval A σ]
   have he : e.eval A (σ[v := d.eval A σ]) = e.eval A σ := by
     refine AExp.coincidence A e _ σ ?_
@@ -299,6 +302,7 @@ theorem AComm.indep_dead_div (v u : V) :
 있어야 한다. 없다면 매개변수화가 헛일이다. -/
 
 -- ANCHOR: notIndep
+-- ANCHOR: stmtNotIndep
 omit [DecidableEq V] in
 /--
 **`x ÷ 0` 은 선택을 관찰한다.**
@@ -311,7 +315,9 @@ omit [DecidableEq V] in
 요구한다**는 확인이다.
 -/
 @[exercise "§2.7 not-indep" 2]
-theorem AExp.not_indep_div_zero (v : V) : ¬ (AExp.div (.var v) (.num 0) : AExp V).Indep := by
+theorem AExp.not_indep_div_zero (v : V) : ¬ (AExp.div (.var v) (.num 0) : AExp V).Indep
+-- ANCHOR_END: stmtNotIndep
+    := by
   intro hindep
   have h := hindep ⟨fun _ => 0, fun _ => 0⟩ ⟨fun _ => 1, fun _ => 0⟩ (State.const 0)
   simp [AExp.eval] at h
@@ -338,6 +344,7 @@ Python 의 `fdiv`/`fmod`(바닥)와 음수에서 갈린다. -/
 #guard ((5 : Int) / 0, (5 : Int) % 0) == (0, 5)
 
 -- ANCHOR: leanChoice
+-- ANCHOR: stmtLeanChoice
 omit [DecidableEq V] in
 /--
 **축소판의 `÷` 는 Lean 의 선택 아래에서 Lean 의 `/` 와 같다.**
@@ -351,7 +358,9 @@ theorem AExp.eval_leanChoice (e₀ e₁ : AExp V) (σ : State V) :
     (AExp.div e₀ e₁).eval .leanChoice σ
         = e₀.eval .leanChoice σ / e₁.eval .leanChoice σ
       ∧ (AExp.rem e₀ e₁).eval .leanChoice σ
-        = e₀.eval .leanChoice σ % e₁.eval .leanChoice σ := by
+        = e₀.eval .leanChoice σ % e₁.eval .leanChoice σ
+-- ANCHOR_END: stmtLeanChoice
+    := by
   by_cases h : e₁.eval (V := V) .leanChoice σ = 0
   · -- 제수가 0 인 갈래. Lean 의 `/` 와 `%` 가 0 에서 무엇을 내는지가 그대로 드러난다.
     refine ⟨?_, ?_⟩

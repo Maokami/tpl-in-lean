@@ -93,7 +93,7 @@ F (⨆ₙ Fⁿ(⊥)) = ⨆ₙ Fⁿ⁺¹(⊥)
 왼쪽에서 첫 등식을 허용하는 가정이 연속성이다. 오른쪽 사슬은 원래 사슬에서 맨 앞의 `⊥`만
 뺀 사슬이고, `⊥`은 모든 항 아래에 있으므로 극한이 바뀌지 않는다.
 
-```anchor fix_eq (module := Reynolds.Answers.Ch02.Fixpoint)
+```anchor stmtFixEq (module := Reynolds.Answers.Ch02.Fixpoint)
 /--
 **최소 고정점 정리, 둘째 단계 — 극한은 고정점이다.**
 
@@ -106,21 +106,7 @@ F (⨆ₙ Fⁿ(⊥)) = ⨆ₙ Fⁿ⁺¹(⊥)
 -/
 @[exercise "§2.4 fix-eq" 3]
 theorem fix_eq {F : α → α} (hm : Monotone F) (hF : Continuous F) :
-    F (fix F hm) = fix F hm := by
-  -- 연속성: `F(fix)`는 `F '' (사슬의 값들)`의 극한이다.
-  have h₁ := hF (iterChain hm)
-  -- 그 상은 밀린 사슬의 값들과 같다.
-  have himg : F '' Set.range (iterChain hm).seq
-      = Set.range fun n => F^[n + 1] ⊥ := by
-    ext y
-    constructor
-    · rintro ⟨_, ⟨n, rfl⟩, rfl⟩
-      exact ⟨n, Function.iterate_succ_apply' F n ⊥⟩
-    · rintro ⟨n, rfl⟩
-      exact ⟨F^[n] ⊥, ⟨n, rfl⟩, (Function.iterate_succ_apply' F n ⊥).symm⟩
-  rw [himg] at h₁
-  -- 밀린 사슬의 극한은 `fix`이기도 하다. 극한은 유일하다.
-  exact h₁.unique (isLUB_shifted hm)
+    F (fix F hm) = fix F hm
 ```
 
 여기서 단조성만 가정하면 반복 사슬은 만들 수 있지만 `F`를 극한 안으로 옮길 수 없다.
@@ -137,7 +123,7 @@ number := false
 전고정점이다. 반복 사슬의 모든 항이 `x` 아래에 있음을 자연수 귀납으로 보이면, 그 극한도
 `x` 아래에 있다.
 
-```anchor fix_least (module := Reynolds.Answers.Ch02.Fixpoint)
+```anchor stmtFixLeast (module := Reynolds.Answers.Ch02.Fixpoint)
 /--
 **최소 고정점 정리, 셋째 단계 — 전고정점 아래에 있다.**
 
@@ -149,14 +135,7 @@ number := false
 -/
 @[exercise "§2.4 fix-least" 2]
 theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
-    fix F hF ≤ x := by
-  refine (iterChain hF).lub_le fun n => ?_
-  induction n with
-  | zero => exact bot_le
-  | succ n ih =>
-      calc F^[n + 1] ⊥ = F (F^[n] ⊥) := Function.iterate_succ_apply' F n ⊥
-        _ ≤ F x := hF ih
-        _ ≤ x := hx
+    fix F hF ≤ x
 ```
 
 최소라는 말은 “실행 시간이 가장 짧다”거나 “결과 상태의 정수가 가장 작다”는 뜻이 아니다.
@@ -178,7 +157,7 @@ number := false
 
 세 번째 조건을 허용 가능성(admissibility)이라 부른다.
 
-```anchor scott_induction (module := Reynolds.Answers.Ch02.Fixpoint)
+```anchor stmtScottInduction (module := Reynolds.Answers.Ch02.Fixpoint)
 /--
 **Scott 귀납법.** 허용 가능한 성질이 `⊥`에서 성립하고 `F`가 보존하면, `fix F`에서
 성립한다.
@@ -190,13 +169,7 @@ number := false
 @[exercise "§2.4 scott" 2]
 theorem scott_induction {F : α → α} (hF : Monotone F) {P : α → Prop}
     (hadm : ∀ c : Chain α, (∀ n, P (c.seq n)) → P c.lub)
-    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF) := by
-  refine hadm (iterChain hF) fun n => ?_
-  induction n with
-  | zero => exact hbot
-  | succ n ih =>
-      rw [iterChain_seq, Function.iterate_succ_apply']
-      exact hstep _ ih
+    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF)
 ```
 
 일반적인 구조적 귀납법은 구문 트리의 생성자를 따라간다. Scott 귀납법은 의미의 유한

@@ -426,12 +426,14 @@ number := false
 보편 일반화 규칙은 건전한데, 같은 재료로 만든 함의는 타당하지 않다. 둘이 같은 말을 하는
 것처럼 보여서 §1.3에서 가장 자주 걸리는 곳이다. 두 정리를 나란히 놓는다.
 
-```anchor genVsImp (module := Reynolds.Answers.Ch01.Validity)
+```anchor stmtGenSound (module := Reynolds.Answers.Ch01.Validity)
 /-- 규칙 쪽. `p`가 타당하면 `∀v. p`도 타당하다. -/
 @[exercise "§1.3 gen-sound" 1]
 theorem valid_forall_of_valid (v : V) {p : Assert V} (h : Valid p) :
-    Valid (.quant .all v p) := fun _ _ => h _
+    Valid (.quant .all v p)
+```
 
+```anchor stmtGenNotImp (module := Reynolds.Answers.Ch01.Validity)
 /--
 함의 쪽. `x > 0 ⇒ ∀x. x > 0`은 타당하지 않다.
 
@@ -443,14 +445,7 @@ Reynolds의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서 왼쪽은 참
 @[exercise "§1.3 gen-not-imp" 2]
 theorem not_valid_imp_forall :
     ¬ Valid (.bin .imp (.cmp .gt (.var "x") (.num 0))
-                       (.quant .all "x" (.cmp .gt (.var "x") (.num 0))) : Assert String) := by
-  intro h
-  -- x ↦ 3 인 상태를 잡으면 왼쪽은 참이다.
-  have h3 := h (State.const 3)
-  simp only [Assert.eval, LogOp.denote, Cmp.denote, IntExp.eval, State.const] at h3
-  -- 따라서 오른쪽이 성립해야 하는데, n = 0 을 넣으면 거짓이다.
-  have := h3 (by decide) 0
-  simp at this
+                       (.quant .all "x" (.cmp .gt (.var "x") (.num 0))) : Assert String)
 ```
 
 규칙은 *전제가 타당할 때* 결론이 타당하다고 말한다. 함의는 *한 상태 안에서* 왼쪽이

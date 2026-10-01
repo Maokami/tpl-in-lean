@@ -90,6 +90,7 @@ theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
   simp [forV1, forWhile, forBody, incr, Comm.fa]
 
 -- ANCHOR: forV1Leaks
+-- ANCHOR: stmtForV1Leaks
 /--
 **판본 1 의 결함, 실행으로.** 루프가 끝난 뒤 제어 변수가 입력과 다른 값을 갖는다.
 
@@ -100,7 +101,9 @@ theorem forV1_assigns_control (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 @[exercise "§2.6 for-leaks" 1]
 theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i"
+-- ANCHOR_END: stmtForV1Leaks
+    := by
   -- 연료 2 로 실행하면 종료하고, 그 결과 상태에서 i = 2 다.
   have hrun : (forV1 "i" (.num 1) (.num 1) .skip).run 2 (State.const 0)
       = Flat.some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
@@ -134,6 +137,7 @@ theorem forV2_no_leak (v : V) (e₀ e₁ : IntExp V) (c : Comm V) :
 #guard ((forV2 "i" (.num 1) (.var "i") .skip).run 1000 (State.const 0)).isNone
 
 -- ANCHOR: forV2Diverges
+-- ANCHOR: stmtForV2Diverges
 /--
 **판본 1·2의 공통 결함: 상한이 매 반복 재평가된다.** 아래 정리는 판본 2를 다룬다.
 
@@ -148,7 +152,9 @@ Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어
 -/
 @[exercise "§2.6 for-diverges" 2]
 theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none
+-- ANCHOR_END: stmtForV2Diverges
+    := by
   -- 안쪽 while 은 어떤 상태·연료에서도 종료하지 않는다.
   have hrun : ∀ (n : ℕ) (σ' : State V),
       (forWhile v (.var v) (.skip : Comm V)).run n σ' = Flat.none := by

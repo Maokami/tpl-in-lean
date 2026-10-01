@@ -114,7 +114,7 @@ def HaltEq (c c' : Comm V) : Prop :=
 
 두 번째가 훨씬 빈약한데도 구별하는 힘이 같다는 것이 이 절의 놀라운 결과다.
 
-**책과의 범위 차이:** 여기서 `HaltEq`는 모든 문맥과 모든 입력 상태를 양화한다.
+*책과의 범위 차이:* 여기서 `HaltEq`는 모든 문맥과 모든 입력 상태를 양화한다.
 책 p. 50은 관찰 대상을 닫힌 명령으로 제한해도 종료 여부만으로 완전 추상성이 성립한다고
 설명한다. 닫힌 명령의 종료 여부는 초기 상태와 무관하므로 하나의 초기 상태를 고정해도
 된다. 현재 정리는 이 더 제한된 관찰 부류까지 다루지는 않는다. 해당 형식화는
@@ -134,7 +134,7 @@ number := false
 완전 추상성의 증명에서 "값이 다르면 발산시킨다"는 문맥을 만들려면 발산하는 명령이
 하나 필요하다.
 
-```anchor diverge (module := Reynolds.Answers.Ch02.FullAbstraction)
+```anchor stmtDiverge (module := Reynolds.Answers.Ch02.FullAbstraction)
 /-- `while true do skip` — 절대 끝나지 않는 명령. -/
 def diverge : Comm V := .wh .tru .skip
 
@@ -154,10 +154,7 @@ def diverge : Comm V := .wh .tru .skip
 판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
-theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
-  have hbot : Comm.eval (V := V) diverge ≤ ⊥ :=
-    whileF_fix_le _ _ (le_of_eq rfl)
-  simpa using hbot σ
+theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none
 ```
 
 증명이 짧은 이유를 눈여겨볼 것. 이 반복의 함수 연산자는 _항등 함수_다. 조건이 늘 참이고
@@ -297,7 +294,7 @@ theorem steps_break_soundness :
 세 번째 쌍은 `x`와 `y`가 _다른 칸_이라는 데 기대고 있다. §2.5의 치환으로 둘을 같은
 칸으로 묶으면 갈라진다.
 
-````anchor aliasBreak (module := Reynolds.Answers.Ch02.FullAbstraction2)
+````anchor stmtAliasBreak (module := Reynolds.Answers.Ch02.FullAbstraction2)
 /-- `x`, `y` 를 둘 다 `z` 로 보낸다. 단사가 아니다 — 별칭을 만드는 이름 바꾸기다. -/
 def aliasXY : Ren String := fun w => if w = "x" then "z" else if w = "y" then "z" else w
 
@@ -321,12 +318,7 @@ z := z+1; z := z×2      vs      z := z×2; z := z+1
 @[exercise "§2.8 alias-break" 2]
 theorem alias_breaks_commutation :
     (incThenDouble /ᶜ aliasXY).eval (State.const 0)
-      ≠ (doubleThenInc /ᶜ aliasXY).eval (State.const 0) := by
-  intro hEq
-  have h := congrArg (fun o => o.map (fun τ => τ "z")) hEq
-  simp [incThenDouble, doubleThenInc, aliasXY, Comm.subst, Comm.eval, IntExp.subst,
-    IntExp.eval, IntOp.denote, Ren.toSubst, State.subst_def, Function.update,
-    State.const] at h
+      ≠ (doubleThenInc /ᶜ aliasXY).eval (State.const 0)
 ````
 
 이름 바꾸기는 _지금 언어의 문맥이 아니므로_ §2.8의 완전 추상성이 틀린 것은 아니다.

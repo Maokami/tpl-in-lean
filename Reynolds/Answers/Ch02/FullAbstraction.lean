@@ -210,6 +210,7 @@ theorem eval_sound {c c' : Comm V} (h : c.eval = c'.eval) : ObsEq c c' ∧ HaltE
 하나 필요하다. -/
 
 -- ANCHOR: diverge
+-- ANCHOR: stmtDiverge
 /-- `while true do skip` — 절대 끝나지 않는 명령. -/
 def diverge : Comm V := .wh .tru .skip
 
@@ -229,7 +230,9 @@ def diverge : Comm V := .wh .tru .skip
 판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
-theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
+theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none
+-- ANCHOR_END: stmtDiverge
+    := by
   have hbot : Comm.eval (V := V) diverge ≤ ⊥ :=
     whileF_fix_le _ _ (le_of_eq rfl)
   simpa using hbot σ

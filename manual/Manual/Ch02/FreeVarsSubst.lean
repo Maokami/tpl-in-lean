@@ -208,7 +208,7 @@ number := false
 단사 가정이 장식이 아님을 확인한다. 임시 변수를 거쳐 두 변수를 맞바꾸는 프로그램을
 놓고 본다.
 
-```anchor swap (module := Reynolds.Answers.Ch02.Substitution)
+```anchor stmtSwap (module := Reynolds.Answers.Ch02.Substitution)
 /-- 임시 변수 `t` 를 거쳐 `x` 와 `y` 를 맞바꾼다. -/
 def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 
@@ -218,8 +218,7 @@ def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 -/
 @[exercise "§2.5 swap" 1]
 theorem swap_ok (σ : State String) :
-    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
-  refine ⟨_, rfl, ?_, ?_⟩ <;> simp [IntExp.eval, State.subst_def, Function.update]
+    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x"
 ```
 
 여기에 `t`와 `y`를 같은 변수로 보내는 이름 바꾸기를 걸면 맞바꾸기가 망가진다.

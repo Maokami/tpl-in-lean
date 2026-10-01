@@ -274,6 +274,7 @@ Reynolds의 명제 2.1은 극한을 사슬의 항으로 포함하지 않는 "흥
 따라서 반대 부등식만 보이면 두 값이 같아지고 극한 보존이 성립한다. -/
 
 -- ANCHOR: continuous_iff_le
+-- ANCHOR: stmtContinuousIffLe
 /--
 **명제 2.1** — 단조 함수가 연속일 필요충분조건.
 
@@ -288,7 +289,9 @@ Reynolds의 명제 2.1은 극한을 사슬의 항으로 포함하지 않는 "흥
 @[exercise "Prop 2.1" 3]
 theorem continuous_iff_le [PartialOrder α] [PartialOrder β] [Predomain α] [Predomain β]
     {f : α → β} (hf : Monotone f) :
-    Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub := by
+    Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub
+-- ANCHOR_END: stmtContinuousIffLe
+    := by
   constructor
   · -- 연속이면 `f c.lub` 가 상의 극한이고, 극한은 유일하다.
     intro hc c
@@ -338,6 +341,7 @@ theorem initSegs_lub : initSegs.lub = Set.univ := by
   exact initSegs.le_lub (k + 1) (by simp [initSegs])
 
 -- ANCHOR: exists_monotone_not_continuous
+-- ANCHOR: stmtExistsMonotoneNotContinuous
 /--
 단조인데 연속이 아닌 함수가 있다.
 
@@ -353,7 +357,9 @@ theorem initSegs_lub : initSegs.lub = Set.univ := by
 -/
 @[exercise "§2.3 not-continuous" 2]
 theorem exists_monotone_not_continuous :
-    ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f := by
+    ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f
+-- ANCHOR_END: stmtExistsMonotoneNotContinuous
+    := by
   refine ⟨fun s => s = Set.univ, ?_, ?_⟩
   · -- 단조. `Prop` 의 순서는 함의다.
     intro s t hst hs

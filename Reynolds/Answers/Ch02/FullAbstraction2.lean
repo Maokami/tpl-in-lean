@@ -250,6 +250,7 @@ theorem steps_break_soundness :
 곧 별칭이고, 그것을 양쪽에 걸면 두 프로그램이 갈라진다. -/
 
 -- ANCHOR: aliasBreak
+-- ANCHOR: stmtAliasBreak
 /-- `x`, `y` 를 둘 다 `z` 로 보낸다. 단사가 아니다 — 별칭을 만드는 이름 바꾸기다. -/
 def aliasXY : Ren String := fun w => if w = "x" then "z" else if w = "y" then "z" else w
 
@@ -273,7 +274,9 @@ z := z+1; z := z×2      vs      z := z×2; z := z+1
 @[exercise "§2.8 alias-break" 2]
 theorem alias_breaks_commutation :
     (incThenDouble /ᶜ aliasXY).eval (State.const 0)
-      ≠ (doubleThenInc /ᶜ aliasXY).eval (State.const 0) := by
+      ≠ (doubleThenInc /ᶜ aliasXY).eval (State.const 0)
+-- ANCHOR_END: stmtAliasBreak
+    := by
   intro hEq
   have h := congrArg (fun o => o.map (fun τ => τ "z")) hEq
   simp [incThenDouble, doubleThenInc, aliasXY, Comm.subst, Comm.eval, IntExp.subst,

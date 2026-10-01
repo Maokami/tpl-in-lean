@@ -171,7 +171,7 @@ def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β
 
 명제 2.1은 연속성 증명에서 확인할 방향을 줄여 준다.
 
-```anchor continuous_iff_le (module := Reynolds.Answers.Ch02.Domain)
+```anchor stmtContinuousIffLe (module := Reynolds.Answers.Ch02.Domain)
 /--
 **명제 2.1** — 단조 함수가 연속일 필요충분조건.
 
@@ -186,24 +186,7 @@ def Continuous [PartialOrder α] [PartialOrder β] [Predomain α] (f : α → β
 @[exercise "Prop 2.1" 3]
 theorem continuous_iff_le [PartialOrder α] [PartialOrder β] [Predomain α] [Predomain β]
     {f : α → β} (hf : Monotone f) :
-    Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub := by
-  constructor
-  · -- 연속이면 `f c.lub` 가 상의 극한이고, 극한은 유일하다.
-    intro hc c
-    have h₁ := hc c
-    have h₂ := (c.map hf).isLUB
-    rw [Chain.range_map] at h₂
-    exact le_of_eq (h₁.unique h₂)
-  · intro hle c
-    -- 상을 옮긴 사슬이 훑는 값으로 바꿔 놓고 시작한다.
-    rw [(c.range_map hf).symm]
-    constructor
-    · -- 상계. 각 항에 단조성을 쓴다.
-      rintro _ ⟨n, rfl⟩
-      exact hf (c.le_lub n)
-    · -- 최소. 가정한 부등식을 옮긴 사슬의 극한과 이어 붙인다.
-      intro b hb
-      exact le_trans (hle c) (Chain.lub_le fun n => hb ⟨n, rfl⟩)
+    Continuous f ↔ ∀ c : Chain α, f c.lub ≤ (c.map hf).lub
 ```
 
 단조성만으로 충분하지 않은 이유는 무한한 극한에서만 새 정보를 내는 함수가 있기 때문이다.
@@ -224,7 +207,7 @@ number := false
 이 사슬의 극한은 자연수 전체다. `f s = (s = ℕ)`로 두면 각 유한 근사에서 `f s`는
 거짓이고, 극한에서만 참이다.
 
-```anchor exists_monotone_not_continuous (module := Reynolds.Answers.Ch02.Domain)
+```anchor stmtExistsMonotoneNotContinuous (module := Reynolds.Answers.Ch02.Domain)
 /--
 단조인데 연속이 아닌 함수가 있다.
 
@@ -240,23 +223,7 @@ number := false
 -/
 @[exercise "§2.3 not-continuous" 2]
 theorem exists_monotone_not_continuous :
-    ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f := by
-  refine ⟨fun s => s = Set.univ, ?_, ?_⟩
-  · -- 단조. `Prop` 의 순서는 함의다.
-    intro s t hst hs
-    exact Set.eq_univ_of_univ_subset (hs ▸ hst)
-  · intro hc
-    have h := hc initSegs
-    rw [initSegs_lub] at h
-    -- 극한에서는 참이다.
-    have htrue : (Set.univ : Set ℕ) = Set.univ := rfl
-    -- 그런데 상은 전부 거짓이라 `False` 도 상계다.
-    have hub : False ∈ upperBounds ((fun s : Set ℕ => s = Set.univ) '' Set.range initSegs.seq) := by
-      rintro P ⟨s, ⟨n, rfl⟩, rfl⟩ hs
-      -- `{k | k < n} = ℕ` 이면 `n < n` 이 된다.
-      have : n ∈ initSegs.seq n := hs ▸ Set.mem_univ n
-      simp [initSegs] at this
-    exact (h.2 hub) htrue
+    ∃ f : Set ℕ → Prop, Monotone f ∧ ¬ Continuous f
 ```
 
 Reynolds는 수직 자연수 `ℕ⊤`을 사용한다. 이 저장소는 Mathlib의 완비 격자 인스턴스를
