@@ -113,6 +113,7 @@ theorem isLUB_shifted {F : α → α} (hF : Monotone F) :
     | succ n => exact hb ⟨n, rfl⟩
 
 -- ANCHOR: fix_eq
+-- ANCHOR: stmtFixEq
 /--
 **최소 고정점 정리, 둘째 단계 — 극한은 고정점이다.**
 
@@ -125,7 +126,9 @@ theorem isLUB_shifted {F : α → α} (hF : Monotone F) :
 -/
 @[exercise "§2.4 fix-eq" 3]
 theorem fix_eq {F : α → α} (hm : Monotone F) (hF : Continuous F) :
-    F (fix F hm) = fix F hm := by
+    F (fix F hm) = fix F hm
+-- ANCHOR_END: stmtFixEq
+    := by
   -- 연속성: `F(fix)`는 `F '' (사슬의 값들)`의 극한이다.
   have h₁ := hF (iterChain hm)
   -- 그 상은 밀린 사슬의 값들과 같다.
@@ -149,6 +152,7 @@ point) — 위에서도 `fix`가 아래에 있다. 반복의 각 단계가 `x` �
 확인하면 극한도 `x` 아래다. -/
 
 -- ANCHOR: fix_least
+-- ANCHOR: stmtFixLeast
 /--
 **최소 고정점 정리, 셋째 단계 — 전고정점 아래에 있다.**
 
@@ -160,7 +164,9 @@ point) — 위에서도 `fix`가 아래에 있다. 반복의 각 단계가 `x` �
 -/
 @[exercise "§2.4 fix-least" 2]
 theorem fix_least {F : α → α} (hF : Monotone F) {x : α} (hx : F x ≤ x) :
-    fix F hF ≤ x := by
+    fix F hF ≤ x
+-- ANCHOR_END: stmtFixLeast
+    := by
   refine (iterChain hF).lub_le fun n => ?_
   induction n with
   | zero => exact bot_le
@@ -195,6 +201,7 @@ theorem fix_isLeast {F : α → α} (hF : Continuous F) {x : α} (hx : F x = x) 
 -/
 
 -- ANCHOR: scott_induction
+-- ANCHOR: stmtScottInduction
 /--
 **Scott 귀납법.** 허용 가능한 성질이 `⊥`에서 성립하고 `F`가 보존하면, `fix F`에서
 성립한다.
@@ -206,7 +213,9 @@ theorem fix_isLeast {F : α → α} (hF : Continuous F) {x : α} (hx : F x = x) 
 @[exercise "§2.4 scott" 2]
 theorem scott_induction {F : α → α} (hF : Monotone F) {P : α → Prop}
     (hadm : ∀ c : Chain α, (∀ n, P (c.seq n)) → P c.lub)
-    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF) := by
+    (hbot : P ⊥) (hstep : ∀ x, P x → P (F x)) : P (fix F hF)
+-- ANCHOR_END: stmtScottInduction
+    := by
   refine hadm (iterChain hF) fun n => ?_
   induction n with
   | zero => exact hbot

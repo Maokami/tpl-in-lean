@@ -259,7 +259,7 @@ number := false
 
 두 함수가 같은 풀기 방정식을 만족하고도 서로 다르다는 사실을 Lean에서 증명한다.
 
-```anchor unwinding_not_unique (module := Reynolds.Answers.Ch02.Semantics)
+```anchor stmtUnwindingNotUnique (module := Reynolds.Answers.Ch02.Semantics)
 /-- 한 걸음 간 상태. 네 갈래 계산에서 계속 쓴다. -/
 theorem decr_step (f : State String → SigmaBot String) (σ : State String) :
     Flat.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
@@ -320,15 +320,7 @@ theorem unwindsDecr_fake : UnwindsDecr decrFake := by
 -/
 @[exercise "§2.2 unwinding-not-unique" 3]
 theorem unwinding_not_unique :
-    ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g := by
-  refine ⟨decrTrue, decrFake, unwindsDecr_true, unwindsDecr_fake, ?_⟩
-  intro h
-  have hne : ¬ decrHalts (State.const 1 : State String) := by
-    unfold decrHalts State.const; omega
-  have := congrFun h (State.const 1)
-  simp only [decrTrue, decrFake, if_neg hne] at this
-  -- `⊥ = some …` 은 성립할 수 없다.
-  simp at this
+    ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g
 ```
 
 풀기 방정식은 반복문의 한 단계 행동을 올바르게 적지만, 끝나지 않는 입력에서 무엇을

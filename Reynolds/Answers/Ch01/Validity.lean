@@ -176,12 +176,15 @@ Reynolds 가 §1.3 에서 한 페이지를 들여 다루는 대목이다. 두 �
 가로선은 타당한 것에서 타당한 것을 얻는다는 뜻이고,
 화살표는 한 상태 안에서 앞이 참이면 뒤도 참이라는 뜻이다. 범위가 다르다. -/
 
--- ANCHOR: genVsImp
+-- ANCHOR: stmtGenSound
 /-- 규칙 쪽. `p`가 타당하면 `∀v. p`도 타당하다. -/
 @[exercise "§1.3 gen-sound" 1]
 theorem valid_forall_of_valid (v : V) {p : Assert V} (h : Valid p) :
-    Valid (.quant .all v p) := fun _ _ => h _
+    Valid (.quant .all v p)
+-- ANCHOR_END: stmtGenSound
+    := fun _ _ => h _
 
+-- ANCHOR: stmtGenNotImp
 /--
 함의 쪽. `x > 0 ⇒ ∀x. x > 0`은 타당하지 않다.
 
@@ -193,7 +196,9 @@ Reynolds의 반례를 그대로 쓴다. `x ↦ 3` 인 상태에서 왼쪽은 참
 @[exercise "§1.3 gen-not-imp" 2]
 theorem not_valid_imp_forall :
     ¬ Valid (.bin .imp (.cmp .gt (.var "x") (.num 0))
-                       (.quant .all "x" (.cmp .gt (.var "x") (.num 0))) : Assert String) := by
+                       (.quant .all "x" (.cmp .gt (.var "x") (.num 0))) : Assert String)
+-- ANCHOR_END: stmtGenNotImp
+    := by
   intro h
   -- x ↦ 3 인 상태를 잡으면 왼쪽은 참이다.
   have h3 := h (State.const 3)
@@ -201,7 +206,6 @@ theorem not_valid_imp_forall :
   -- 따라서 오른쪽이 성립해야 하는데, n = 0 을 넣으면 거짓이다.
   have := h3 (by decide) 0
   simp at this
--- ANCHOR_END: genVsImp
 
 /-! ## 5. 이 책이 다루지 않는 것
 

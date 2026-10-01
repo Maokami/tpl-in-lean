@@ -604,6 +604,7 @@ theorem Comm.substitution [HasFresh V] (c : Comm V) (δ : Ren V)
 별칭을 만드는 — 이름 바꾸기는 프로그램의 행동 자체를 바꾼다. -/
 
 -- ANCHOR: swap
+-- ANCHOR: stmtSwap
 /-- 임시 변수 `t` 를 거쳐 `x` 와 `y` 를 맞바꾼다. -/
 def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 
@@ -613,7 +614,9 @@ def swap : Comm String := ⟪ t := x; x := y; y := t ⟫ᶜ
 -/
 @[exercise "§2.5 swap" 1]
 theorem swap_ok (σ : State String) :
-    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x" := by
+    ∃ τ, swap.eval σ = Flat.some τ ∧ τ "x" = σ "y" ∧ τ "y" = σ "x"
+-- ANCHOR_END: stmtSwap
+    := by
   refine ⟨_, rfl, ?_, ?_⟩ <;> simp [IntExp.eval, State.subst_def, Function.update]
 -- ANCHOR_END: swap
 

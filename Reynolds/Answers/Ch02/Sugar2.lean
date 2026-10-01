@@ -207,6 +207,7 @@ theorem forV3_eq_fold (v w : V) (e₀ e₁ : IntExp V) (c : Comm V)
 반복 횟수가 구간 크기와 달라진다. -/
 
 -- ANCHOR: broken
+-- ANCHOR: stmtBroken
 /-- 제어 변수 `i` 자신에 대입하는 본문. `s` 는 실행 횟수를 센다. -/
 def doublingBody : Comm String := ⟪ s := s + 1; i := 2 × i ⟫ᶜ
 
@@ -235,7 +236,9 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 theorem forV3_broken_by_assigning_control :
     "i" ∈ doublingBody.fa ∧
       ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = Flat.some τ
-        ∧ τ "s" = 2 := by
+        ∧ τ "s" = 2
+-- ANCHOR_END: stmtBroken
+    := by
   refine ⟨by simp [doublingBody, Comm.fa], ?_⟩
   have h : ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
       (fun σ => σ "s") = Flat.some 2 := by

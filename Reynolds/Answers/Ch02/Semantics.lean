@@ -315,6 +315,7 @@ theorem State.subst_eq_self {V : Type u} [DecidableEq V] (σ : State V) (v : V) 
   subst h; simp [State.subst_def]
 
 -- ANCHOR: unwinding_not_unique
+-- ANCHOR: stmtUnwindingNotUnique
 /-- 한 걸음 간 상태. 네 갈래 계산에서 계속 쓴다. -/
 theorem decr_step (f : State String → SigmaBot String) (σ : State String) :
     Flat.bind (decrBody σ) f = f (σ["x" := σ "x" - 2]) := rfl
@@ -375,7 +376,9 @@ theorem unwindsDecr_fake : UnwindsDecr decrFake := by
 -/
 @[exercise "§2.2 unwinding-not-unique" 3]
 theorem unwinding_not_unique :
-    ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g := by
+    ∃ f g : State String → SigmaBot String, UnwindsDecr f ∧ UnwindsDecr g ∧ f ≠ g
+-- ANCHOR_END: stmtUnwindingNotUnique
+    := by
   refine ⟨decrTrue, decrFake, unwindsDecr_true, unwindsDecr_fake, ?_⟩
   intro h
   have hne : ¬ decrHalts (State.const 1 : State String) := by

@@ -143,7 +143,7 @@ Reynolds가 드는 예들이다. 어느 것도 `÷ 0`의 _구체적인 값_을 �
 
 마지막 것만 조건이 붙는다.
 
-```anchor deadAssign (module := Reynolds.Answers.Ch02.ArithErrors)
+```anchor stmtDeadAssign (module := Reynolds.Answers.Ch02.ArithErrors)
 /--
 **덮어써지는 대입은 사라진다.** `y ∉ FV(e)` 이면 `y := d; y := e ≡ y := e`.
 
@@ -156,15 +156,7 @@ Reynolds가 드는 예들이다. 어느 것도 `÷ 0`의 _구체적인 값_을 �
 @[exercise "§2.7 dead-assign" 2]
 theorem AComm.eval_assign_overwrite (A : ZeroDivision) (v : V) (d e : AExp V)
     (h : v ∉ e.fv) (σ : State V) :
-    (AComm.seq (.assign v d) (.assign v e)).eval A σ = (AComm.assign v e).eval A σ := by
-  change (σ[v := d.eval A σ])[v := e.eval A (σ[v := d.eval A σ])] = σ[v := e.eval A σ]
-  have he : e.eval A (σ[v := d.eval A σ]) = e.eval A σ := by
-    refine AExp.coincidence A e _ σ ?_
-    intro u hu
-    have hune : u ≠ v := fun hEq => h (hEq ▸ hu)
-    exact State.subst_of_ne _ _ _ _ hune
-  rw [he]
-  simp [State.subst_def, Function.update_idem]
+    (AComm.seq (.assign v d) (.assign v e)).eval A σ = (AComm.assign v e).eval A σ
 ```
 
 `y ∉ FV(e)`가 필요한 이유는 `e`가 `y`를 읽으면 덮어쓰기 전의 값을 보기 때문이다.
@@ -182,7 +174,7 @@ number := false
 앞 절의 등식들이 "선택과 무관하다"고 말할 수 있으려면, 무관하지 _않은_ 것이 실제로
 있어야 한다. 없다면 매개변수화가 헛일이다.
 
-```anchor notIndep (module := Reynolds.Answers.Ch02.ArithErrors)
+```anchor stmtNotIndep (module := Reynolds.Answers.Ch02.ArithErrors)
 omit [DecidableEq V] in
 /--
 **`x ÷ 0` 은 선택을 관찰한다.**
@@ -195,10 +187,7 @@ omit [DecidableEq V] in
 요구한다**는 확인이다.
 -/
 @[exercise "§2.7 not-indep" 2]
-theorem AExp.not_indep_div_zero (v : V) : ¬ (AExp.div (.var v) (.num 0) : AExp V).Indep := by
-  intro hindep
-  have h := hindep ⟨fun _ => 0, fun _ => 0⟩ ⟨fun _ => 1, fun _ => 0⟩ (State.const 0)
-  simp [AExp.eval] at h
+theorem AExp.not_indep_div_zero (v : V) : ¬ (AExp.div (.var v) (.num 0) : AExp V).Indep
 ```
 
 이것이 있어야 Reynolds의 요구가 _무언가를 정말로 요구한다_는 확인이 된다.
@@ -226,7 +215,7 @@ C·Java의 `tdiv`/`tmod`는 0 쪽으로 자르므로 나머지 부호가 피제�
 그리고 결정적으로 `5 / 0 = 0`이고 `5 % 0 = 5`다. *Reynolds가 하라는 선택을 표준
 라이브러리가 벌써 해 두었다.*
 
-```anchor leanChoice (module := Reynolds.Answers.Ch02.ArithErrors)
+```anchor stmtLeanChoice (module := Reynolds.Answers.Ch02.ArithErrors)
 omit [DecidableEq V] in
 /--
 **축소판의 `÷` 는 Lean 의 선택 아래에서 Lean 의 `/` 와 같다.**
@@ -240,16 +229,7 @@ theorem AExp.eval_leanChoice (e₀ e₁ : AExp V) (σ : State V) :
     (AExp.div e₀ e₁).eval .leanChoice σ
         = e₀.eval .leanChoice σ / e₁.eval .leanChoice σ
       ∧ (AExp.rem e₀ e₁).eval .leanChoice σ
-        = e₀.eval .leanChoice σ % e₁.eval .leanChoice σ := by
-  by_cases h : e₁.eval (V := V) .leanChoice σ = 0
-  · -- 제수가 0 인 갈래. Lean 의 `/` 와 `%` 가 0 에서 무엇을 내는지가 그대로 드러난다.
-    refine ⟨?_, ?_⟩
-    · simp only [AExp.eval, h]
-      simp [ZeroDivision.leanChoice, Int.ediv_zero]
-    · simp only [AExp.eval, h]
-      simp [ZeroDivision.leanChoice, Int.emod_zero]
-  · -- 제수가 0 이 아니면 선택이 아예 쓰이지 않는다.
-    exact ⟨by simp only [AExp.eval, if_neg h], by simp only [AExp.eval, if_neg h]⟩
+        = e₀.eval .leanChoice σ % e₁.eval .leanChoice σ
 ```
 
 `ZeroDivision.leanChoice`를 넣으면 `if d = 0` 갈래가 사라진다. 표준 라이브러리가

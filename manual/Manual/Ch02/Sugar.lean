@@ -46,7 +46,7 @@ def forV1 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 루프가 끝난 뒤 제어 변수가 입력과 다른 값으로 남는다. Reynolds가 "제어 변수를 다시
 설정하는 부작용"이라 부르는 것이다.
 
-```anchor forV1Leaks (module := Reynolds.Answers.Ch02.Sugar)
+```anchor stmtForV1Leaks (module := Reynolds.Answers.Ch02.Sugar)
 /--
 **판본 1 의 결함, 실행으로.** 루프가 끝난 뒤 제어 변수가 입력과 다른 값을 갖는다.
 
@@ -57,13 +57,7 @@ def forV1 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 @[exercise "§2.6 for-leaks" 1]
 theorem forV1_leaks :
     ∃ (σ τ : State String),
-      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i" := by
-  -- 연료 2 로 실행하면 종료하고, 그 결과 상태에서 i = 2 다.
-  have hrun : (forV1 "i" (.num 1) (.num 1) .skip).run 2 (State.const 0)
-      = Flat.some (((State.const 0)["i" := (1 : Int)])["i" := (2 : Int)]) := by
-    simp [forV1, forWhile, forBody, incr, Comm.run, BoolExp.eval, IntExp.eval,
-      IntOp.denote, Cmp.denoteBool]
-  exact ⟨State.const 0, _, Comm.run_sound hrun, by decide⟩
+      (forV1 "i" (.num 1) (.num 1) .skip).eval σ = Flat.some τ ∧ τ "i" ≠ σ "i"
 ```
 
 구조적으로는 `v ∈ FA(forV1 …)`이 그 진단이다. §2.5에서 만든 `FA`가 여기서 바로 값을
@@ -87,7 +81,7 @@ def forV2 (v : V) (e₀ e₁ : IntExp V) (c : Comm V) : Comm V :=
 이제 `v ∉ FA(forV2 …)`다. 판본 1과 2에는 공통 결함이 남아 있다(p. 46). 상한 식이 while 안에 있어 매 반복
 다시 평가되는 것이다. Reynolds의 극단적인 예는 상한이 제어 변수 자신인 경우다.
 
-```anchor forV2Diverges (module := Reynolds.Answers.Ch02.Sugar)
+```anchor stmtForV2Diverges (module := Reynolds.Answers.Ch02.Sugar)
 /--
 **판본 1·2의 공통 결함: 상한이 매 반복 재평가된다.** 아래 정리는 판본 2를 다룬다.
 
@@ -95,49 +89,12 @@ Reynolds 의 극단적인 예다. `for v := 1 to v do skip` 은 상한이 제어
 `v` 를 올릴 때마다 상한도 같이 올라간다. 조건 `v ≤ v` 는 언제나 참이고 루프는 멈추지
 않는다 — 어떤 입력에서도 `⊥` 다.
 
-증명의 뼈대: 안쪽 while 이 어떤 연료로도 `none` 임을 연료에 대한 귀납으로 보인다.
-조건이 항상 참(`v ≤ v`)이라 한 바퀴 돌 때마다 남은 루프로 넘어가고, 귀납 가설이
-그것을 `none` 으로 만든다. 그다음 적합성(`run_complete`)으로 표시적 의미가 `none`
-임을 얻고, `newvar` 의 복원이 `none` 을 그대로 통과시킨다.
+연료 판 실행에서 표시적 의미로 넘어가는 다리는 적합성(`run_complete`)이다.
 -/
 @[exercise "§2.6 for-diverges" 2]
 theorem forV2_diverges (v : V) (σ : State V) :
-    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none := by
-  -- 안쪽 while 은 어떤 상태·연료에서도 종료하지 않는다.
-  have hrun : ∀ (n : ℕ) (σ' : State V),
-      (forWhile v (.var v) (.skip : Comm V)).run n σ' = Flat.none := by
-    intro n
-    induction n with
-    | zero => intro σ'; simp [forWhile, Comm.run]
-    | succ n ih =>
-        intro σ'
-        rw [forWhile, Comm.run]
-        by_cases hb : ⟦(.cmp .le (.var v) (.var v) : BoolExp V)⟧ᵇ σ'
-        · simp only [if_pos hb]
-          have hbody : (forBody v (.skip : Comm V)).run (n + 1) σ'
-              = Flat.some (σ'[v := σ' v + 1]) := by
-            simp [forBody, incr, Comm.run, IntExp.eval, IntOp.denote]
-          rw [hbody]
-          exact ih (σ'[v := σ' v + 1])
-        · simp [BoolExp.eval, IntExp.eval, Cmp.denoteBool] at hb
-  -- 표시적 의미도 `none`.
-  have heval : ∀ σ', (forWhile v (.var v) (.skip : Comm V)).eval σ' = Flat.none := by
-    intro σ'
-    rcases h : (forWhile v (.var v) (.skip : Comm V)).eval σ' with _ | τ
-    · rfl
-    · obtain ⟨n, hn⟩ := Comm.run_complete h
-      rw [hrun n σ'] at hn
-      exact absurd hn (by simp)
-  -- `newvar` 는 `none` 을 그대로 내보낸다.
-  change restore v σ
-    ((forWhile v (.var v) (.skip : Comm V)).eval (σ[v := ⟦(.num 1 : IntExp V)⟧ₑ σ])) = Flat.none
-  rw [heval]
-  simp [restore]
+    (forV2 v (.num 1) (.var v) .skip).eval σ = Flat.none
 ```
-
-증명이 짧은 구조를 눈여겨볼 것. 조건이 언제나 참이라 한 바퀴 돌 때마다 남은 루프로
-넘어가고, 연료에 대한 귀납이 그것을 `none`으로 만든다. 그다음 적합성의 대우로 표시적
-의미가 `⊥`임을 얻는다.
 
 # 판본 3 — 상한을 얼린다
 %%%
@@ -243,7 +200,7 @@ noncomputable def forFold (v : V) (c : Comm V) : Nat → State V → SigmaBot V
 
 마지막으로 제약이 장식이 아님을 확인한다.
 
-```anchor broken (module := Reynolds.Answers.Ch02.Sugar2)
+```anchor stmtBroken (module := Reynolds.Answers.Ch02.Sugar2)
 /-- 제어 변수 `i` 자신에 대입하는 본문. `s` 는 실행 횟수를 센다. -/
 def doublingBody : Comm String := ⟪ s := s + 1; i := 2 × i ⟫ᶜ
 
@@ -272,14 +229,7 @@ def countingBody : Comm String := ⟪ s := s + 1 ⟫ᶜ
 theorem forV3_broken_by_assigning_control :
     "i" ∈ doublingBody.fa ∧
       ∃ τ, (forV3 "i" "hi" (.num 1) (.num 3) doublingBody).eval (State.const 0) = Flat.some τ
-        ∧ τ "s" = 2 := by
-  refine ⟨by simp [doublingBody, Comm.fa], ?_⟩
-  have h : ((forV3 "i" "hi" (.num 1) (.num 3) doublingBody).run 8 (State.const 0)).map
-      (fun σ => σ "s") = Flat.some 2 := by
-    simp [forV3, forWhile, forBody, incr, doublingBody, Comm.run, restore,
-      BoolExp.eval, IntExp.eval, IntOp.denote, Cmp.denoteBool, State.const]
-  obtain ⟨τ, hτ, hs⟩ := Flat.map_eq_some_iff.mp h
-  exact ⟨τ, Comm.run_sound hτ, hs⟩
+        ∧ τ "s" = 2
 ```
 
 앞의 두 결함은 구문으로 막았고 마지막 하나는 구문으로 막을 수 없어 가정이 되었다는

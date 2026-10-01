@@ -210,13 +210,14 @@ theorem eval_sound {c c' : Comm V} (h : c.eval = c'.eval) : ObsEq c c' ∧ HaltE
 하나 필요하다. -/
 
 -- ANCHOR: diverge
+-- ANCHOR: stmtDiverge
 /-- `while true do skip` — 절대 끝나지 않는 명령. -/
 def diverge : Comm V := .wh .tru .skip
 
 /--
 **발산한다.** 어떤 상태에서도 `⊥` 다.
 
-증명이 짧은 이유를 보아 둘 것. 이 반복의 함수 연산자는 **항등 함수**다 —
+이 반복의 함수 연산자는 **항등 함수**다 —
 조건이 늘 참이고 본체가 아무것도 안 하므로 `whileF tru ⟦skip⟧ w = w` 이다.
 항등 함수는 `⊥` 를 `⊥` 로 보내므로 `⊥` 가 전고정점이고, 최소 고정점은 그보다 아래다.
 사슬을 펼쳐 볼 필요가 없다.
@@ -229,7 +230,9 @@ def diverge : Comm V := .wh .tru .skip
 판은 `fix_least` 연습을 곧바로 닫아버리므로 쓰지 않는다.
 -/
 @[exercise "§2.8 diverge" 2]
-theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none := by
+theorem eval_diverge (σ : State V) : (diverge : Comm V).eval σ = Flat.none
+-- ANCHOR_END: stmtDiverge
+    := by
   have hbot : Comm.eval (V := V) diverge ≤ ⊥ :=
     whileF_fix_le _ _ (le_of_eq rfl)
   simpa using hbot σ
