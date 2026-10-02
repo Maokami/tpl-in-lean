@@ -273,4 +273,50 @@ example : (IntExp.neg (IntExp.neg (IntExp.num (1 : ℤ))) : IntExp String) ∉
     IntExp.layer String 1 := by
   simp [IntExp.layer]
 
+/-! ## 치환은 모나드다 — `bind`, `Subst.kleisli`, 결합법칙이 등식으로 깨지는 반례
+
+`Depth/TermMonad.lean` §4~6 의 계산 가능한 부분을 돌려 본다. -/
+
+-- `bind` 는 변수 잎만 바꿔 끼운다. `x + 1` 에서 `x` 를 `y × 2` 로 보내면 `y×2 + 1`.
+#guard (IntExp.bin .add (.var "x") (.num 1)).bind
+    (fun v => if v == "x" then (IntExp.bin .mul (.var "y") (.num 2) : IntExp String) else .var v)
+  == IntExp.bin .add (IntExp.bin .mul (.var "y") (.num 2)) (.num 1)
+
+-- 좌단위: `(var v).bind f = f v`.
+#guard (IntExp.var "x" : IntExp String).bind
+    (fun v => (IntExp.bin .mul (.var v) (.num 2) : IntExp String))
+  == IntExp.bin .mul (.var "x") (.num 2)
+
+-- 우단위: `e.bind var = e`.
+#guard (IntExp.bin .add (.var "x") (.num 1) : IntExp String).bind IntExp.var
+  == IntExp.bin .add (.var "x") (.num 1)
+
+-- Kleisli 합성(심화 A2.2): 두 번 나눠 한 `bind` 와 합친 치환으로 한 번에 한 `bind` 가 같다.
+#guard
+    (((IntExp.bin .add (.var "x") (.var "y") : IntExp String).bind
+        (fun v => if v == "x" then (IntExp.var "a" : IntExp String) else .var "b")).bind
+      (fun v => if v == "a" then (IntExp.num 1 : IntExp String) else .num 2))
+  == (IntExp.bin .add (.var "x") (.var "y") : IntExp String).bind
+      ((fun v => if v == "x" then (IntExp.var "a" : IntExp String) else .var "b") >=>ₑ
+        (fun v => if v == "a" then (IntExp.num 1 : IntExp String) else .num 2))
+
+/-! 심화 A2.3 의 반례: `∀y. y > x` 를 `x ↦ y` 로 치환했다가 다시 `y ↦ 0` 을 치환한 것과,
+두 치환을 먼저 합쳐 한 번에 적용한 것이 결합 변수 이름에서 어긋난다. -/
+
+-- 한 번에 합쳐 적용한 결과는 결합 변수 이름이 그대로 `y`다.
+#guard
+    ((Assert.quant .all "y" (.cmp .gt (.var "y") (.var "x")) : Assert String) /ₛ
+      (fun w => (Function.update IntExp.var "x" (.var "y") w) /ₑ
+        (Function.update IntExp.var "y" (.num 0))))
+  == Assert.quant .all "y" (.cmp .gt (.var "y") (.num 0))
+
+-- 따라서 두 결과는 구문으로 다르다 — `subst_assoc_assert_not_eq` 가 증명하는 바로 그것.
+#guard
+    (((Assert.quant .all "y" (.cmp .gt (.var "y") (.var "x")) : Assert String) /ₛ
+        (Function.update IntExp.var "x" (.var "y"))) /ₛ
+      (Function.update IntExp.var "y" (.num 0)))
+  != (Assert.quant .all "y" (.cmp .gt (.var "y") (.var "x")) : Assert String) /ₛ
+      (fun w => (Function.update IntExp.var "x" (.var "y") w) /ₑ
+        (Function.update IntExp.var "y" (.num 0)))
+
 end Reynolds.Answers.Ch01
