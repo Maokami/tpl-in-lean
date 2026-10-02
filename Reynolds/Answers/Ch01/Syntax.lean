@@ -115,10 +115,10 @@ example : IntExp.num (V := V) n ≠ IntExp.var v := by nofun
 
 end AbstractSyntaxConditions
 
-/-! Reynolds 는 이 구문을 다중 정렬 초기 대수로 읽을 수 있다고 각주에 적는다.
-여기서 확인한 생성자 성질만으로 초기성의 내용을 다 보인 것은 아니다. 임의의 목표 대수로
-가는 유일한 `fold`를 구성하는 단계가 남아 있으며, `Depth/Algebra.lean`에서 그 명제를
-정확히 적고 증명한다. -/
+/-! Reynolds 는 이 구문을 다중 정렬 초기 대수로 읽을 수 있다고 §1.1 본문 괄호 속에서
+적는다(p. 5 — 각주가 아니다). 여기서 확인한 생성자 성질만으로 초기성의 내용을 다 보인
+것은 아니다. 임의의 목표 대수로 가는 유일한 `fold`를 구성하는 단계가 남아 있으며,
+`Depth/Algebra.lean`에서 그 명제를 정확히 적고 증명한다. -/
 
 /-! ## 단언 (assertions)
 

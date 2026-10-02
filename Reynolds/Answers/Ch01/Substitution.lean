@@ -19,11 +19,12 @@ Reynolds §1.4 (pp. 18–21) 에 대응한다.
 - 변수 포획(capture)을 피하는 법
 - 명제 1.2 (a)(b)(c) — 치환의 구문적 성질
 - 명제 1.3 (치환 정리) · 1.4 (유한 치환) · 1.5 (이름 바꾸기 정리)
-- §1.3 의 공리꼴 `(∀v. p) ⇒ p / v ↦ e` 가 타당함
+- §1.4 의 공리꼴 `(∀v. p) ⇒ p / v ↦ e` 가 타당함
 
 ## 배경
 
-Reynolds 는 이 절을 반례로 연다. 공리꼴
+Reynolds 는 명제 1.1 바로 뒤, §1.4 에서 결합과 치환이 부딪히는 자리를 이 반례로 연다.
+공리꼴
 
 ```
 (∀v. p) ⇒ (p / v → e)
@@ -45,9 +46,12 @@ Reynolds 는 이 절을 반례로 연다. 공리꼴
 `FreeVars.lean` → 이 파일 → `Depth/TermMonad.lean` (선택)
 
 ## 책과의 차이
-Reynolds 는 새 이름 `vnew` 를 "어떤 표준 순서에서 첫 번째" 로 정한다.
-여기서는 `HasFresh.fresh` 로 뽑는다. 이어지는 명제들이 쓰는 성질은
-`vnew` 가 특정 유한 집합 밖에 있다는 것 하나뿐이라, 어느 쪽이든 증명이 같다.
+Reynolds 의 `vnew` 규칙(p.19)은 두 단계다: `v` 자신이 안전하면 그대로 쓰고,
+아니면 "어떤 표준 순서에서 첫 번째" 변수로 간다. 뒤쪽 절반만 `HasFresh.fresh` 로
+바꿨다 — 이어지는 명제들이 쓰는 성질은 `vnew` 가 특정 유한 집합 밖에 있다는 것
+하나뿐이라, 어느 순서든 증명이 같다. 앞쪽 절반("`v`가 안전하면 그대로 쓴다")은
+`newBinder` 가 그대로 옮기며, 그 덕분에 항등 치환에서 결합 변수가 바뀌지 않아
+명제 1.2(b)가 구문 등식으로 성립한다(`subst_var_assert`).
 -/
 
 @[expose] public section
@@ -64,7 +68,7 @@ variable {V : Type u} [DecidableEq V]
 
 -- ANCHOR: subst
 /--
-치환 사상(substitution map). Reynolds 의 `Θ = ⟨var⟩ → ⟨intexp⟩`.
+치환 사상(substitution map). Reynolds 의 `Δ = ⟨var⟩ → ⟨intexp⟩`.
 
 변수 하나가 아니라 **모든 변수를 한꺼번에** 옮기는 함수다.
 Reynolds가 동시 치환을 기본으로 둔 덕분에 이 파일 §3의 이름 있는 포획 회피 정의를
@@ -225,6 +229,99 @@ theorem fv_subst_intExp (e : IntExp V) (δ : Subst V) :
 -- ANCHOR_END: prop12
 
 /--
+**명제 1.2(a)** — 단언 판. 자유 변수 위에서 같은 치환 사상은 같은 결과를 낸다.
+
+책(p.19)은 "p가 type θ의 구"라고 일반적으로 말하므로 단언에도 성립해야 하는데,
+정수 식 판(`subst_congr_intExp`)만 있었다. 채점 연습이 아니라 완성본으로 둔다 —
+`captureSet`이 `δ`를 `FV(p) − {v}` 위에서만 보기 때문에 양화사 절도 구문 등식으로
+성립하고(`Prop 1.2b-assert`의 `hcap` 계산과 같은 모양), `Prop 1.3-assert`(치환
+정리)의 핵심 귀납과는 다른 성질이라 거기를 자명하게 만들지 않는다.
+-/
+theorem subst_congr_assert [HasFresh V] :
+    ∀ (p : Assert V) (δ δ' : Subst V), (∀ w ∈ p.fv, δ w = δ' w) → p /ₛ δ = p /ₛ δ' := by
+  intro p
+  induction p with
+  | tru | fls => intro _ _ _; rfl
+  | cmp c e₀ e₁ =>
+      intro δ δ' h
+      simp [Assert.subst,
+        subst_congr_intExp e₀ δ δ' fun w hw => h w (by simp [Assert.fv, hw]),
+        subst_congr_intExp e₁ δ δ' fun w hw => h w (by simp [Assert.fv, hw])]
+  | not p ih => intro δ δ' h; simp [Assert.subst, ih δ δ' h]
+  | bin op p q ihp ihq =>
+      intro δ δ' h
+      simp [Assert.subst,
+        ihp δ δ' fun w hw => h w (by simp [Assert.fv, hw]),
+        ihq δ δ' fun w hw => h w (by simp [Assert.fv, hw])]
+  | quant qt v p ih =>
+      intro δ δ' h
+      simp only [Assert.fv] at h
+      -- `v`를 제외한 자유 변수 위에서만 일치하므로 `captureSet`도, 따라서 새 결합 변수도 같다.
+      have hcap : captureSet p v δ = captureSet p v δ' :=
+        Finset.biUnion_congr rfl fun w hw => congrArg IntExp.fv (h w hw)
+      have hnewB : newBinder p v δ = newBinder p v δ' := by
+        unfold newBinder; rw [hcap]
+      change Assert.quant qt (newBinder p v δ)
+          (p.subst (Function.update δ v (.var (newBinder p v δ))))
+        = Assert.quant qt (newBinder p v δ')
+          (p.subst (Function.update δ' v (.var (newBinder p v δ'))))
+      rw [hnewB]
+      congr 1
+      apply ih
+      intro w hw
+      by_cases hwv : w = v
+      · subst hwv; simp
+      · simp only [Function.update_apply, if_neg hwv]
+        exact h w (Finset.mem_erase.mpr ⟨hwv, hw⟩)
+
+/--
+**명제 1.2(c)** — 단언 판. 치환 후의 자유 변수.
+
+`subst_var_assert`(아래, Prop 1.2b-assert)보다 먼저 두는 이유는 하나다: 그 증명이
+항등 치환 하나만 다루는 특수 사례라서, 일반 `δ`에 대한 이 결과와 독립적이어야
+`subst_var_assert`를 채점에서 자명하게 만들지 않는다(둘은 서로 다른 δ에 대한
+진술이라 어차피 한쪽이 다른 쪽을 안 쓴다).
+
+양화사 절에서 `newBinder_notMem_fv`를 쓴다: `v`가 아닌 자유 변수 `w`가 `δ`로 가서
+만든 자유 변수 안에는 새 결합 변수가 없으므로, 바깥의 `erase`가 그 부분에는
+영향을 주지 않는다.
+-/
+theorem fv_subst_assert [HasFresh V] :
+    ∀ (p : Assert V) (δ : Subst V), (p /ₛ δ).fv = p.fv.biUnion fun w => (δ w).fv := by
+  intro p
+  induction p with
+  | tru | fls => intro δ; simp [Assert.subst, Assert.fv]
+  | cmp c e₀ e₁ =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, fv_subst_intExp]
+      exact Finset.union_biUnion.symm
+  | not p ih => intro δ; simpa [Assert.subst, Assert.fv] using ih δ
+  | bin op p q ihp ihq =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, ihp, ihq]
+      exact Finset.union_biUnion.symm
+  | quant qt v p ih =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, ih]
+      ext u
+      constructor
+      · intro hu
+        obtain ⟨hune, hu⟩ := Finset.mem_erase.mp hu
+        obtain ⟨w, hw, hu⟩ := Finset.mem_biUnion.mp hu
+        rw [Function.update_apply] at hu
+        split_ifs at hu with hwv
+        · simp only [IntExp.fv, Finset.mem_singleton] at hu
+          exact absurd hu hune
+        · exact Finset.mem_biUnion.mpr ⟨w, Finset.mem_erase.mpr ⟨hwv, hw⟩, hu⟩
+      · intro hu
+        obtain ⟨w, hw', hu⟩ := Finset.mem_biUnion.mp hu
+        obtain ⟨hwv, hw⟩ := Finset.mem_erase.mp hw'
+        refine Finset.mem_erase.mpr ⟨fun heq => newBinder_notMem_fv hw hwv (heq ▸ hu),
+          Finset.mem_biUnion.mpr ⟨w, hw, ?_⟩⟩
+        rw [Function.update_apply, if_neg hwv]
+        exact hu
+
+/--
 단언 판의 명제 1.2(b). 변수 치환 `IntExp.var` 는 구문을 바꾸지 않는다.
 양화사 절에서는 `newBinder` 가 기존 결합자 `v` 를 그대로 선택하므로 귀납 가설을 적용할 수 있다.
 -/
@@ -380,10 +477,11 @@ theorem renaming_assert [HasFresh V] (q : Quant) (v vnew : V) (p : Assert V)
   · simpa [Assert.eval] using forall_congr' key
   · simpa [Assert.eval] using exists_congr key
 
-/-! ## 8. §1.3 의 공리꼴이 타당하다 -/
+/-! ## 8. §1.4 의 공리꼴이 타당하다 -/
 
 /--
-Reynolds 가 §1.4 를 여는 공리꼴 `(∀v. p) ⇒ (p / v ↦ e)` 가 타당하다.
+Reynolds 가 명제 1.1 바로 뒤에서 치환 이야기를 여는 공리꼴(1.13) `(∀v. p) ⇒ (p / v ↦ e)`
+가 타당하다. §1.3 이 아니라 §1.4(p.18)의 공리꼴이다.
 
 이 절 첫머리의 반례가 여기서 정리된다. 포획을 피하도록 치환을 정의했기 때문에
 `p := ∃y. y > x`, `v := x`, `e := y + 1` 을 넣어도 결론이 거짓이 되지 않는다.

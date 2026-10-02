@@ -6,6 +6,7 @@ Authors: tpl-in-lean contributors
 module
 
 public import Reynolds.Answers.Ch01.Semantics
+public import Reynolds.Answers.Ch01.Notation
 public import Reynolds.Meta.Exercise
 
 /-!
@@ -200,28 +201,56 @@ Reynolds 는 *"proof trees are more perspicuous than sequences"* 라고 하면�
 
 -- ANCHOR: proofSystem
 /--
-술어 논리의 작은 추론 체계. Reynolds §1.3이 예시로 드는 규칙들이다.
+술어 논리의 작은 추론 체계. Reynolds §1.3 p.13이 공리·공리꼴·두 전제 규칙·한 전제
+규칙의 예로 직접 드는 넷 그대로다: `x + 0 = x`, `e₁ = e₀ ⇒ e₀ = e₁`, 전건 긍정,
+보편 일반화.
 
-완전한 체계가 아니고 그럴 의도도 없다. 추론 규칙과 건전성이 무엇인지 보이는 데 필요한
-최소한만 담았다.
+완전한 체계가 아니고 그럴 의도도 없다. 책도 이 넷을 "예시"라고만 하고 나머지는
+논리학 교과서로 미룬다(모듈 docstring의 "책과의 차이" 참고).
 -/
 inductive Proof : Assert V → Prop where
-  /-- 공리꼴: `e = e`. -/
-  | eqRefl (e : IntExp V) : Proof (.cmp .eq e e)
-  /-- 한 전제 규칙: `e₀ = e₁`로부터 `e₁ = e₀`. -/
-  | eqSymm {e₀ e₁ : IntExp V} : Proof (.cmp .eq e₀ e₁) → Proof (.cmp .eq e₁ e₀)
+  /--
+  공리: `x + 0 = x`. 책은 메타변수가 없는 구체적인 객체 변수 x로 든다 — 바로 다음
+  공리꼴과 대조하려는 것이다(p.13, "notice the special role of axiom schemas").
+
+  **책과의 차이**: 여기서는 모든 객체 변수 x에 대해 한 번에 선언한다. Lean에서 변수마다
+  따로 공리를 선언하면 쓸 수 없는 정의가 되기 때문이다. 책의 "메타변수 없음"은 이 x 하나를
+  구체적으로 고정했을 때의 이야기이고, 다형화 자체는 책에 없는 저장소의 선택이다.
+  -/
+  | addZero (x : V) : Proof (.cmp .eq (.bin .add (.var x) (.num 0)) (.var x))
+  /--
+  공리꼴: `e₁ = e₀ ⇒ e₀ = e₁`. 전제 없이 바로 쓸 수 있지만 `e₀`, `e₁`이 메타변수라서
+  임의의 정수 식 쌍에 대한 사례를 전부 대신한다 — 공리와 공리꼴의 차이가 바로 이
+  메타변수 유무다(p.13, "their instances are assertions that can appear anywhere
+  in a proof, regardless of what, if anything, precedes them").
+  -/
+  | eqSymmSchema (e₀ e₁ : IntExp V) :
+      Proof (.bin .imp (.cmp .eq e₁ e₀) (.cmp .eq e₀ e₁))
   /-- 두 전제 규칙 — 전건 긍정(modus ponens). -/
   | mp {p q : Assert V} : Proof p → Proof (.bin .imp p q) → Proof q
-  /-- 두 전제 규칙 — 연언 도입. -/
-  | andIntro {p q : Assert V} : Proof p → Proof q → Proof (.bin .and p q)
   /--
-  보편 일반화(∀-도입).
+  한 전제 규칙 — 보편 일반화(∀-도입).
 
   전제가 타당할 때만 결론이 타당해진다. 이 파일 §4에서 이 규칙과 함의 `p ⇒ ∀v. p`를
   나란히 놓고 비교한다.
   -/
   | genAll (v : V) {p : Assert V} : Proof p → Proof (.quant .all v p)
 -- ANCHOR_END: proofSystem
+
+/--
+책 p.13의 네 줄짜리 증명 그대로: `∀x. x = x + 0`.
+
+1. `x + 0 = x` — 공리(`addZero`)
+2. `x + 0 = x ⇒ x = x + 0` — 공리꼴(`eqSymmSchema`)
+3. `x = x + 0` — 전건 긍정, 1·2에서
+4. `∀x. x = x + 0` — 일반화, 3에서
+
+책의 증명 나무가 그대로 Lean 항이 된다: `genAll`이 맨 바깥, `mp`가 그 전제이고
+`addZero`·`eqSymmSchema`가 나무의 잎이다.
+-/
+example : Proof (⟪ ∀ x, x = x + 0 ⟫ₐ : Assert String) :=
+  .genAll "x" (.mp (.addZero "x")
+    (.eqSymmSchema (.var "x") (.bin .add (.var "x") (.num 0))))
 
 /-! ## 3. 건전성 -/
 
@@ -238,10 +267,10 @@ inductive Proof : Assert V → Prop where
 theorem Proof.sound {p : Assert V} : Proof p → Valid p := by
   intro hp
   induction hp with
-  | eqRefl e => intro σ; simp [Assert.eval, Cmp.denote]
-  | eqSymm _ ih => intro σ; simpa [Assert.eval, Cmp.denote] using (ih σ).symm
+  | addZero x => intro σ; simp [Assert.eval, Cmp.denote, IntExp.eval, IntOp.denote]
+  | eqSymmSchema e₀ e₁ =>
+      intro σ; simp only [Assert.eval, LogOp.denote, Cmp.denote]; exact Eq.symm
   | mp _ _ ihp ihimp => intro σ; exact ihimp σ (ihp σ)
-  | andIntro _ _ ihp ihq => intro σ; exact ⟨ihp σ, ihq σ⟩
   | genAll v _ ih => intro σ n; exact ih _
 
 /-! ## 4. 추론과 함의

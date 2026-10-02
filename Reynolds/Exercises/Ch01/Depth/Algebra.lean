@@ -15,7 +15,8 @@ public import Reynolds.Meta.Exercise
 
 ## 시작점
 
-Reynolds 는 §1.1 에서 추상 구문 조건 셋을 나열한 뒤 이런 각주를 단다.
+Reynolds 는 §1.1 에서 추상 구문 조건 셋을 나열한 뒤 본문 괄호 속에 이런 문장을 단다
+(p. 5 — 각주가 아니다).
 
 > *"The reader who is familiar with universal algebra will recognize that these conditions
 > insure that abstract phrases form a many-sorted initial algebra whose operators are
@@ -238,7 +239,8 @@ theorem eval_unique {V : Type u} (f : IntExp V → State V → Int)
 
 /-! ## 8. 다중 정렬
 
-Reynolds 의 각주는 "초기 대수"가 아니라 "다중 정렬(many-sorted) 초기 대수"다.
+Reynolds 의 p.5 문장(각주가 아니라 본문 괄호 속)은 "초기 대수"가 아니라
+"다중 정렬(many-sorted) 초기 대수"다.
 정렬(sort)은 문법에서 서로 다른 종류의 구가 사는 반송자를 뜻한다. 책의 문법 전체에는
 미리 주어진 ⟨var⟩와 새로 생성하는 ⟨intexp⟩, ⟨assert⟩가 있다. 아래 형식화는 `V`를 외부
 매개변수로 고정하므로 대수마다 달라지는 반송자는 `E`와 `A` 둘뿐이다.

@@ -407,22 +407,35 @@ def Equivalent (p q : Assert V) : Prop := ∀ σ : State V, (⟦p⟧ₐ σ ↔ �
 
 ```anchor proofSystem (module := Reynolds.Answers.Ch01.Validity)
 /--
-술어 논리의 작은 추론 체계. Reynolds §1.3이 예시로 드는 규칙들이다.
+술어 논리의 작은 추론 체계. Reynolds §1.3 p.13이 공리·공리꼴·두 전제 규칙·한 전제
+규칙의 예로 직접 드는 넷 그대로다: `x + 0 = x`, `e₁ = e₀ ⇒ e₀ = e₁`, 전건 긍정,
+보편 일반화.
 
-완전한 체계가 아니고 그럴 의도도 없다. 추론 규칙과 건전성이 무엇인지 보이는 데 필요한
-최소한만 담았다.
+완전한 체계가 아니고 그럴 의도도 없다. 책도 이 넷을 "예시"라고만 하고 나머지는
+논리학 교과서로 미룬다(모듈 docstring의 "책과의 차이" 참고).
 -/
 inductive Proof : Assert V → Prop where
-  /-- 공리꼴: `e = e`. -/
-  | eqRefl (e : IntExp V) : Proof (.cmp .eq e e)
-  /-- 한 전제 규칙: `e₀ = e₁`로부터 `e₁ = e₀`. -/
-  | eqSymm {e₀ e₁ : IntExp V} : Proof (.cmp .eq e₀ e₁) → Proof (.cmp .eq e₁ e₀)
+  /--
+  공리: `x + 0 = x`. 책은 메타변수가 없는 구체적인 객체 변수 x로 든다 — 바로 다음
+  공리꼴과 대조하려는 것이다(p.13, "notice the special role of axiom schemas").
+
+  **책과의 차이**: 여기서는 모든 객체 변수 x에 대해 한 번에 선언한다. Lean에서 변수마다
+  따로 공리를 선언하면 쓸 수 없는 정의가 되기 때문이다. 책의 "메타변수 없음"은 이 x 하나를
+  구체적으로 고정했을 때의 이야기이고, 다형화 자체는 책에 없는 저장소의 선택이다.
+  -/
+  | addZero (x : V) : Proof (.cmp .eq (.bin .add (.var x) (.num 0)) (.var x))
+  /--
+  공리꼴: `e₁ = e₀ ⇒ e₀ = e₁`. 전제 없이 바로 쓸 수 있지만 `e₀`, `e₁`이 메타변수라서
+  임의의 정수 식 쌍에 대한 사례를 전부 대신한다 — 공리와 공리꼴의 차이가 바로 이
+  메타변수 유무다(p.13, "their instances are assertions that can appear anywhere
+  in a proof, regardless of what, if anything, precedes them").
+  -/
+  | eqSymmSchema (e₀ e₁ : IntExp V) :
+      Proof (.bin .imp (.cmp .eq e₁ e₀) (.cmp .eq e₀ e₁))
   /-- 두 전제 규칙 — 전건 긍정(modus ponens). -/
   | mp {p q : Assert V} : Proof p → Proof (.bin .imp p q) → Proof q
-  /-- 두 전제 규칙 — 연언 도입. -/
-  | andIntro {p q : Assert V} : Proof p → Proof q → Proof (.bin .and p q)
   /--
-  보편 일반화(∀-도입).
+  한 전제 규칙 — 보편 일반화(∀-도입).
 
   전제가 타당할 때만 결론이 타당해진다. 이 파일 §4에서 이 규칙과 함의 `p ⇒ ∀v. p`를
   나란히 놓고 비교한다.
@@ -1418,9 +1431,10 @@ number := false
 
 * *일치 정리와 치환 정리* — 이름을 다루는 모든 언어에서 같은 짝으로 나온다.
   CSlib의 `Cslib/Languages/LambdaCalculus/`가 λ-계산법에서 같은 일을 한다.
-* *초기 대수 의미론(initial algebra semantics)* — Reynolds가 §1.1 각주에서
-  "다중 정렬 초기 대수"라고 부르는 관점이다. `Depth/Algebra.lean`은 고정된 변수 타입의
-  정수 식 정렬부터 시작해, 목표 대수마다 유일한 준동형이 생긴다는 명제를 증명한다.
+* *초기 대수 의미론(initial algebra semantics)* — Reynolds가 §1.1 본문 괄호 속(p.5,
+  각주가 아니다)에서 "다중 정렬 초기 대수"라고 부르는 관점이다. `Depth/Algebra.lean`은
+  고정된 변수 타입의 정수 식 정렬부터 시작해, 목표 대수마다 유일한 준동형이 생긴다는
+  명제를 증명한다.
 * *치환은 모나드의 bind 다* — `Depth/TermMonad.lean`. 연습 1.7 이 실은
   모나드 결합법칙이라는 것을 보인다.
 * *2장으로* — 1장의 의미 함수가 전함수였던 것은 술어 논리에 비종료가 없었기 때문이다.

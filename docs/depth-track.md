@@ -536,7 +536,7 @@ Scott의 해법은 사영 쌍(embedding–projection pair)의 사슬을 따라 *
 
 | 위치 | 훅 |
 |---|---|
-| `Ch01/Syntax.lean` 의 `추상구문조건` 절 끝 | `> Reynolds는 이 조건들이 "다중 정렬 초기 대수"를 이룬다고 각주에 적는다.`<br>`> 유일한 준동형이라는 내용은 `Depth/Algebra.lean`에서 증명한다. (선택)` |
+| `Ch01/Syntax.lean` 의 `추상구문조건` 절 끝 | `> Reynolds는 이 조건들이 "다중 정렬 초기 대수"를 이룬다고 §1.1 p.5 본문 괄호 속에`<br>`> 적는다(각주가 아니다). 유일한 준동형이라는 내용은 `Depth/Algebra.lean`에서 증명한다. (선택)` |
 | `Ch01/Semantics.lean` `eval` docstring 끝 | `> 이 의미 방정식들이 함수를 **유일하게** 정한다는 사실의 증명: `Depth/Algebra.lean`.` |
 | `Ch01/Substitution.lean` Prop 1.2(b) 근처 | `> Reynolds는 `c_var` 가 "항등 치환으로 작동한다"고 쓴다.`<br>`> 이것이 모나드 단위 법칙이다: `Depth/TermMonad.lean`.` |
 | `Ch02/Semantics.lean` `;` 의미 방정식 | `> `f⊥⊥` 는 이 `Option` 표현에서 bind와 같다. `;`의 결합성은 `Depth/LiftingMonad.lean`에서 그 법칙으로 유도한다.` |

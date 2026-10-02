@@ -244,7 +244,8 @@ example : ∀ σ : State String, ¬ ⟦Assert.cmp .ne x x⟧ₐ σ := by
 
 /-! ## 참고
 
-Reynolds 가 §1.2 끝에 남기는 경고를 그대로 옮겨 둔다.
+Reynolds 가 §1.2 의미 방정식 직후(p.9, §1.2 는 p.12 까지 더 이어진다)에 남기는
+경고를 그대로 옮겨 둔다.
 
 > *"It is important to distinguish between the language in which semantic equations or other
 > parts of a definition are written, called the metalanguage, and the language being defined,
