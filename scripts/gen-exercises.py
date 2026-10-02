@@ -92,6 +92,19 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §1.2 합성성과 합동 (Equivalent 뒤)
+    (
+        "Ch01/Validity.lean",
+        "theorem Equivalent.not_congr {p p'",
+        "/-- 이항 논리 연산의 합동.",
+        """theorem Equivalent.not_congr {p p' : Assert V} (h : Equivalent p p') :
+    Equivalent (.not p) (.not p') := by
+  -- 힌트: `Assert.eval` 의 정의를 펼치면 양쪽이 `¬ p.eval σ`, `¬ p'.eval σ` 가 된다.
+  --       `h σ` 가 그 사이의 동치를 준다.
+  sorry
+
+""",
+    ),
     # ── §1.3 타당성과 추론
     (
         "Ch01/Validity.lean",

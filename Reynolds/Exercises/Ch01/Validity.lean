@@ -102,6 +102,81 @@ theorem valid_tru : Valid (.tru : Assert V) := fun _ => trivial
 /-- `false` 는 충족 불가능하다. -/
 theorem unsat_fls : Unsat (.fls : Assert V) := fun _ h => h
 
+/-! ## 합성성의 귀결 — 같은 뜻이면 바꿔 넣어도 된다
+
+Reynolds §1.2 p.11 은 의미 방정식이 구문 지향(syntax-directed)이라는 사실에서 바로
+*합성성(compositionality)* 을 끌어낸다.
+
+> *"A semantics is said to be compositional when the meaning of each phrase does not
+> depend on any property of its immediate subphrases except the meanings of these
+> subphrases. … It implies that, in any phrase, one can replace an occurrence of a
+> subphrase by another phrase with the same meaning, without changing the meaning of
+> the enclosing phrase."*
+
+이 귀결을 문맥마다 따로 보이는 대신, 단언의 생성자 각각이 `Equivalent`를 보존한다는
+합동(congruence) 보조정리로 한 번에 준다. `Assert.eval`이 구문을 조립하는 방식 그대로
+값을 조립하는 구조적 재귀이므로, 부분구를 뜻이 같은 다른 구로 바꿔 끼워도 `eval`의
+결과가 바뀌지 않는다 — 합성적 의미론이면 이 합동은 공짜로 따라온다.
+
+§1.4 p.21에서 이름 바꾸기 정리(명제 1.5) 바로 뒤에 Reynolds가 다시 꺼내는 문장이
+정확히 이 원리를 쓴다.
+
+> *"From this proposition and the compositional nature of our semantics, it is clear
+> that, in any context, one can replace an occurrence of a subphrase of the form
+> ∀v. q by ∀vnew. (q/v → vnew), without changing the meaning of the context."*
+
+`renaming_assert`(`Substitution.lean`)는 "그 양화 구 하나"의 뜻이 같다는 것만 보인다.
+여기 `quant_congr`가 "어느 문맥에 넣어도" 쪽을 더해서, 책이 산문으로 주장하는 "α-변환은
+임의의 문맥에서 적용된다"를 완성한다. -/
+
+/--
+부정의 합동. 부분구를 뜻이 같은 다른 부분구로 바꿔도 부정의 뜻은 바뀌지 않는다.
+
+넷 중 구조가 가장 간단해서 심화 A1.8 연습으로 남긴다. 나머지(`bin_congr`,
+`quant_congr`, `cmp_congr`)는 같은 패턴(정의를 펼치고 가정을 꽂는다)의 완성본이다 —
+먼저 풀어 보고 패턴이 반복됨을 확인하는 자료로 쓴다.
+-/
+@[exercise "심화 A1.8" 1]
+theorem Equivalent.not_congr {p p' : Assert V} (h : Equivalent p p') :
+    Equivalent (.not p) (.not p') := by
+  -- 힌트: `Assert.eval` 의 정의를 펼치면 양쪽이 `¬ p.eval σ`, `¬ p'.eval σ` 가 된다.
+  --       `h σ` 가 그 사이의 동치를 준다.
+  sorry
+
+/-- 이항 논리 연산의 합동. 양쪽 피연산자를 독립적으로 뜻이 같은 것으로 바꿀 수 있다. -/
+theorem Equivalent.bin_congr {op : LogOp} {p p' q q' : Assert V}
+    (hp : Equivalent p p') (hq : Equivalent q q') :
+    Equivalent (.bin op p q) (.bin op p' q') := by
+  intro σ; simp [Assert.eval, hp σ, hq σ]
+
+/--
+비교의 합동. `cmp`의 두 자리는 단언이 아니라 정수 식이므로, `Equivalent` 대신
+"모든 상태에서 같은 값을 낸다"는 정수 식 쪽의 대응 조건을 가정으로 받는다.
+합성성이 단언 생성자에만 있는 성질이 아니라 정수 식과 단언을 넘나드는 경계에서도
+그대로 성립함을 보여 준다.
+-/
+theorem Equivalent.cmp_congr {c : Cmp} {e₀ e₀' e₁ e₁' : IntExp V}
+    (h₀ : ∀ σ, e₀.eval σ = e₀'.eval σ) (h₁ : ∀ σ, e₁.eval σ = e₁'.eval σ) :
+    Equivalent (.cmp c e₀ e₁) (.cmp c e₀' e₁') := by
+  intro σ; simp [Assert.eval, h₀ σ, h₁ σ]
+
+/--
+양화의 합동. 결합 변수 `v`는 그대로 두고 본문만 뜻이 같은 것으로 바꾼다.
+
+`forall_congr'`/`exists_congr`가 그대로 적용되는 것은 우연이 아니다 — 객체 언어의
+`∀v. p`가 메타 수준에서는 `∀ n, p.eval (σ[v := n])`이고, 그 조건부 동치가 각 `n`에서
+성립한다는 가정(`h`)이 정확히 `forall_congr'`가 요구하는 모양이다. `v` 자체를 다른
+이름으로 바꾸는 쪽은 `renaming_assert`가 맡는다. 이 정리와 `renaming_assert`를 합치면
+"임의의 문맥에서 α-변환이 가능하다"는 p.21의 주장이 완성된다.
+-/
+theorem Equivalent.quant_congr {qt : Quant} (v : V) {p p' : Assert V}
+    (h : Equivalent p p') : Equivalent (.quant qt v p) (.quant qt v p') := by
+  intro σ
+  have key : ∀ n : Int, (p.eval (σ[v := n]) ↔ p'.eval (σ[v := n])) := fun n => h _
+  cases qt
+  · simpa [Assert.eval] using forall_congr' key
+  · simpa [Assert.eval] using exists_congr key
+
 /-! ## 2. 추론 규칙과 형식 증명
 
 Reynolds §1.3 은 **추론 규칙(inference rule)** 을 이렇게 정의한다:
