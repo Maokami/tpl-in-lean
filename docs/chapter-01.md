@@ -356,6 +356,17 @@ def Assert.eval [DecidableEq V] : Assert V → State V → Prop
 DSL이 이 구분을 눈에 보이게 만든다: `⟪ x ⟫`의 `x`는 문자열이고,
 `⟪ %v ⟫` 같은 안티쿼트(antiquote)로 메타변수를 삽입한다. DSL은 이 구분을 설계에 반영한다.
 
+### 범주론 보충 — 합성성과 합동
+
+의미 함수가 구문 지향적(syntax-directed)이면 자동으로 합성적(compositional)이다
+(Reynolds §1.2 p.11, "구문 대수 → 의미 대수"의 준동형 조건이 그 자체로 합성성이다).
+이 귀결을 문맥마다 따로 보이는 대신 단언 생성자별 합동(congruence) 보조정리로 한 번에
+주는 선택 심화를 `Validity.lean`의 `Equivalent` 정의 뒤에 추가했다: `not_congr`(심화
+A1.8, 채점 ★), `bin_congr`·`cmp_congr`·`quant_congr`(완성 제공). `quant_congr`는 §1.4
+p.21의 "합성적 의미론이므로 α-변환은 임의의 문맥에서 가능하다"는 문장을
+`Substitution.lean`의 `renaming_assert`(그 양화 구 하나의 뜻이 같다는 것)와 합쳐
+완성한다.
+
 ---
 
 ## §1.3 타당성과 추론
@@ -654,6 +665,22 @@ CSlib 의존성 소스의
 `.lake/packages/cslib/Cslib/Languages/LambdaCalculus/LocallyNameless/Untyped/Basic.lean`에
 locally nameless 구현이 있다. 우리의 이름 있는(named) 치환과 나란히 비교할 수 있다.
 
+### 범주론 보충 — 치환 모나드와 α-동치
+
+`Depth/TermMonad.lean`에 변수 타입을 바꾸는 다형 `IntExp.bind`, 좌·우단위 법칙,
+Kleisli 합성(`Subst.kleisli`, `>=>ₑ`), 결합법칙(심화 A2.2, 채점 ★★)을 추가했다.
+연습 1.7(a)가 "같다"가 아니라 "이름 바꾸기다"라고 쓴 이유를 구체 반례로 보이는
+`subst_assoc_assert_not_eq`(심화 A2.3, 채점 ★★)와, 그 이름 차이를 무시하는 관계
+`Assert.AlphaEq`(`=α`, CSlib `HasAlphaEquiv`)와 그 건전성 `AlphaEq.sound`(심화 A2.4,
+채점 ★★★ — 명제 1.5의 구문적 일반화)도 같은 파일에 있다. 명제 1.5(`renaming_assert`)의
+Answers 증명이 `Prop 1.3-assert`(채점)를 직접 쓰므로, `AlphaEq.sound`는 독립성을 지키려고
+그 사실을 전역 이름 대신 가설 `hrename`으로 받는다(`Ex/Summation/Substitution.lean`의
+`substitution_sExp`가 `coincidence_sExp`를 가설로 받는 것과 같은 해법; 실측으로 발견한
+위반이라 설계안의 "안전하다" 판단과 다르다). `Monad IntExp` 인스턴스는
+시험적으로 컴파일에는 성공했으나(`IntExp.bind`를 `match e with` 꼴로 써야 하는 함정이
+있었다) 선언하지는 않기로 했다 — 이유는 그 파일의 docstring에 있다. 2장의 리프팅
+모나드(`SigmaBot`, `liftBot`)로 가는 다리도 docstring에 적었다.
+
 ---
 
 ## 연습문제 매핑
@@ -667,7 +694,9 @@ locally nameless 구현이 있다. 우리의 이름 있는(named) 치환과 나�
 | **1.4** (a)~(c) | 동시 치환 계산 | ★ | `#guard (p /ₛ δ) = 기대값` — `DecidableEq`로 **자동 채점** |
 | **1.5** (a)~(d) | 합 식 `Σ v : e₀ to e₁. e₂` 추가. (a) 문법 (b) 의미 (c) FV·치환 (d) **추론 규칙** | ★★★ | `Ex/Summation.lean`과 `Summation/Substitution.lean`의 `SExp` 판. 일치·치환 정리와 규칙 넷 채점; 단언 언어 전체 확장은 별도 |
 | **1.6** | 부정 합 `Σv. e` 의 문제점 논의. `v` 가 묶이면서 동시에 상계로 자유롭다 | ★★★ | `Summation/Indefinite.lean`. 이름 바꾸기 반례와 치환의 어려움 논의 |
-| **1.7** (a)(b) | 치환 합성 법칙 | ★★★ | `Depth/TermMonad.lean`은 (a)의 정수 식 등식·단언 의미 일치만 제공. 구문적 α-동치와 (b)는 미구현; `v₀ = v₁`도 다뤄야 함 |
+| **1.7(a)** 정수 식 판 | 치환 합성 = bind 결합법칙 | ★★ | `Depth/TermMonad.lean`의 `IntExp.bind_assoc`. §1의 `V = W` 고정판(심화 A2.1)의 일반화 |
+| **1.7(a)** 단언 판 반례 | 결합법칙이 구문 등식으로는 깨지는 구체 반례 | ★★ | `subst_assoc_assert_not_eq`. `=α`로는 성립 — `Assert.AlphaEq.sound`(★★★)가 그 건전성 |
+| **1.7(b)** | `p/v₁→e₁, v₀→(e₀/v₁→e₁)`가 `(p/v₀→e₀)/v₁→e₁`의 renaming | — | 미구현. `Subst.kleisli`·`AlphaEq`가 갖춰진 뒤 별도 소품으로 붙이는 편이 나음(`v₀ = v₁`도 다뤄야 함) |
 
 1.1과 1.2의 “술어 논리로 표현하라”는 문제는 식만으로 자동 채점하기 어렵다.
 Lean에서는 작성한 단언의 의미가 의도한 메타 수준 명제와 동치임을 함께 증명해,
