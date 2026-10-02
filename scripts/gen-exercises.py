@@ -92,6 +92,19 @@ BLANKS: list[tuple[str, str, str, str]] = [
 
 """,
     ),
+    # ── §1.2 합성성과 합동 (Equivalent 뒤)
+    (
+        "Ch01/Validity.lean",
+        "theorem Equivalent.not_congr {p p'",
+        "/-- 이항 논리 연산의 합동.",
+        """theorem Equivalent.not_congr {p p' : Assert V} (h : Equivalent p p') :
+    Equivalent (.not p) (.not p') := by
+  -- 힌트: `Assert.eval` 의 정의를 펼치면 양쪽이 `¬ p.eval σ`, `¬ p'.eval σ` 가 된다.
+  --       `h σ` 가 그 사이의 동치를 준다.
+  sorry
+
+""",
+    ),
     # ── §1.3 타당성과 추론
     (
         "Ch01/Validity.lean",
@@ -314,6 +327,54 @@ BLANKS: list[tuple[str, str, str, str]] = [
         """theorem subst_assoc_intExp (e : IntExp V) (δ δ' : Subst V) :
     (e /ₑ δ) /ₑ δ' = e /ₑ (fun w => (δ w) /ₑ δ') := by
   -- 힌트: `e` 에 대한 구조적 귀납법. `var` 케이스가 `rfl` 인 것이 좌단위 법칙이다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Depth/TermMonad.lean",
+        "theorem IntExp.bind_assoc {V W X",
+        "/-! ## 5. `Assert`에서 결합법칙이",
+        """theorem IntExp.bind_assoc {V W X : Type u} (e : IntExp V) (δ : V → IntExp W) (δ' : W → IntExp X) :
+    (e.bind δ).bind δ' = e.bind (δ >=>ₑ δ') := by
+  -- 먼저 볼 것: "심화 A2.1" 의 `subst_assoc_intExp` — 같은 모양의 귀납이다.
+  -- 힌트: `e` 에 대한 구조적 귀납법. `var` 케이스가 `rfl` 인 이유를 먼저 확인한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Depth/TermMonad.lean",
+        "theorem subst_assoc_assert_not_eq :",
+        "/-! ## 6. α-동치",
+        """theorem subst_assoc_assert_not_eq :
+    ∃ (p : Assert String) (δ δ' : Subst String),
+      (p /ₛ δ) /ₛ δ' ≠ p /ₛ (fun w => (δ w) /ₑ δ') := by
+  -- 증명이 아니라 증인을 찾는 연습이다. 결합 변수 이름이 어긋나는 예를 하나 만들면 된다.
+  -- 힌트 1: `δ` 가 어떤 변수를 결합 변수의 이름과 겹치는 이름으로 보내게 고른다
+  --         (예: `∀y. y > x` 를 `x ↦ y` 로 치환하면 `y` 를 새 이름으로 바꿔야 한다).
+  -- 힌트 2: `newBinder_notMem` 으로 "새 결합 변수가 원래 이름이 아니다" 를 얻고,
+  --         `Assert.quant` 의 생성자 단사성(`injection`)으로 두 결과를 비교한다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Depth/TermMonad.lean",
+        "theorem Assert.AlphaEq.sound [HasFresh V]",
+        "end Reynolds.Exercises.Ch01",
+        """theorem Assert.AlphaEq.sound [HasFresh V]
+    (hrename : ∀ (qt : Quant) (v₀ vnew : V) (body : Assert V), vnew ∉ body.fv.erase v₀ →
+      ∀ σ : State V,
+        ⟦Assert.quant qt vnew (body /[v₀ := IntExp.var vnew] )⟧ₐ σ ↔ ⟦Assert.quant qt v₀ body⟧ₐ σ)
+    {p p' : Assert V} (h : p =α p') :
+    Equivalent p p' := by
+  -- 먼저 볼 것: `hrename` 은 §1.4 `renaming_assert` 와 같은 모양이다(독립성 때문에
+  -- 전역 이름 대신 가설로 받는다). 실제로 쓸 때는 `renaming_assert` 를 그 자리에 넘긴다.
+  -- 힌트 1: `h` 에 대한 구조적 귀납법. `quant` 케이스가 핵심이다.
+  -- 힌트 2: `quant` 케이스에서는 `hrename` 을 양쪽에 한 번씩 쓰고,
+  --         `Equivalent.quant_congr` 로 안쪽 결과를 묶는다.
+  -- 힌트 3: `not` 케이스에서 다른 채점 연습(`Equivalent.not_congr`)을 쓰지 않는다.
   sorry
 
 """,

@@ -347,6 +347,20 @@ Curry–Howard 대응도 여기서 선택할 의미론 하나를 더 보태는 �
 객체언어의 양화를 Lean의 `∀`와 `∃`로 그대로 표현하기 위해서다. 이 책은 1장에서 값을 보통
 집합으로 다루고, 2장에서는 비종료와 재귀를 다루려고 근사 순서가 있는 도메인을 도입한다.
 
+## 범주론 렌즈 — 의미는 유일한 준동형이다
+%%%
+tag := "ch01-semantics-category-lens"
+number := false
+%%%
+
+`IntExp.eval`과 `Assert.eval`은 구문 대수에서 이 절의 의미 대수로 가는 준동형 조건을
+만족하는 유일한 함수 쌍이다(`Depth/Algebra.lean`의 초기성 정리). 그 조건 자체가 합성성
+(compositionality)의 다른 이름이다 — 생성자 하나의 값이 그 조각들의 값으로만 정해지기
+때문이다. 합성성의 귀결, 곧 뜻이 같은 부분구를 바꿔 끼워도 전체 뜻이 바뀌지 않는다는
+성질은 [선택 심화: 합성성과 합동](--tag--ch01-congruence)에서 더 본다.
+[선택 심화: 의미와 자유 변수는 어떤 접기인가](--tag--ch01-logic-fold)는 이 유일한 함수 쌍을
+접기(catamorphism)로 직접 구성해 본다.
+
 # §1.3 타당성과 추론
 %%%
 tag := "ch01-validity"
@@ -579,6 +593,18 @@ def Assert.subst [HasFresh V] : Assert V → Subst V → Assert V
 이 정의 위에서 명제 1.2부터 1.5까지가 이어진다. 치환 정리(명제 1.3)가 그중 중심이고,
 치환한 구문을 평가한 결과와 치환 항들의 값을 상태에 넣은 뒤 원래 구문을 평가한 결과가
 같다는 것을 말한다.
+
+## 범주론 렌즈 — 치환은 모나드의 bind다
+%%%
+tag := "ch01-substitution-monad-lens"
+number := false
+%%%
+
+`p /ₛ δ`를 변수 타입을 바꾸는 쪽으로 일반화하면(`Depth/TermMonad.lean`의 `IntExp.bind`)
+모나드의 `bind`가 된다. 연습 1.7이 묻는 치환 두 번의 합성은 그 결합법칙이고, 결합자가
+없는 정수 식에서는 등식으로 성립한다(`Subst.kleisli`). `∀v`가 있는 단언에서는 포획을
+피하려고 고르는 새 이름이 매번 달라질 수 있어서, 등식 대신 α-동치(`=α`)까지만 성립한다.
+[선택 심화: 치환 모나드와 α-동치](--tag--ch01-term-monad)에서 그 반례와 `=α`를 본다.
 
 ## 곁가지 — 이름을 어떻게 다룰 것인가
 %%%
@@ -1224,6 +1250,164 @@ theorem uniqueHom_of_isInitial (h : IsInitial (syntaxAlg V)) (L : LogicAlg.{u, u
 이 선택 심화는 이름을 그대로 보존하는 원시 구문의 범주에 머문다. α-동치로 나눈
 구문의 초기성, 치환의 법칙, 일반 함자의 대수에 대한 Lambek 정리는 선택 후속 주제다.
 본문의 1장 학습은 이 파일 없이도 이어갈 수 있다.
+
+# 선택 심화: 합성성과 합동
+%%%
+tag := "ch01-congruence"
+%%%
+
+[범주론 렌즈](--tag--ch01-semantics-category-lens)에서 본 것처럼, 구문 지향적으로 정의한
+의미 함수는 자동으로 합성적(compositional)이다. Reynolds §1.2 p.11은 이 귀결을 이렇게
+적는다.
+
+> *"A semantics is said to be compositional when the meaning of each phrase does not depend on any property of its immediate subphrases except the meanings of these subphrases. … It implies that, in any phrase, one can replace an occurrence of a subphrase by another phrase with the same meaning, without changing the meaning of the enclosing phrase."*
+
+"바꿔 끼워도 전체 뜻이 바뀌지 않는다"를 문맥마다 따로 보이는 대신, `Validity.lean`은
+단언의 생성자 각각이 `Equivalent`를 보존한다는 합동(congruence) 보조정리로 한 번에 준다.
+부정의 합동이 심화 A1.8 연습이다.
+
+```anchor stmtNotCongr (module := Reynolds.Answers.Ch01.Validity)
+@[exercise "심화 A1.8" 1]
+theorem Equivalent.not_congr {p p' : Assert V} (h : Equivalent p p') :
+    Equivalent (.not p) (.not p')
+```
+
+이항 논리 연산의 합동(`bin_congr`)도 같은 패턴(`Assert.eval`을 펼치고 가정을 꽂는다)의
+완성본이다. 비교식의 두 자리는 단언이 아니라 정수 식이므로, 합동의 가정도 다른 모양을
+받는다 — 합성성이 단언 생성자에만 있는 특별한 성질이 아니라 정수 식과 단언을 넘나드는
+경계에서도 같은 모양으로 성립한다는 뜻이다.
+
+```anchor Equivalent.cmp_congr (module := Reynolds.Answers.Ch01.Validity)
+theorem Equivalent.cmp_congr {c : Cmp} {e₀ e₀' e₁ e₁' : IntExp V}
+    (h₀ : ∀ σ, e₀.eval σ = e₀'.eval σ) (h₁ : ∀ σ, e₁.eval σ = e₁'.eval σ) :
+    Equivalent (.cmp c e₀ e₁) (.cmp c e₀' e₁') := by
+  intro σ; simp [Assert.eval, h₀ σ, h₁ σ]
+```
+
+양화의 합동은 결합 변수 `v`를 그대로 두고 본문만 바꾼다.
+
+```anchor Equivalent.quant_congr (module := Reynolds.Answers.Ch01.Validity)
+theorem Equivalent.quant_congr {qt : Quant} (v : V) {p p' : Assert V}
+    (h : Equivalent p p') : Equivalent (.quant qt v p) (.quant qt v p') := by
+  intro σ
+  have key : ∀ n : Int, (p.eval (σ[v := n]) ↔ p'.eval (σ[v := n])) := fun n => h _
+  cases qt
+  · simpa [Assert.eval] using forall_congr' key
+  · simpa [Assert.eval] using exists_congr key
+```
+
+Reynolds가 §1.4 p.21에서 이름 바꾸기 정리(명제 1.5) 바로 뒤에 다시 꺼내는 문장은 결합
+변수 자체를 바꾸는 경우까지 포함한다.
+
+> *"From this proposition and the compositional nature of our semantics, it is clear that, in any context, one can replace an occurrence of a subphrase of the form ∀v. q by ∀vnew. (q/v → vnew), without changing the meaning of the context."*
+
+[이름 바꾸기 정리](--tag--ch01-substitution)의 `renaming_assert`는 "그 양화 구 하나"의
+뜻이 같다는 것만 준다. "어느 문맥에 넣어도" 쪽은 생성자별 합동(`not_congr`, `bin_congr`,
+`quant_congr`)을 문맥의 모양에 대한 귀납으로 이어서 얻는다. α-변환이 임의의 문맥에서
+적용된다는 것은 이름 바꾸기 정리와 합동을 조합한 결과다.
+
+# 선택 심화: 치환 모나드와 α-동치
+%%%
+tag := "ch01-term-monad"
+%%%
+
+[범주론 렌즈](--tag--ch01-substitution-monad-lens)에서 짚었듯, §1.4의 치환 `p /ₛ δ`는
+변수 타입을 바꾸지 않는 특수한 경우다. `Depth/TermMonad.lean`은 변수 잎을 다른 변수
+타입의 식으로 바꿔 끼우는 일반형 `bind`를 둔다.
+
+```anchor IntExp.bind (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+def IntExp.bind {V W : Type u} (e : IntExp V) (f : V → IntExp W) : IntExp W :=
+  match e with
+  | .num n        => .num n
+  | .var v        => f v
+  | .neg e        => .neg (e.bind f)
+  | .bin op e₀ e₁ => .bin op (e₀.bind f) (e₁.bind f)
+```
+
+좌단위·우단위 법칙 둘이 등식으로 성립한다. 좌단위는 정의를 펼치면 바로 나온다.
+
+```anchor IntExp.bind_pure_left (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+/-- 좌단위. `pure v >>= f = f v`. `IntExp.bind`의 `var` 절이 곧 이 등식이다. -/
+theorem IntExp.bind_pure_left {V W : Type u} (v : V) (f : V → IntExp W) :
+    (IntExp.var v).bind f = f v := rfl
+```
+
+우단위(`IntExp.bind_pure_right : e.bind IntExp.var = e`)는 Reynolds가 명제 1.2(b)에서
+"`c_var`가 항등 치환으로 작동한다"고 쓴 §1의 결과(`subst_pure_right`)를 변수 타입을
+바꾸는 쪽으로 일반화한 것이다. 증명은 `e`에 대한 구조적 귀납법으로, `bind_pure_left`와
+같은 모양의 케이스 분석이다.
+
+연습 1.7(a)가 묻는 치환 두 번의 합성은 모나드의 결합법칙이다. `δ`로 옮기고 다시 `δ'`로
+옮기는 것을 한 번에 하는 합친 치환이 Kleisli 합성(`Subst.kleisli`, `>=>ₑ`)이다.
+
+```anchor Subst.kleisli (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+def Subst.kleisli {V W X : Type u} (δ : V → IntExp W) (δ' : W → IntExp X) : V → IntExp X :=
+  fun v => (δ v).bind δ'
+
+@[inherit_doc Subst.kleisli] scoped infixr:90 " >=>ₑ " => Subst.kleisli
+```
+
+결합자가 없는 정수 식에서는 이 결합법칙이 등식으로 성립한다. "심화 A2.1"(§1, 변수
+타입을 고정한 판)을 먼저 풀어 본 사람은 `var` 케이스가 `rfl`인 이유가 여기서도
+그대로임을 알아챈다 — 심화 A2.2는 그 결과를 쓰지 않고 독립적으로 다시 증명한다.
+
+```anchor stmtBindAssoc (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+@[exercise "심화 A2.2" 2]
+theorem IntExp.bind_assoc {V W X : Type u} (e : IntExp V) (δ : V → IntExp W) (δ' : W → IntExp X) :
+    (e.bind δ).bind δ' = e.bind (δ >=>ₑ δ')
+```
+
+`∀v`가 있는 단언에서는 사정이 다르다. 포획을 피하려고 고르는 새 결합 변수가 치환을
+어떻게 나누느냐에 따라 달라질 수 있어서, 결합법칙이 *구문의 등식으로는* 깨진다.
+심화 A2.3은 그 구체적인 반례를 만드는 연습이다.
+
+```anchor stmtSubstAssocAssertNotEq (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+@[exercise "심화 A2.3" 2]
+theorem subst_assoc_assert_not_eq :
+    ∃ (p : Assert String) (δ δ' : Subst String),
+      (p /ₛ δ) /ₛ δ' ≠ p /ₛ (fun w => (δ w) /ₑ δ')
+```
+
+구문으로는 달라도 *뜻은 같다* — 결합 변수 이름의 차이만 있을 뿐이다. 그 이름 차이를
+무시하는 관계가 α-동치(`=α`)다. `cmp` 절은 정수 식 쪽에 결합자가 없으므로 두 비교식이
+그대로 같아야 한다고 요구하고, `quant` 절만 결합 변수 이름 차이를 허용한다.
+
+```anchor Assert.AlphaEq (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+inductive Assert.AlphaEq [DecidableEq V] [HasFresh V] : Assert V → Assert V → Prop
+  | tru : Assert.AlphaEq .tru .tru
+  | fls : Assert.AlphaEq .fls .fls
+  | cmp (c : Cmp) (e₀ e₁ : IntExp V) : Assert.AlphaEq (.cmp c e₀ e₁) (.cmp c e₀ e₁)
+  | not {p p' : Assert V} : Assert.AlphaEq p p' → Assert.AlphaEq (.not p) (.not p')
+  | bin (op : LogOp) {p p' q q' : Assert V} :
+      Assert.AlphaEq p p' → Assert.AlphaEq q q' → Assert.AlphaEq (.bin op p q) (.bin op p' q')
+  | quant (qt : Quant) (v v' : V) (p p' : Assert V) (w : V)
+      (hw : w ∉ p.fv.erase v ∪ p'.fv.erase v') :
+      Assert.AlphaEq (p /[v := .var w]) (p' /[v' := .var w]) →
+      Assert.AlphaEq (.quant qt v p) (.quant qt v' p')
+```
+
+심화 A2.4는 α-동치가 뜻을 보존한다는 것 — 명제 1.5(이름 바꾸기 정리)의 구문적 일반화다.
+명제 1.5는 결합 변수 하나를 그 자리에서 새 이름으로 바꾼 결과의 뜻이 같다고 말하고,
+`=α`는 그 바꿔치기를 구문의 어느 깊이에서든 몇 번이든 허용한다. 명제 1.5 자체
+(`renaming_assert`)는 그 증명이 치환 정리(`Prop 1.3-assert`, 채점)를 직접 쓰므로,
+연습 독립성을 지키려고 가설 `hrename`으로 받는다 — 실제로 쓸 때는 `renaming_assert`를
+그 자리에 넘긴다.
+
+```anchor stmtAlphaEqSound (module := Reynolds.Answers.Ch01.Depth.TermMonad)
+@[exercise "심화 A2.4" 3]
+theorem Assert.AlphaEq.sound [HasFresh V]
+    (hrename : ∀ (qt : Quant) (v₀ vnew : V) (body : Assert V), vnew ∉ body.fv.erase v₀ →
+      ∀ σ : State V,
+        ⟦Assert.quant qt vnew (body /[v₀ := IntExp.var vnew] )⟧ₐ σ ↔ ⟦Assert.quant qt v₀ body⟧ₐ σ)
+    {p p' : Assert V} (h : p =α p') :
+    Equivalent p p'
+```
+
+2장의 리프팅 모나드 `Σ⊥ = Flat (State V)`(`Ch02/Semantics.lean`의 `SigmaBot`)도 같은
+모양의 구조를 갖는다. `pure`에 해당하는 것이 `Flat.some`, Kleisli 확장에 해당하는 것이
+`liftBot`이고, `liftBot_eq_bind`가 그 `liftBot`이 정확히 `Flat.bind`와 같음을 보여 준다.
+`IntExp`의 `bind`/`Subst.kleisli`와 `Σ⊥`의 `Flat.bind`/`liftBot`은 "항 모나드"와
+"리프팅 모나드"라는 서로 다른 계산 효과가 공유하는 같은 뼈대다.
 
 # 더 읽을거리
 %%%
