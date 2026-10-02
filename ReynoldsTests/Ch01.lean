@@ -319,4 +319,10 @@ example : (IntExp.neg (IntExp.neg (IntExp.num (1 : ℤ))) : IntExp String) ∉
       (fun w => (Function.update IntExp.var "x" (.var "y") w) /ₑ
         (Function.update IntExp.var "y" (.num 0)))
 
+
+-- 명제 1.5 `renaming_assert` 가 `Assert.AlphaEq.sound`(심화 A2.4)의 가설 `hrename` 을 채운다.
+-- 그래서 α-동치인 두 단언은 늘 같은 뜻이다.
+example {p p' : Assert String} (h : p =α p') : Equivalent p p' :=
+  Assert.AlphaEq.sound (fun qt v₀ vnew body hfresh σ => renaming_assert qt v₀ vnew body hfresh σ) h
+
 end Reynolds.Answers.Ch01

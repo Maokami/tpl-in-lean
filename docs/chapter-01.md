@@ -362,10 +362,10 @@ DSL이 이 구분을 눈에 보이게 만든다: `⟪ x ⟫`의 `x`는 문자열
 (Reynolds §1.2 p.11, "구문 대수 → 의미 대수"의 준동형 조건이 그 자체로 합성성이다).
 이 귀결을 문맥마다 따로 보이는 대신 단언 생성자별 합동(congruence) 보조정리로 한 번에
 주는 선택 심화를 `Validity.lean`의 `Equivalent` 정의 뒤에 추가했다: `not_congr`(심화
-A1.8, 채점 ★), `bin_congr`·`cmp_congr`·`quant_congr`(완성 제공). `quant_congr`는 §1.4
-p.21의 "합성적 의미론이므로 α-변환은 임의의 문맥에서 가능하다"는 문장을
-`Substitution.lean`의 `renaming_assert`(그 양화 구 하나의 뜻이 같다는 것)와 합쳐
-완성한다.
+A1.8, 채점 ★), `bin_congr`·`cmp_congr`·`quant_congr`(완성 제공). 이 합동들을 문맥의
+모양에 대한 귀납으로 잇고 `Substitution.lean`의 `renaming_assert`(그 양화 구 하나의 뜻이
+같다는 것)와 합치면, §1.4 p.21의 "합성적 의미론이므로 α-변환은 임의의 문맥에서 가능하다"는
+문장이 된다.
 
 ---
 

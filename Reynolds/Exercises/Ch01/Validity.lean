@@ -126,8 +126,9 @@ Reynolds §1.2 p.11 은 의미 방정식이 구문 지향(syntax-directed)이라
 > ∀v. q by ∀vnew. (q/v → vnew), without changing the meaning of the context."*
 
 `renaming_assert`(`Substitution.lean`)는 "그 양화 구 하나"의 뜻이 같다는 것만 보인다.
-여기 `quant_congr`가 "어느 문맥에 넣어도" 쪽을 더해서, 책이 산문으로 주장하는 "α-변환은
-임의의 문맥에서 적용된다"를 완성한다. -/
+"어느 문맥에 넣어도" 쪽은 아래 생성자별 합동(`not_congr`, `bin_congr`, `quant_congr`)을
+문맥의 모양에 대한 귀납으로 이어서 얻는다. 둘을 합치면 책이 산문으로 주장하는 "α-변환은
+임의의 문맥에서 적용된다"가 된다. -/
 
 /--
 부정의 합동. 부분구를 뜻이 같은 다른 부분구로 바꿔도 부정의 뜻은 바뀌지 않는다.

@@ -1302,9 +1302,9 @@ Reynolds가 §1.4 p.21에서 이름 바꾸기 정리(명제 1.5) 바로 뒤에 �
 > *"From this proposition and the compositional nature of our semantics, it is clear that, in any context, one can replace an occurrence of a subphrase of the form ∀v. q by ∀vnew. (q/v → vnew), without changing the meaning of the context."*
 
 [이름 바꾸기 정리](--tag--ch01-substitution)의 `renaming_assert`는 "그 양화 구 하나"의
-뜻이 같다는 것만 준다. `quant_congr`가 "어느 문맥에 넣어도" 쪽을 더한다. 둘을 합치면
-이 문장이 완성된다 — α-변환이 임의의 문맥에서 적용된다는 것은 이름 바꾸기 정리와
-합동을 조합한 결과다.
+뜻이 같다는 것만 준다. "어느 문맥에 넣어도" 쪽은 생성자별 합동(`not_congr`, `bin_congr`,
+`quant_congr`)을 문맥의 모양에 대한 귀납으로 이어서 얻는다. α-변환이 임의의 문맥에서
+적용된다는 것은 이름 바꾸기 정리와 합동을 조합한 결과다.
 
 # 선택 심화: 치환 모나드와 α-동치
 %%%
