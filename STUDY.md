@@ -39,6 +39,7 @@
 | 5 | 1장 연습문제 | `Ch01/Ex.lean`, `Ex/Summation.lean` | 완료 |
 | 선택 · 5주 이후 | 두 정렬 대수의 범주와 초기성 | `Ch01/Depth/CategoryBridge.lean` | 구현·문서 완료 |
 | 선택 · 5주 이후 | §1.2 pp.10–11 · 의미와 자유 변수의 유일한 접기 | `Ch01/Depth/LogicFold.lean` | 구현·문서 완료 |
+| 선택 · 5주 이후 | 식 (1.2) 깊이별 구성, 초기성 ⇒ 귀납·Lambek(일반 정리) | `Ch01/Depth/Construction.lean`, `Algebra.lean`, `SignatureFunctor.lean` | 구현·문서 완료 |
 | 6 | §2.1~§2.2 구문과 의미 방정식 | `Ch02/Syntax.lean`, `Semantics.lean` | 구현·문서 완료 |
 | 7 | §2.3 도메인과 연속 함수 | `Ch02/Domain.lean`, `Domain/*` | 구현·문서 완료 |
 | 8 | §2.4 최소 고정점과 연료 해석기 | `Ch02/Fixpoint.lean`, `Eval.lean`, `Interpreter.lean` | 구현·문서 완료 |
