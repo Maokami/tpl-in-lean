@@ -38,6 +38,17 @@ open Reynolds
 -- 단항 마이너스.
 #guard ⟦IntExp.neg (.var "x")⟧ₑ (State.const (5 : Int)) == -5
 
+/-! ### DSL 우선순위 회귀 테스트 (`Notation.lean`)
+
+책 p.3 우선순위 목록은 단항 `-`를 `×  ÷  rem`보다 느슨하고 이항 `+`·`-`와 같은
+층에 둔다. 아래 두 테스트가 그 층을 고정한다. -/
+
+-- `- x ÷ 2`는 `(-x) ÷ 2`가 아니라 `-(x ÷ 2)`다.
+#guard (⟪ - x ÷ 2 ⟫ₑ : IntExp String) == .neg (.bin .div (.var "x") (.num 2))
+
+-- 같은 층이라 단항 `-`가 뒤따르는 `+`까지 삼키지 않는다: `- x + y` = `(-x) + y`.
+#guard (⟪ - x + y ⟫ₑ : IntExp String) == .bin .add (.neg (.var "x")) (.var "y")
+
 -- 자유 변수 계산.
 #guard (IntExp.bin .add (.var "x") (.bin .mul (.var "y") (.num 2)) : IntExp String).fv
         == ({"x", "y"} : Finset String)
