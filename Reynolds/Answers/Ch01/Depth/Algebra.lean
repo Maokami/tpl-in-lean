@@ -402,4 +402,59 @@ theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
       -- 이름 x는 연산의 매개변수로 유지된다. 본문에 대한 귀납 가설만 필요하다.
       simpa [LogicAlg.foldA, ih] using hh.quant q x p
 
+/-! ## 10. 초기성만으로 귀납 원리 얻기
+
+§5의 `IntExp.initial`은 "항 대수가 모든 대수로 유일한 준동형을 갖는다"는 명제다. 거기서
+증명한 유일성은 구조적 귀납법을 썼다. 반대 방향도 된다 — 초기성 *하나만* 가정하면
+구조적 귀납 원리를 되찾을 수 있다. 아래 정리는 그 반대 방향을 **일반 정리**로 적은 것이다.
+특정 대수(`termAlg V`)가 실제로 초기라는 사실(`IntExp.initial`)을 쓰지 않고, "어떤
+`IntExp V`가 초기 대수라면" 이라는 가설 `hinit`에서 결론을 끌어낸다. 이렇게 하면 이
+정리는 `IntExp.initial`(심화 A1.1)을 전혀 몰라도 성립하고, 반대로 `IntExp.initial`을
+`hinit`에 넣으면 §5의 유일성 없이도 구조적 귀납 원리를 얻는다 — 다만 그 결합은 이 파일에
+비채점 따름정리로 두지 않는다. 독자가 "A1.5가 A1.1에 기대는 건가?" 헷갈릴 수 있어서다. -/
+
+/--
+**초기성 → 귀납 원리.** 초기성을 가설 `hinit`로 받아 구조적 귀납 원리를 유도한다.
+
+증명의 뼈대는 부분 대수 논법(sub-algebra argument)이다. `P`에 닫힌 부분집합
+`{x // P x}`를 대수로 만들면(각 생성자 절이 `hnum`…`hbin`으로 이미 그 안에 머문다는 것을
+보장한다), 포함 사상 `Subtype.val`은 이 부분 대수에서 `termAlg V`로 가는 준동형이다.
+`hinit`으로 얻은 유일한 사상 `f : IntExp V → {x // P x}`을 이 포함 사상과 합성하면
+`termAlg V`의 자기 자신으로 가는 준동형이 되는데, `id`도 그런 준동형이고 `hinit`을
+`termAlg V` 자신에 적용하면 그런 준동형이 하나뿐이라고 말해 준다. 그래서
+`Subtype.val ∘ f = id`, 즉 모든 `e`에 대해 `(f e).val = e`이고 `(f e).property`가 바로
+`P e`다.
+
+universe를 `IntExpAlg.{u, u} V`로 고정한 이유는 부분 대수의 반송자 `Subtype P`가
+`IntExp V`와 같은 우주 `Type u`에 살기 때문이다. -/
+-- ANCHOR: IntExp.induction_of_initial
+@[exercise "심화 A1.5" 3]
+theorem IntExp.induction_of_initial {V : Type u}
+    (hinit : ∀ A : IntExpAlg.{u, u} V, ∃! h : IntExp V → A.Carrier, IsHom A h)
+    (P : IntExp V → Prop)
+    (hnum : ∀ n, P (.num n)) (hvar : ∀ v, P (.var v))
+    (hneg : ∀ e, P e → P (.neg e))
+    (hbin : ∀ op e₀ e₁, P e₀ → P e₁ → P (.bin op e₀ e₁)) :
+    ∀ e, P e := by
+-- ANCHOR_END: IntExp.induction_of_initial
+  let PAlg : IntExpAlg.{u, u} V :=
+    { Carrier := Subtype P
+      num := fun n => ⟨.num n, hnum n⟩
+      var := fun v => ⟨.var v, hvar v⟩
+      neg := fun x => ⟨.neg x.1, hneg x.1 x.2⟩
+      bin := fun op x y => ⟨.bin op x.1 y.1, hbin op x.1 y.1 x.2 y.2⟩ }
+  obtain ⟨f, hf, _⟩ := hinit PAlg
+  have hval : IsHom (termAlg V) (fun e => (f e).1) :=
+    { num := fun n => congrArg Subtype.val (hf.num n)
+      var := fun v => congrArg Subtype.val (hf.var v)
+      neg := fun e => congrArg Subtype.val (hf.neg e)
+      bin := fun op e₀ e₁ => congrArg Subtype.val (hf.bin op e₀ e₁) }
+  obtain ⟨_, _, huniq⟩ := hinit (termAlg V)
+  have hidHom : IsHom (termAlg V) (id : IntExp V → IntExp V) :=
+    { num := fun _ => rfl, var := fun _ => rfl, neg := fun _ => rfl, bin := fun _ _ _ => rfl }
+  have hcomp : (fun e => (f e).1) = id := (huniq _ hval).trans (huniq id hidHom).symm
+  intro e
+  have hv : (f e).1 = e := congrFun hcomp e
+  exact hv ▸ (f e).2
+
 end Reynolds.Answers.Ch01

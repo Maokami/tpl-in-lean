@@ -217,12 +217,64 @@ BLANKS: list[tuple[str, str, str, str]] = [
     (
         "Ch01/Depth/Algebra.lean",
         "theorem LogicAlg.initial {V : Type u}",
-        "end Reynolds.Exercises.Ch01",
+        "/-! ## 10. 초기성만으로 귀납 원리 얻기",
         """theorem LogicAlg.initial {V : Type u} (L : LogicAlg.{u, v} V) :
     ∃! h : (IntExp V → L.E) × (Assert V → L.A), L.IsHom h := by
   -- 힌트: 존재 증인은 두 접기의 쌍이고, `L.fold_isHom`이 보존 조건을 준다.
   -- 유일성에서는 정수 식 성분의 등식을 먼저 증명한 뒤 단언에 대해 귀납한다.
   -- `cmp`에서 두 정렬이 연결된다. `quant`가 보존하는 매개변수도 확인한다.
+  sorry
+
+""",
+    ),
+    # ── 심화 A · 초기성만으로 귀납 원리 얻기 (초기성 자체는 가설로 제공)
+    (
+        "Ch01/Depth/Algebra.lean",
+        "theorem IntExp.induction_of_initial {V : Type u}",
+        "end Reynolds.Exercises.Ch01",
+        """theorem IntExp.induction_of_initial {V : Type u}
+    (hinit : ∀ A : IntExpAlg.{u, u} V, ∃! h : IntExp V → A.Carrier, IsHom A h)
+    (P : IntExp V → Prop)
+    (hnum : ∀ n, P (.num n)) (hvar : ∀ v, P (.var v))
+    (hneg : ∀ e, P e → P (.neg e))
+    (hbin : ∀ op e₀ e₁, P e₀ → P e₁ → P (.bin op e₀ e₁)) :
+    ∀ e, P e := by
+  -- 먼저 볼 것: 이 절 docstring의 "부분 대수 논법" 설명. `IntExp.initial`은 쓰지 않는다.
+  -- 힌트 1: `{x // P x}`를 반송자로 하는 대수 `PAlg`를 `hnum … hbin`으로 짓는다.
+  -- 힌트 2: `hinit PAlg`에서 얻은 `f`를 `Subtype.val`과 합성하면 `termAlg V`의 자기
+  --         준동형이다. `id`도 자기 준동형이고, `hinit (termAlg V)`가 유일성을 준다.
+  -- 힌트 3: `Subtype.val ∘ f = id`에서 `(f e).val = e`를 얻고, `(f e).property`가 `P e`다.
+  sorry
+
+""",
+    ),
+    # ── 심화 A · 깊이별 구성과 no junk
+    (
+        "Ch01/Depth/Construction.lean",
+        "theorem IntExp.mem_layer_succ_depth {V : Type u} (e : IntExp V) :",
+        "-- ANCHOR: IntExp.iUnion_layer_eq_univ",
+        """theorem IntExp.mem_layer_succ_depth {V : Type u} (e : IntExp V) :
+    e ∈ IntExp.layer V (e.depth + 1) := by
+  -- 먼저 볼 것: 완성된 `IntExp.layer_mono`. 두 자식을 같은 층으로 맞추는 데 쓴다.
+  -- 힌트 1: `induction e with …`. `num`·`var`는 정의를 펼치면 끝난다.
+  -- 힌트 2: `neg` 케이스는 귀납 가설의 층이 그대로 맞는다 — 끌어올릴 필요가 없다.
+  -- 힌트 3: `bin` 케이스에서 두 자식을 `max e₀.depth e₁.depth + 1` 층으로 `layer_mono`로
+  --         끌어올린 뒤 `Set.mem_image2_of_mem`과 `Set.mem_iUnion`으로 합친다.
+  sorry
+
+""",
+    ),
+    (
+        "Ch01/Depth/Construction.lean",
+        "theorem IntExp.eq_univ_of_closed {V : Type u} (S : Set (IntExp V))",
+        "/-! ## 3. 독립성",
+        """theorem IntExp.eq_univ_of_closed {V : Type u} (S : Set (IntExp V))
+    (hnum : ∀ n, IntExp.num n ∈ S) (hvar : ∀ v, IntExp.var v ∈ S)
+    (hneg : ∀ e ∈ S, IntExp.neg e ∈ S)
+    (hbin : ∀ op, ∀ e₀ ∈ S, ∀ e₁ ∈ S, IntExp.bin op e₀ e₁ ∈ S) :
+    S = Set.univ := by
+  -- 힌트: `ext e`로 원소 하나의 소속으로 바꾼 뒤 `e`에 대한 구조적 귀납법.
+  -- 각 케이스는 가설 `hnum … hbin` 중 하나를 그대로 적용하면 끝난다.
   sorry
 
 """,
