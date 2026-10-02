@@ -20,6 +20,7 @@ public import Reynolds.Answers.Ch01.Design
 public import Reynolds.Answers.Ch01.Background
 public import Reynolds.Answers.Ch01.Depth.Algebra
 public import Reynolds.Answers.Ch01.Depth.CategoryBridge
+public import Reynolds.Answers.Ch01.Depth.Construction
 public import Reynolds.Answers.Ch01.Depth.LogicFold
 public import Reynolds.Answers.Ch01.Depth.SignatureFunctor
 public import Reynolds.Answers.Ch01.Depth.TermMonad
@@ -45,4 +46,5 @@ public import Reynolds.Answers.Ch01.Depth.TermMonad
 14. `Depth/TermMonad.lean` — 심화 A (선택). 치환과 bind
 15. `Depth/CategoryBridge.lean` — 심화 C (선택). 두 정렬 대수의 범주와 Mathlib 초기성
 16. `Depth/LogicFold.lean` — 심화 A (선택). 의미·자유 변수의 두 정렬 접기
+17. `Depth/Construction.lean` — 심화 A (선택). 식 (1.2) 깊이별 구성과 no junk
 -/

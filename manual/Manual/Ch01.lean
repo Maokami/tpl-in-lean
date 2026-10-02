@@ -185,6 +185,15 @@ inductive Assert (V : Type u) where
 종이에서는 "이런 조건을 만족하는 집합이 있다고 하자" 로 시작해서 그 집합을 끝까지 만들지
 않는다. Lean에서는 선언 한 번이 그 집합을 실제로 만든다.
 
+## 범주론 렌즈로 보면
+
+Reynolds의 세 조건을 범주론의 말로 다시 쓰면, 구문 반송자는 _초기 대수_다 — 모든
+목표 대수로 가는 준동형이 꼭 하나 있다는 뜻이다. `inductive` 선언 한 번이 그 대수를
+즉시 만들어 준다. 책이 식 (1.2)에서 층별로 쌓아 올리는 구성은 그 초기 대수를 짓는
+표준적인 방법 하나이고, 초기성 자체에서 구조적 귀납법과 유일한 "접기(fold)"가 둘 다
+따라 나온다. 범주론 어휘를 몰라도 본문은 이 문단 없이 완결된다. 자세한 증명은
+[선택 심화](--tag--ch01-depth-construction)에 있다.
+
 # §1.2 표시적 의미론
 %%%
 tag := "ch01-semantics"
@@ -875,6 +884,157 @@ number := false
 서로 의존하지 않도록 골라 두었다.
 
 심화 트랙은 책을 따라가는 데 필요하지 않다. 건너뛰어도 1장은 완결된다.
+
+# 선택 심화: 책 식 (1.2) — 깊이별 구성
+%%%
+tag := "ch01-depth-construction"
+%%%
+
+Reynolds §1.1 p.4–5는 추상 구문의 반송자가 만족해야 할 조건 중 셋째("유한 번의 생성자
+적용으로 만들어진다")를 집합으로 직접 구성하는 방법으로도 보여 준다. 식 (1.2)다.
+
+```
+⟨intexp⟩⁽⁰⁾   = ∅
+⟨intexp⟩⁽ʲ⁺¹⁾ = {c₀(), c₁(), …} ∪ {c_var(x) | x ∈ ⟨var⟩}
+                 ∪ {c₋(e) | e ∈ ⟨intexp⟩⁽ʲ⁾} ∪ …
+⟨intexp⟩      = ⋃ⱼ ⟨intexp⟩⁽ʲ⁾
+```
+
+`inductive`는 이 구성을 전부 생략하고 결과만 공짜로 준다. `Depth/Construction.lean`은
+그 생략된 구성을 `IntExp V` 위의 부분집합 층으로 되살린다.
+
+```anchor IntExp.layer (module := Reynolds.Answers.Ch01.Depth.Construction)
+def IntExp.layer (V : Type u) : ℕ → Set (IntExp V)
+  | 0     => ∅
+  | j + 1 =>
+      Set.range IntExp.num ∪ Set.range IntExp.var
+        ∪ IntExp.neg '' IntExp.layer V j
+        ∪ ⋃ op : IntOp, Set.image2 (IntExp.bin op) (IntExp.layer V j) (IntExp.layer V j)
+```
+
+`num`과 `var`는 자식이 없으므로 첫 층(`j = 0 → 1`)부터 나타나고, 그 뒤로는 매 층에서
+같은 집합으로 다시 나온다. `neg`와 `bin`은 한 단계 아래 층의 원소를 재료로 쓴다. 다음은
+그 "다시 나온다"는 단조성(완성된 `layer_mono`)을 재료로 쓰는 연습이다.
+
+```anchor IntExp.mem_layer_succ_depth (module := Reynolds.Answers.Ch01.Depth.Construction)
+@[exercise "심화 A1.7" 2]
+theorem IntExp.mem_layer_succ_depth {V : Type u} (e : IntExp V) :
+    e ∈ IntExp.layer V (e.depth + 1) := by
+```
+
+모든 구는 자기 깊이(depth)보다 한 층 위에 있다. `neg` 케이스는 귀납 가설의 층이 그대로
+맞고, `bin` 케이스에서는 두 자식을 `layer_mono`로 같은 층까지 끌어올린 뒤 합친다.
+
+식 (1.2)의 결론 — 반송자는 깊이별 층들의 합집합이다 — 은 이 연습의 바로 쓸 수 있는
+귀결이라 완성된 채로 둔다. 책의 셋째 조건 자체도 집합으로 다시 적을 수 있다.
+
+```anchor IntExp.eq_univ_of_closed (module := Reynolds.Answers.Ch01.Depth.Construction)
+@[exercise "심화 A1.6" 1]
+theorem IntExp.eq_univ_of_closed {V : Type u} (S : Set (IntExp V))
+    (hnum : ∀ n, IntExp.num n ∈ S) (hvar : ∀ v, IntExp.var v ∈ S)
+    (hneg : ∀ e ∈ S, IntExp.neg e ∈ S)
+    (hbin : ∀ op, ∀ e₀ ∈ S, ∀ e₁ ∈ S, IntExp.bin op e₀ e₁ ∈ S) :
+    S = Set.univ := by
+```
+
+생성자를 적용해도 빠져나가지 못하는 부분집합은 애초에 전체였어야 한다("no junk").
+`IntExp.rec`가 그대로 증명을 준다 — `layer`를 전혀 쓰지 않으므로 앞 연습과는 독립이다.
+
+_책과의 차이_: 책은 이 구성을 ⟨intexp⟩와 ⟨assert⟩ 둘 다에 대해 말한다. 여기서는 정수
+식만 다룬다. `Assert`는 반송자가 둘이고 `cmp`가 정렬을 건너가므로, 층을 두 반송자에
+동시에 매기는 구성이 한 단계 더 필요하다.
+
+이 깊이별 구성은 2장 §2.4 끝에서 나오는, 명령 의미의 최소 고정점 구성과 같은 모양이다 —
+둘 다 "∅(또는 ⊥)에서 시작해 한 단계 연산자를 반복 적용한 사슬의 합"이다.
+
+# 선택 심화: 초기성이 구조적 귀납을 돌려준다
+%%%
+tag := "ch01-depth-induction"
+%%%
+
+`Depth/Algebra.lean`의 초기성(`IntExp.initial`)은 "항 대수가 모든 대수로 유일한
+준동형을 갖는다"는 명제였고, 그 유일성은 구조적 귀납법으로 증명했다. 반대 방향도
+성립한다 — 초기성 하나만 있으면 구조적 귀납 원리를 되찾을 수 있다.
+
+다음 연습은 그 반대 방향을 일반 정리로 적은 것이다. 특정 대수가 실제로 초기라는 사실은
+쓰지 않는다. 대신 "어떤 `IntExp V`가 초기 대수라면"이라는 가설 `hinit`에서 결론을
+끌어낸다.
+
+```anchor IntExp.induction_of_initial (module := Reynolds.Answers.Ch01.Depth.Algebra)
+@[exercise "심화 A1.5" 3]
+theorem IntExp.induction_of_initial {V : Type u}
+    (hinit : ∀ A : IntExpAlg.{u, u} V, ∃! h : IntExp V → A.Carrier, IsHom A h)
+    (P : IntExp V → Prop)
+    (hnum : ∀ n, P (.num n)) (hvar : ∀ v, P (.var v))
+    (hneg : ∀ e, P e → P (.neg e))
+    (hbin : ∀ op e₀ e₁, P e₀ → P e₁ → P (.bin op e₀ e₁)) :
+    ∀ e, P e := by
+```
+
+증명의 뼈대는 부분 대수 논법(sub-algebra argument)이다. `P`에 닫힌 부분집합
+`{x // P x}`를 대수로 만들면, 포함 사상 `Subtype.val`은 그 부분 대수에서 항 대수로
+가는 준동형이다. `hinit`으로 얻은 유일한 사상을 그 포함 사상과 합성하면 항 대수의
+자기 자신으로 가는 준동형이 되는데, `id`도 그런 준동형이고 `hinit`을 항 대수 자신에
+적용하면 그런 준동형이 하나뿐이라고 말해 준다. 그래서 둘이 같고, 그 등식이 바로
+"모든 `e`에서 `P e`"가 된다.
+
+이 정리는 `IntExp.initial`(심화 A1.1)을 전혀 몰라도 성립한다. 반대로 `IntExp.initial`을
+`hinit`에 넣으면 §5의 유일성 증명 없이도 구조적 귀납 원리를 얻는다 — 다만 그 결합을
+따로 적지는 않는다. 독자가 "이 연습이 A1.1에 기대는 건가?"라고 헷갈리기 쉬워서다.
+`induction e with …` 태틱이 이미 공짜로 주는 것과 같은 결론이지만, 증명 방법이 다르다는
+것이 요점이다 — 케이스 분석 없이 보편 성질 하나로 모든 생성자 조건을 동시에 처리한다.
+
+# 선택 심화: 초기성이 Lambek 보조정리를 돌려준다
+%%%
+tag := "ch01-depth-lambek-general"
+%%%
+
+`Depth/SignatureFunctor.lean`의 `IntExp.lambek`은 `cases`로 끝난다. `inductive`가
+이미 만들어 둔 `roll`/`unroll`을 확인할 뿐이지, 초기 대수의 구조 사상이 _왜_ 항상
+동형인지는 아직 보이지 않는다. 다음 정리가 그 이유다 — 특정 구문을 전혀 쓰지 않고
+"초기 `Sig V`-대수의 구조 사상은 동형이다"를 추상적으로 보인다.
+
+```anchor IsSigHom (module := Reynolds.Answers.Ch01.Depth.SignatureFunctor)
+def IsSigHom {V : Type u} {C D : Type v} (s : Sig V C → C) (t : Sig V D → D) (h : C → D) :
+    Prop :=
+  ∀ x, h (s x) = t (Sig.map h x)
+```
+
+`h`가 "자식에 `h`를 입힌 뒤 구조 사상을 적용한 것"과 "`h`를 적용한 뒤 구조 사상을
+적용한 것"을 같게 만든다는 한 줄이다. `Depth/Algebra.lean`의 `IsHom`은 이 조건을
+`IntExpAlg`의 생성자별 필드로 풀어 쓴 것과 같다.
+
+```anchor isIso_of_initial (module := Reynolds.Answers.Ch01.Depth.SignatureFunctor)
+theorem isIso_of_initial {V : Type u} {C : Type u} (s : Sig V C → C)
+    (hinit : ∀ {D : Type u} (t : Sig V D → D), ∃! h : C → D, IsSigHom s t h) :
+    Function.Bijective s := by
+  obtain ⟨φ, hφ, _⟩ := hinit (Sig.map s)
+  have hψ : IsSigHom s s (s ∘ φ) := by
+    intro x
+    change s (φ (s x)) = s (Sig.map (s ∘ φ) x)
+    rw [hφ x, Sig.map_comp]
+  obtain ⟨_, _, huniq⟩ := hinit s
+  have hidHom : IsSigHom s s (id : C → C) := fun x => by rw [Sig.map_id]; rfl
+  have hcomp : s ∘ φ = id := (huniq _ hψ).trans (huniq id hidHom).symm
+  have hleft : φ ∘ s = id := by
+    funext x
+    change φ (s x) = x
+    calc φ (s x) = Sig.map s (Sig.map φ x) := hφ x
+      _ = Sig.map (s ∘ φ) x := Sig.map_comp φ s x
+      _ = Sig.map id x := by rw [hcomp]
+      _ = x := Sig.map_id x
+  exact Function.bijective_iff_has_inverse.mpr ⟨φ, congrFun hleft, congrFun hcomp⟩
+```
+
+초기성을 가설 `hinit`으로 받는다 — 다른 모든 `Sig V`-대수로 가는 준동형이 `(C, s)`에서
+정확히 하나 있다는 뜻이다. 증명은 범주론의 표준 논증이다. 자식 자리에 `s`를 한 번 더
+입힌 대수 `(Sig V C, Sig.map s)`로 가는 유일한 준동형 `φ`를 얻고, `s ∘ φ`와 `id`가 둘 다
+`(C, s)`의 자기 준동형임을 보여 `s ∘ φ = id`를 얻는다. 그 등식을 `φ`의 준동형 조건에
+다시 넣고 함자 법칙(`map_id`)을 쓰면 `φ ∘ s = id`도 나온다.
+
+이 정리는 비채점 _심화 B1.2_로 분류하되 완성본으로 둔다. `IntExp.lambek`(심화 B1.1)이
+`C := IntExp V`, `s := IntExp.roll`로 놓은 한 사례이지만, 그 사례를 따로 선언하지는
+않는다 — 같은 결론을 복제하면 B1.1을 자명하게 만든다.
 
 # 선택 심화: 정수 식과 단언을 함께 접기
 %%%

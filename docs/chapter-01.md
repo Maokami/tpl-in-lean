@@ -277,6 +277,15 @@ theorem IntExp.initial (A : IntExpAlg V) :
 현재 파일은 `eval`과 `fv`가 이 유일 준동형으로 얻는 fold와 같음을 증명한다.
 `toPrefix`도 같은 재귀 구조를 따르지만, 그 일치 정리는 아직 따로 두지 않았다.
 
+같은 파일에 "초기성 ⇒ 구조적 귀납 원리"를 **초기성을 가설로 받는 일반 정리**로 적은
+`IntExp.induction_of_initial`이 있다. 부분 대수 `{x // P x}`에 초기성을 적용하고,
+포함 사상과 `id`가 모두 `termAlg V`의 자기 준동형이라는 사실에서 둘이 같음을 얻는
+방식이다. `Depth/SignatureFunctor.lean`에는 거꾸로 "초기성 ⇒ Lambek 보조정리"를
+추상적으로 증명한 `isIso_of_initial`이 있다 — 임의의 `Sig V`-대수에 대한 완성본이고,
+`IntExp`에 대한 따름정리는 따로 두지 않는다(`IntExp.lambek`을 복제하지 않기 위해서다).
+`Depth/Construction.lean`은 책 식 (1.2)의 깊이별 집합 구성(`IntExp.layer`)과 "닫힌
+부분집합은 전체다"(no junk, `IntExp.eq_univ_of_closed`)를 보탠다.
+
 ---
 
 ## §1.2 표시적 의미론

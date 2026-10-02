@@ -250,4 +250,27 @@ open Summation in
 example (e : SExp String) (δ : SSubst String) :
     (e.subst δ).fv = e.fv.biUnion (fun w => (δ w).fv) := fv_subst_sExp e δ
 
+-- `Depth/Construction.lean` — 깊이(depth)는 계산 가능하다.
+#guard (IntExp.num (1 : ℤ) : IntExp String).depth == 0
+#guard (IntExp.neg (IntExp.neg (IntExp.num 1)) : IntExp String).depth == 2
+
+-- 책 식 (1.2): 층은 ∅ 에서 시작한다.
+example : IntExp.layer String 0 = (∅ : Set (IntExp String)) := rfl
+
+-- 원자(atom)는 첫 층부터 있고, 그보다 앞선 층(∅)에는 없다.
+example : (IntExp.num (1 : ℤ) : IntExp String) ∈ IntExp.layer String 1 := by
+  simp [IntExp.layer]
+example : (IntExp.num (1 : ℤ) : IntExp String) ∉ IntExp.layer String 0 := by
+  simp [IntExp.layer]
+
+-- 깊이 2 식 `- (-1)` 은 자기 깊이 + 1 = 3층에 있다(`mem_layer_succ_depth`).
+example : (IntExp.neg (IntExp.neg (IntExp.num (1 : ℤ))) : IntExp String) ∈
+    IntExp.layer String 3 :=
+  IntExp.mem_layer_succ_depth _
+
+-- 같은 식은 1층에는 없다 — 1층은 원자(`num`/`var`)만 모은다.
+example : (IntExp.neg (IntExp.neg (IntExp.num (1 : ℤ))) : IntExp String) ∉
+    IntExp.layer String 1 := by
+  simp [IntExp.layer]
+
 end Reynolds.Answers.Ch01
