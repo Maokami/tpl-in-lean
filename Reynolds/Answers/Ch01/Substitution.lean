@@ -225,6 +225,99 @@ theorem fv_subst_intExp (e : IntExp V) (δ : Subst V) :
 -- ANCHOR_END: prop12
 
 /--
+**명제 1.2(a)** — 단언 판. 자유 변수 위에서 같은 치환 사상은 같은 결과를 낸다.
+
+책(p.19)은 "p가 type θ의 구"라고 일반적으로 말하므로 단언에도 성립해야 하는데,
+정수 식 판(`subst_congr_intExp`)만 있었다. 채점 연습이 아니라 완성본으로 둔다 —
+`captureSet`이 `δ`를 `FV(p) − {v}` 위에서만 보기 때문에 양화사 절도 구문 등식으로
+성립하고(`Prop 1.2b-assert`의 `hcap` 계산과 같은 모양), `Prop 1.3-assert`(치환
+정리)의 핵심 귀납과는 다른 성질이라 거기를 자명하게 만들지 않는다.
+-/
+theorem subst_congr_assert [HasFresh V] :
+    ∀ (p : Assert V) (δ δ' : Subst V), (∀ w ∈ p.fv, δ w = δ' w) → p /ₛ δ = p /ₛ δ' := by
+  intro p
+  induction p with
+  | tru | fls => intro _ _ _; rfl
+  | cmp c e₀ e₁ =>
+      intro δ δ' h
+      simp [Assert.subst,
+        subst_congr_intExp e₀ δ δ' fun w hw => h w (by simp [Assert.fv, hw]),
+        subst_congr_intExp e₁ δ δ' fun w hw => h w (by simp [Assert.fv, hw])]
+  | not p ih => intro δ δ' h; simp [Assert.subst, ih δ δ' h]
+  | bin op p q ihp ihq =>
+      intro δ δ' h
+      simp [Assert.subst,
+        ihp δ δ' fun w hw => h w (by simp [Assert.fv, hw]),
+        ihq δ δ' fun w hw => h w (by simp [Assert.fv, hw])]
+  | quant qt v p ih =>
+      intro δ δ' h
+      simp only [Assert.fv] at h
+      -- `v`를 제외한 자유 변수 위에서만 일치하므로 `captureSet`도, 따라서 새 결합 변수도 같다.
+      have hcap : captureSet p v δ = captureSet p v δ' :=
+        Finset.biUnion_congr rfl fun w hw => congrArg IntExp.fv (h w hw)
+      have hnewB : newBinder p v δ = newBinder p v δ' := by
+        unfold newBinder; rw [hcap]
+      change Assert.quant qt (newBinder p v δ)
+          (p.subst (Function.update δ v (.var (newBinder p v δ))))
+        = Assert.quant qt (newBinder p v δ')
+          (p.subst (Function.update δ' v (.var (newBinder p v δ'))))
+      rw [hnewB]
+      congr 1
+      apply ih
+      intro w hw
+      by_cases hwv : w = v
+      · subst hwv; simp
+      · simp only [Function.update_apply, if_neg hwv]
+        exact h w (Finset.mem_erase.mpr ⟨hwv, hw⟩)
+
+/--
+**명제 1.2(c)** — 단언 판. 치환 후의 자유 변수.
+
+`subst_var_assert`(아래, Prop 1.2b-assert)보다 먼저 두는 이유는 하나다: 그 증명이
+항등 치환 하나만 다루는 특수 사례라서, 일반 `δ`에 대한 이 결과와 독립적이어야
+`subst_var_assert`를 채점에서 자명하게 만들지 않는다(둘은 서로 다른 δ에 대한
+진술이라 어차피 한쪽이 다른 쪽을 안 쓴다).
+
+양화사 절에서 `newBinder_notMem_fv`를 쓴다: `v`가 아닌 자유 변수 `w`가 `δ`로 가서
+만든 자유 변수 안에는 새 결합 변수가 없으므로, 바깥의 `erase`가 그 부분에는
+영향을 주지 않는다.
+-/
+theorem fv_subst_assert [HasFresh V] :
+    ∀ (p : Assert V) (δ : Subst V), (p /ₛ δ).fv = p.fv.biUnion fun w => (δ w).fv := by
+  intro p
+  induction p with
+  | tru | fls => intro δ; simp [Assert.subst, Assert.fv]
+  | cmp c e₀ e₁ =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, fv_subst_intExp]
+      exact Finset.union_biUnion.symm
+  | not p ih => intro δ; simpa [Assert.subst, Assert.fv] using ih δ
+  | bin op p q ihp ihq =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, ihp, ihq]
+      exact Finset.union_biUnion.symm
+  | quant qt v p ih =>
+      intro δ
+      simp only [Assert.subst, Assert.fv, ih]
+      ext u
+      constructor
+      · intro hu
+        obtain ⟨hune, hu⟩ := Finset.mem_erase.mp hu
+        obtain ⟨w, hw, hu⟩ := Finset.mem_biUnion.mp hu
+        rw [Function.update_apply] at hu
+        split_ifs at hu with hwv
+        · simp only [IntExp.fv, Finset.mem_singleton] at hu
+          exact absurd hu hune
+        · exact Finset.mem_biUnion.mpr ⟨w, Finset.mem_erase.mpr ⟨hwv, hw⟩, hu⟩
+      · intro hu
+        obtain ⟨w, hw', hu⟩ := Finset.mem_biUnion.mp hu
+        obtain ⟨hwv, hw⟩ := Finset.mem_erase.mp hw'
+        refine Finset.mem_erase.mpr ⟨fun heq => newBinder_notMem_fv hw hwv (heq ▸ hu),
+          Finset.mem_biUnion.mpr ⟨w, hw, ?_⟩⟩
+        rw [Function.update_apply, if_neg hwv]
+        exact hu
+
+/--
 단언 판의 명제 1.2(b). 변수 치환 `IntExp.var` 는 구문을 바꾸지 않는다.
 양화사 절에서는 `newBinder` 가 기존 결합자 `v` 를 그대로 선택하므로 귀납 가설을 적용할 수 있다.
 -/
