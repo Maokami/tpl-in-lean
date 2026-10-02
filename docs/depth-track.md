@@ -241,7 +241,7 @@ Reynolds §1.1 p.4–5가 셋째 조건("유한 생성")을 집합으로 직접 
 고정된 변수 타입에서 이 진술은 모나드의 우단위 법칙과 같은 모양이다.
 
 **대응표** — 다형적 치환 `IntExp V → (V → IntExp W) → IntExp W`까지 일반화하면
-`V ↦ IntExp V`가 모나드를 이룬다. 현재 파일은 `V = W`인 경우의 법칙을 증명한다.
+`V ↦ IntExp V`가 모나드를 이룬다. 현재 파일은 고정된 `V`의 치환 법칙과 다형 `bind`의 법칙을 둘 다 둔다.
 
 | Reynolds | 모나드 |
 |---|---|
@@ -271,12 +271,18 @@ Reynolds가 §1.4 끝에서 **고차 추상 구문(higher-order abstract syntax)
 결합 변수의 이름을 추상 구문의 본질로 보지 않는 이 문제와 이어진다.
 
 **구성**
-1. 고정된 `V`에서 `pure := .var`, `bind := subst` 역할을 하는 치환 법칙 세 개를 증명한다.
-2. `Monad IntExp` 인스턴스는 만들지 않는다. 실제 인스턴스에는 변수 타입을 바꾸는 다형적
-   `bind`와 universe 정리가 필요하다. 현재 학습 목표에는 명시적 정리가 더 읽기 쉽다.
-3. `Assert V → Subst V → Assert V`는 현재의 이름 있는 표현에서는 **가군 작용의 후보**다.
-   법칙이 등호가 아니라 `=α`까지만 성립함을 반례와 함께 보인다.
-4. CSlib `HasAlphaEquiv` 로 `=α` 를 정의하고, 몫에서 법칙이 그대로 성립함을 ★★★ 연습으로.
+1. 고정된 `V`에서 `pure := .var`, `bind := subst` 역할을 하는 치환 법칙 셋
+   (`subst_var_left`, `subst_pure_right`, `subst_assoc_intExp`).
+2. 변수 타입을 바꾸는 다형 `IntExp.bind`, 단위 법칙 둘(`bind_pure_left`, `bind_pure_right`),
+   결합법칙 `bind_assoc`, Kleisli 합성 `Subst.kleisli`(`>=>ₑ`). §1의 `subst`는 `bind`의
+   `V = W` 특수화다(`IntExp.subst_eq_bind`). `Monad IntExp` 인스턴스는 선언하지 않는다.
+   만들 수는 있지만(universe 문제는 없다) 학습 목표에는 구체적 이름의 정리가 더 읽기 쉽다.
+3. `Assert`에서는 결합법칙이 **등호로는** 깨지는 반례(`subst_assoc_assert_not_eq`)를 보인다.
+   의미 수준에서는 성립한다(`subst_assoc_assert_meaning`).
+4. α-동치 `Assert.AlphaEq`(CSlib `HasAlphaEquiv` 인스턴스)와 그 의미 보존
+   `Assert.AlphaEq.sound`. 결합자 하나의 이름 바꾸기가 뜻을 보존한다는 사실은 가설
+   `hrename`으로 받는다. 명제 1.5 `renaming_assert`의 증명이 채점 연습 명제 1.3에 기대므로,
+   그대로 부르면 연습 독립성이 깨진다.
 5. 참고문헌: Fiore–Plotkin–Turi, *Abstract Syntax with Variable Binding* (LICS 1999) —
    원시 이름 구문은 `Type` 위 초기 대수로 둘 수 있다. 문맥 확장, α-동치, 포획 회피
    치환까지 구조에 담을 때는 **준층(presheaf)**이 표준적인 방법 중 하나다.
@@ -284,10 +290,10 @@ Reynolds가 §1.4 끝에서 **고차 추상 구문(higher-order abstract syntax)
 **연습**
 | id | 내용 | ★ |
 |---|---|---|
-| 심화 A2.1 | `IntExp` 의 좌단위·우단위 법칙 | ★★ |
-| 심화 A2.2 | `IntExp` 의 결합법칙 (= 연습 1.7(a)의 결합자 없는 판) | ★★★ |
-| 심화 A2.3 | `Assert` 에서 결합법칙이 등호로는 깨지는 **반례**를 만들어라 | ★★ |
-| 심화 A2.4 | `Assert` 판을 `=α` 로 진술하고 증명하라 | ★★★ |
+| 심화 A2.1 | 고정된 `V`에서 `IntExp` 치환의 결합법칙 (= 연습 1.7(a)의 결합자 없는 판) | ★★ |
+| 심화 A2.2 | 다형 `bind`의 결합법칙 `bind_assoc` | ★★ |
+| 심화 A2.3 | `Assert` 에서 결합법칙이 등호로는 깨지는 **반례** | ★★ |
+| 심화 A2.4 | α-동치는 뜻을 보존한다 `Assert.AlphaEq.sound` | ★★★ |
 
 ---
 
