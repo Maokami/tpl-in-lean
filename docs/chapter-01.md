@@ -399,21 +399,21 @@ Reynolds는 완전한 체계를 주지 않는다(*"consult any elementary text o
 ```lean
 -- ANCHOR: proofSystem
 /--
-술어 논리의 작은 추론 체계. Reynolds §1.3이 예시로 드는 규칙들이다.
+술어 논리의 작은 추론 체계. Reynolds §1.3 p.13이 공리·공리꼴·두 전제 규칙·한 전제
+규칙의 예로 직접 드는 넷 그대로다.
 
 각 생성자가 하나의 추론 규칙이다. 전제가 위, 결론이 아래 — Lean의 화살표 방향이
 Reynolds의 가로선과 정확히 대응한다.
 -/
 inductive Proof : Assert V → Prop where
-  /-- 공리꼴: `e = e`. -/
-  | eqRefl (e : IntExp V) : Proof (.cmp .eq e e)
-  /-- 한 전제 규칙: `e₀ = e₁`로부터 `e₁ = e₀`. -/
-  | eqSymm {e₀ e₁ : IntExp V} : Proof (.cmp .eq e₀ e₁) → Proof (.cmp .eq e₁ e₀)
+  /-- 공리: `x + 0 = x`. -/
+  | addZero (x : V) : Proof (.cmp .eq (.bin .add (.var x) (.num 0)) (.var x))
+  /-- 공리꼴: `e₁ = e₀ ⇒ e₀ = e₁`. -/
+  | eqSymmSchema (e₀ e₁ : IntExp V) :
+      Proof (.bin .imp (.cmp .eq e₁ e₀) (.cmp .eq e₀ e₁))
   /-- 두 전제 규칙 — 전건 긍정(modus ponens). -/
   | mp {p q : Assert V} : Proof p → Proof (.bin .imp p q) → Proof q
-  /-- 두 전제 규칙 — 연언 도입. -/
-  | andIntro {p q : Assert V} : Proof p → Proof q → Proof (.bin .and p q)
-  /-- 보편 일반화(∀-도입). -/
+  /-- 한 전제 규칙 — 보편 일반화(∀-도입). -/
   | genAll (v : V) {p : Assert V} : Proof p → Proof (.quant .all v p)
 -- ANCHOR_END: proofSystem
 
