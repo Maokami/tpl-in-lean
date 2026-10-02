@@ -231,6 +231,65 @@ CSlib의 `FreeM.Interprets.iff`에는 이와 관련되지만 층이 다른 보�
 2장의 `Y`는 명령 의미가 사는 함수 도메인에서 최소 고정점을 고른다. Lambek 보조정리는
 초기 대수의 구조 사상이 동형임을 말한다. 유한 생성에서 연속성으로 이어지는 연결은 있지만,
 셋은 같은 구성이 아니다.
+
+## 6. 일반 Lambek 보조정리 — 초기성을 가설로
+
+§2의 `IntExp.lambek`은 `cases`로 끝난다. `inductive`가 이미 만들어 둔 `roll`/`unroll`을
+확인할 뿐이지, "왜 초기 대수의 구조 사상이 항상 동형인가"라는 일반적인 이유는 아직 보이지
+않는다. 아래 `isIso_of_initial`이 그 이유다 — 특정 구문(`IntExp`)을 전혀 쓰지 않고,
+"초기 `Sig V`-대수의 구조 사상은 동형이다"를 추상적으로 증명한다. `IntExp.lambek`(심화
+B1.1)이 이 일반 정리의 한 사례이지만, 그 사례를 여기서 다시 적지는 않는다 — 같은 결론을
+복제하면 B1.1을 자명하게 만든다. 비채점 **심화 B1.2**로 분류하되(`docs/depth-track.md`),
+증명을 완성된 형태로 둔다. -/
+
+/-- `s : Sig V C → C`가 반송자 `C`에 준 구조 사상이라 할 때, `h`가 `s`에서 `t`로 가는
+`Sig V`-대수 준동형이라는 조건. "자식에 `h`를 입힌 뒤 구조 사상을 적용한 것"과 "`h`를
+적용한 뒤 구조 사상을 적용한 것"이 같다는 한 줄이다. `Depth/Algebra.lean`의 `IsHom`은
+이 조건을 `IntExpAlg`의 생성자별 필드로 풀어 쓴 것과 같다(§3의 `structureMap`이 그
+변환이다). -/
+-- ANCHOR: IsSigHom
+def IsSigHom {V : Type u} {C D : Type v} (s : Sig V C → C) (t : Sig V D → D) (h : C → D) :
+    Prop :=
+  ∀ x, h (s x) = t (Sig.map h x)
+-- ANCHOR_END: IsSigHom
+
+/--
+**일반 Lambek 보조정리.** 초기 `Sig V`-대수의 구조 사상은 동형(isomorphism)이다.
+
+초기성은 가설 `hinit`으로 받는다 — 다른 모든 `Sig V`-대수 `(D, t)`로 가는 `Sig`-준동형이
+`(C, s)`에서 정확히 하나 있다는 뜻이다. 결론에서 특정 구문 대수를 전혀 쓰지 않는다.
+
+증명은 범주론의 표준 논증이다.
+1. `(Sig V C, Sig.map s)`도 `Sig V`-대수다(자식 자리에 `s`를 한 번 입힌 것). `hinit`으로
+   거기로 가는 유일한 준동형 `φ : C → Sig V C`를 얻는다.
+2. `s ∘ φ`는 `(C, s)`의 자기 준동형이다 — `φ`의 준동형 조건에 함자 법칙 `map_comp`를
+   한 번 쓰면 나온다. `id`도 자기 준동형이고, `hinit`을 `(C, s)` 자신에 적용하면
+   자기 준동형이 하나뿐이므로 `s ∘ φ = id`.
+3. 이 등식을 `φ`의 준동형 조건에 다시 넣고 `map_id`를 쓰면 `φ ∘ s = id`가 나온다.
+두 등식이 `s`의 가역성을 준다. 이 파일 §2의 `IntExp.lambek`은 이 정리를 다시 적지
+않는다 — 대신 `C := IntExp V`, `s := IntExp.roll`로 놓으면 그대로 사례가 된다는 것만
+짚어 둔다(따로 선언하지 않는다).
 -/
+-- ANCHOR: isIso_of_initial
+theorem isIso_of_initial {V : Type u} {C : Type u} (s : Sig V C → C)
+    (hinit : ∀ {D : Type u} (t : Sig V D → D), ∃! h : C → D, IsSigHom s t h) :
+    Function.Bijective s := by
+  obtain ⟨φ, hφ, _⟩ := hinit (Sig.map s)
+  have hψ : IsSigHom s s (s ∘ φ) := by
+    intro x
+    change s (φ (s x)) = s (Sig.map (s ∘ φ) x)
+    rw [hφ x, Sig.map_comp]
+  obtain ⟨_, _, huniq⟩ := hinit s
+  have hidHom : IsSigHom s s (id : C → C) := fun x => by rw [Sig.map_id]; rfl
+  have hcomp : s ∘ φ = id := (huniq _ hψ).trans (huniq id hidHom).symm
+  have hleft : φ ∘ s = id := by
+    funext x
+    change φ (s x) = x
+    calc φ (s x) = Sig.map s (Sig.map φ x) := hφ x
+      _ = Sig.map (s ∘ φ) x := Sig.map_comp φ s x
+      _ = Sig.map id x := by rw [hcomp]
+      _ = x := Sig.map_id x
+  exact Function.bijective_iff_has_inverse.mpr ⟨φ, congrFun hleft, congrFun hcomp⟩
+-- ANCHOR_END: isIso_of_initial
 
 end Reynolds.Answers.Ch01
