@@ -27,7 +27,7 @@ Reynolds가 §1.1에서 추상 구문에 부과하는 조건은 Lean의 `inducti
 | `Ch01/Syntax.lean` | §1.1 | `IntExp`, `Assert`, 추상 구문 조건이 왜 공짜인가 |
 | `Ch01/Notation.lean` | §1.1 | 구체 구문 → 추상 구문 (Lean 매크로 DSL) |
 | `Ch01/Realizations.lean` | §1.1, 연습 1.3 | 괄호 없는 접두 표기와 구문 트리의 일대일 대응 |
-| `Ch01/Depth/Algebra.lean` | §1.1 각주 | 초기 대수(initial algebra) — 선택 심화 |
+| `Ch01/Depth/Algebra.lean` | §1.1 p.5 (본문 괄호 속, 각주 아님) | 초기 대수(initial algebra) — 선택 심화 |
 | `Ch01/Semantics.lean` | §1.2 | `IntExp.eval`, `Assert.eval` |
 | `Ch01/Validity.lean` | §1.3 | 타당성, 강함/약함, 추론 규칙, 건전성 |
 | `Ch01/FreeVars.lean` | §1.4 | `FV`, 명제 1.1 일치 정리 |
@@ -171,7 +171,7 @@ Reynolds가 §1.1에서 부과하는 세 조건과 Lean의 대응:
 | 각 생성자는 **단사(injective)** | `IntExp.bin.injEq`, `injection` 태틱 |
 | 같은 반송자(carrier)로 가는 두 생성자의 **치역이 서로소** | `IntExp.noConfusion`, `simp`/`nofun` |
 | 모든 원소가 **유한 번의 생성자 적용**으로 만들어짐 | 재귀자 `IntExp.rec` = 구조적 귀납법 |
-| (각주) 이들이 **다중 정렬 초기 대수(many-sorted initial algebra)**를 이룬다 | `IntExp.rec`의 유일성 |
+| (p.5 본문 괄호 속, 각주 아님) 이들이 **다중 정렬 초기 대수(many-sorted initial algebra)**를 이룬다 | `IntExp.rec`의 유일성 |
 
 이걸 코드로 직접 보여준다:
 
@@ -257,9 +257,9 @@ noncomputable def IntExp.equivPrefixPhrase : IntExp String ≃ PrefixPhrase
 
 ### `Depth/Algebra.lean` (선택 심화)
 
-범주론을 아는 사람을 위한 보너스이자, Reynolds의 각주
-*"the reader who is familiar with universal algebra will recognize that these conditions
-insure that abstract phrases form a many-sorted initial algebra"* 의 형식화다.
+범주론을 아는 사람을 위한 보너스이자, Reynolds가 §1.1 p.5 본문 괄호 속에 적은(각주가
+아니다) *"the reader who is familiar with universal algebra will recognize that these
+conditions insure that abstract phrases form a many-sorted initial algebra"* 의 형식화다.
 
 ```lean
 /-- `IntExp V`에 대한 대수(algebra) — Reynolds의 "반송자 + 생성자". -/
@@ -533,7 +533,7 @@ Reynolds가 변수 포획의 문제를 보이는 반례를 따라간다.
 
 ```lean
 -- ANCHOR: subst
-/-- 치환 사상(substitution map). Reynolds의 Θ = ⟨var⟩ → ⟨intexp⟩. -/
+/-- 치환 사상(substitution map). Reynolds의 Δ = ⟨var⟩ → ⟨intexp⟩. -/
 abbrev Subst (V : Type u) := V → IntExp V
 
 /-- `e /ₛ δ` — 정수 식에 대한 동시 치환(simultaneous substitution). -/

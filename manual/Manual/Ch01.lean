@@ -1430,9 +1430,10 @@ number := false
 
 * *일치 정리와 치환 정리* — 이름을 다루는 모든 언어에서 같은 짝으로 나온다.
   CSlib의 `Cslib/Languages/LambdaCalculus/`가 λ-계산법에서 같은 일을 한다.
-* *초기 대수 의미론(initial algebra semantics)* — Reynolds가 §1.1 각주에서
-  "다중 정렬 초기 대수"라고 부르는 관점이다. `Depth/Algebra.lean`은 고정된 변수 타입의
-  정수 식 정렬부터 시작해, 목표 대수마다 유일한 준동형이 생긴다는 명제를 증명한다.
+* *초기 대수 의미론(initial algebra semantics)* — Reynolds가 §1.1 본문 괄호 속(p.5,
+  각주가 아니다)에서 "다중 정렬 초기 대수"라고 부르는 관점이다. `Depth/Algebra.lean`은
+  고정된 변수 타입의 정수 식 정렬부터 시작해, 목표 대수마다 유일한 준동형이 생긴다는
+  명제를 증명한다.
 * *치환은 모나드의 bind 다* — `Depth/TermMonad.lean`. 연습 1.7 이 실은
   모나드 결합법칙이라는 것을 보인다.
 * *2장으로* — 1장의 의미 함수가 전함수였던 것은 술어 논리에 비종료가 없었기 때문이다.

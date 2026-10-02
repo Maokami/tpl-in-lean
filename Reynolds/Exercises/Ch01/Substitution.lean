@@ -19,11 +19,12 @@ Reynolds §1.4 (pp. 18–21) 에 대응한다.
 - 변수 포획(capture)을 피하는 법
 - 명제 1.2 (a)(b)(c) — 치환의 구문적 성질
 - 명제 1.3 (치환 정리) · 1.4 (유한 치환) · 1.5 (이름 바꾸기 정리)
-- §1.3 의 공리꼴 `(∀v. p) ⇒ p / v ↦ e` 가 타당함
+- §1.4 의 공리꼴 `(∀v. p) ⇒ p / v ↦ e` 가 타당함
 
 ## 배경
 
-Reynolds 는 이 절을 반례로 연다. 공리꼴
+Reynolds 는 명제 1.1 바로 뒤, §1.4 에서 결합과 치환이 부딪히는 자리를 이 반례로 연다.
+공리꼴
 
 ```
 (∀v. p) ⇒ (p / v → e)
@@ -45,9 +46,12 @@ Reynolds 는 이 절을 반례로 연다. 공리꼴
 `FreeVars.lean` → 이 파일 → `Depth/TermMonad.lean` (선택)
 
 ## 책과의 차이
-Reynolds 는 새 이름 `vnew` 를 "어떤 표준 순서에서 첫 번째" 로 정한다.
-여기서는 `HasFresh.fresh` 로 뽑는다. 이어지는 명제들이 쓰는 성질은
-`vnew` 가 특정 유한 집합 밖에 있다는 것 하나뿐이라, 어느 쪽이든 증명이 같다.
+Reynolds 의 `vnew` 규칙(p.19)은 두 단계다: `v` 자신이 안전하면 그대로 쓰고,
+아니면 "어떤 표준 순서에서 첫 번째" 변수로 간다. 뒤쪽 절반만 `HasFresh.fresh` 로
+바꿨다 — 이어지는 명제들이 쓰는 성질은 `vnew` 가 특정 유한 집합 밖에 있다는 것
+하나뿐이라, 어느 순서든 증명이 같다. 앞쪽 절반("`v`가 안전하면 그대로 쓴다")은
+`newBinder` 가 그대로 옮기며, 그 덕분에 항등 치환에서 결합 변수가 바뀌지 않아
+명제 1.2(b)가 구문 등식으로 성립한다(`subst_var_assert`).
 -/
 
 @[expose] public section
@@ -63,7 +67,7 @@ variable {V : Type u} [DecidableEq V]
 /-! ## 1. 치환 사상과 정수 식의 치환 -/
 
 /--
-치환 사상(substitution map). Reynolds 의 `Θ = ⟨var⟩ → ⟨intexp⟩`.
+치환 사상(substitution map). Reynolds 의 `Δ = ⟨var⟩ → ⟨intexp⟩`.
 
 변수 하나가 아니라 **모든 변수를 한꺼번에** 옮기는 함수다.
 Reynolds가 동시 치환을 기본으로 둔 덕분에 이 파일 §3의 이름 있는 포획 회피 정의를
@@ -410,10 +414,11 @@ theorem renaming_assert [HasFresh V] (q : Quant) (v vnew : V) (p : Assert V)
   · simpa [Assert.eval] using forall_congr' key
   · simpa [Assert.eval] using exists_congr key
 
-/-! ## 8. §1.3 의 공리꼴이 타당하다 -/
+/-! ## 8. §1.4 의 공리꼴이 타당하다 -/
 
 /--
-Reynolds 가 §1.4 를 여는 공리꼴 `(∀v. p) ⇒ (p / v ↦ e)` 가 타당하다.
+Reynolds 가 명제 1.1 바로 뒤에서 치환 이야기를 여는 공리꼴(1.13) `(∀v. p) ⇒ (p / v ↦ e)`
+가 타당하다. §1.3 이 아니라 §1.4(p.18)의 공리꼴이다.
 
 이 절 첫머리의 반례가 여기서 정리된다. 포획을 피하도록 치환을 정의했기 때문에
 `p := ∃y. y > x`, `v := x`, `e := y + 1` 을 넣어도 결론이 거짓이 되지 않는다.

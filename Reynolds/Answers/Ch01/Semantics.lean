@@ -10,7 +10,7 @@ public import Reynolds.Answers.Ch01.Syntax
 /-!
 # §1.2 표시적 의미론 (Denotational Semantics) — 정수 식
 
-Reynolds §1.2 (pp. 8–11)의 앞부분에 대응한다.
+Reynolds §1.2 (pp. 8–12)의 앞부분에 대응한다.
 
 ## 이 파일에서 다루는 것
 - 의미 함수 `⟦-⟧intexp ∈ ⟨intexp⟩ → Σ → ℤ`
@@ -47,15 +47,29 @@ universe u
 /--
 연산자 기호가 실제로 무슨 함수인가.
 
-0 으로 나누기에 대해 Reynolds §1.2 는 이렇게 못박는다.
+0 으로 나누기에 대해 Reynolds §1.2(pp. 11–12) 는 이렇게 문제를 짚고 §2.7·§3.8로
+미룬다.
 
-> *"expressions always terminate without an error stop. In particular, division by zero
-> must produce some integer result."*
+> *"every integer expression and assertion must have a value in every state; there is
+> nothing in predicate logic corresponding to nonterminating expressions or error stops.
+> But in conventional mathematics, neither the quotient m ÷ n nor the remainder m rem n
+> has any value when n = 0, … in most programming languages such an operation causes
+> an error stop."*
 
-Reynolds가 요구하는 것은 0으로 나누는 경우에도 어떤 정수를 돌려주는 전함수라는 점까지다.
+"항상 정수 결과를 내는 전함수"라는 요구를 "error stop 없이 항상 끝난다"는 말로
+명시하는 쪽은 §2.2(p. 26, *"expressions always terminate without an error stop …
+division by zero must produce some integer result"*)다 — §1.2 자체는 문제만 짚고
+해소하지 않는다.
+
 이 형식화는 그 미지정 값을 Lean `Int`의 규약인 `x / 0 = 0`, `x % 0 = x`로 정했다.
 따라서 0인 제수의 구체적인 결과에 의존하는 명제는 이 선택에 의존하고, 그 경우를 쓰지 않는
 명제만 이 선택과 무관하다. 이는 하드웨어 동작에 대한 주장이 아니다.
+
+**형식화 선택, 하나 더**: 음수 피제수의 몫·나머지 규약도 책이 정하지 않는 선택이다.
+Lean `Int`의 `/`·`%`는 0 쪽으로 자르는 것이 아니라 **유클리드 나눗셈**이다 — 예를 들어
+`(-7 : Int) / 2 = -4`, `(-7 : Int) % 2 = 1`. 자세한 비교(절단 나눗셈과의 차이, 두
+모델 모두에서 성립하는 법칙만 가정해야 하는 이유)는
+`manual/Manual/Ch03/Limits.lean`(§ "음수 나눗셈의 두 답")에 있다.
 -/
 -- ANCHOR: denote
 def IntOp.denote : IntOp → Int → Int → Int
